@@ -75,17 +75,12 @@ When having the database backup emailed or sent to your browser for immediate do
 Included with this plugin is a supplemental plugin, wp-cron-db-backup.php, which makes use of my WP-Cron plugin:
    http://www.skippy.net/blog/2005/05/26/plugin-wp-cron/
 
-If all three plugins are activated:
-* WP-Cron
-* WP-DB-Backup
-* WP-DB-Cron-Backup
-You will have another set of options available at Manage -> Backup.
+If you also have installed and activated  WP-Cron, you will have another set of options available at Manage -> Backup.
 
 Here you can schedule automated backups of your core WordPress tables, and have them emailed to the address of your choice.
 
    ONLY the core WordPress tables will be backed up
    no plugin tables will be included.
 
-This backup will occur once per day.
-To disable, select "None" for the schedule.
+This backup will occur once per day. To disable, select "None" for the schedule.
 
