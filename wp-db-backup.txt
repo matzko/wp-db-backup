@@ -86,5 +86,6 @@ Here you can schedule automated backups of your core WordPress tables, and have 
    ONLY the core WordPress tables will be backed up
    no plugin tables will be included.
 
-This backup will occur once per day (or week).
+This backup will occur once per day.
+To disable, select "None" for the schedule.
 
