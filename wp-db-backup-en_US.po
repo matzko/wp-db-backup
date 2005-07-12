@@ -1,0 +1,137 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: wp-db-backup\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: 2005-07-12 10:03-0500\n"
+"Last-Translator: skippy <skippy@skippy.net>\n"
+"Language-Team: skippy <skippy@skippy.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-Country: United States\n"
+"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: wp-db-backup.php:295
+msgid "Attached to this email is"
+msgstr "Attached to this email is"
+
+#: wp-db-backup.php:295
+msgid "Size"
+msgstr "Size"
+
+#: wp-db-backup.php:295
+msgid "kilobytes"
+msgstr "kilobytes"
+
+#: wp-db-backup.php:313
+msgid "Database Backup"
+msgstr "Database Backup"
+
+#: wp-db-backup.php:329
+msgid "Backup Successful"
+msgstr "Backup Successful"
+
+#: wp-db-backup.php:333
+#: wp-db-backup.php:342
+msgid "Your backup file"
+msgstr "Your backup file"
+
+#: wp-db-backup.php:333
+msgid "should begin downloading shortly."
+msgstr "should begin downloading shortly."
+
+#: wp-db-backup.php:335
+msgid "Your backup has been emailed to "
+msgstr "Your backup has been emailed to "
+
+#: wp-db-backup.php:342
+msgid "is ready for download; right click and select \"Save As\""
+msgstr "is ready for download; right click and select \"Save As\""
+
+#: wp-db-backup.php:342
+msgid " bytes"
+msgstr " bytes"
+
+#: wp-db-backup.php:346
+msgid "The following errors were reported"
+msgstr "The following errors were reported"
+
+#: wp-db-backup.php:355
+msgid "Scheduled Backup Options Saved!"
+msgstr "Scheduled Backup Options Saved!"
+
+#: wp-db-backup.php:385
+#: wp-db-backup.php:418
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable!</strong>"
+msgstr "WARNING: Your backup directory is <strong>NOT</strong> writable!</strong>"
+
+#: wp-db-backup.php:389
+#: wp-db-backup.php:416
+#: wp-db-backup.php:425
+msgid "Backup"
+msgstr "Backup"
+
+#: wp-db-backup.php:390
+msgid "Tables"
+msgstr "Tables"
+
+#: wp-db-backup.php:393
+msgid "These core WordPress tables will always be backed up"
+msgstr "These core WordPress tables will always be backed up"
+
+#: wp-db-backup.php:399
+msgid "You may choose to include any of the following tables"
+msgstr "You may choose to include any of the following tables"
+
+#: wp-db-backup.php:405
+msgid "Backup Options"
+msgstr "Backup Options"
+
+#: wp-db-backup.php:407
+msgid "Deliver backup file by"
+msgstr "Deliver backup file by"
+
+#: wp-db-backup.php:408
+msgid "None"
+msgstr "None"
+
+#: wp-db-backup.php:409
+msgid "Email"
+msgstr "Email"
+
+#: wp-db-backup.php:410
+msgid "Download"
+msgstr "Download"
+
+#: wp-db-backup.php:411
+#: wp-db-backup.php:446
+msgid "Email backup to"
+msgstr "Email backup to"
+
+#: wp-db-backup.php:414
+msgid "Use gzip compression"
+msgstr "Use gzip compression"
+
+#: wp-db-backup.php:425
+msgid "Scheduled"
+msgstr "Scheduled"
+
+#: wp-db-backup.php:426
+msgid "Last WP-Cron Daily Execution"
+msgstr "Last WP-Cron Daily Execution"
+
+#: wp-db-backup.php:427
+msgid "Next WP-Cron Daily Execution"
+msgstr "Next WP-Cron Daily Execution"
+
+#: wp-db-backup.php:431
+msgid "Schedule: "
+msgstr "Schedule: "
+
+#: wp-db-backup.php:448
+msgid "Submit"
+msgstr "Submit"
+
