@@ -4,17 +4,12 @@ Plugin Name: WordPress Database Backup
 Plugin URI: http://www.skippy.net/plugins/
 Description: On-demand backup of your WordPress database.
 Author: Scott Merrill
-Version: 1.4
+Version: 1.2
 Author URI: http://www.skippy.net/
 
-Released under the terms of the GNU GPL, version 2.
-   http://www.fsf.org/licensing/licenses/gpl.html
-
-                    NO WARRANTY.
-
-Much of the database functionality
-was modified from Mark Ghosh's One Click Backup, which
+Much of this was modified from Mark Ghosh's One Click Backup, which
 in turn was derived from phpMyAdmin.
+
 */
 
 add_action('admin_menu', 'add_wp_backup_menu');
@@ -427,12 +422,14 @@ echo '</fieldset>';
 // this stuff only displays if wp_cron is installed
 if (function_exists('wp_cron_db_backup')) {
 	echo '<fieldset class="options"><legend>' . __('Scheduled', 'wp_backup') . ' ' . __('Backup', 'wp_backup') . '</legend>';
+	echo '<p>' . __('Last WP-Cron Daily Execution', 'wp_backup') . ': ' . date('Y-m-d @ h:i', get_option('wp_cron_daily_lastrun')) . '<br />';
+	echo __('Next WP-Cron Daily Execution', 'wp_backup') . ': ' . date('Y-m-d @ h:i', (get_option('wp_cron_daily_lastrun') + 86400)) . '</p>';
 	echo '<form method="post">';
 	echo '<table width="100%" callpadding="5" cellspacing="5">';
 	echo '<tr><td align="center">';
 	echo __('Schedule: ', 'wp_backup');
 	$wp_cron_backup_schedule = get_option('wp_cron_backup_schedule');
-	$schedule = array("None" => 0, "Daily" => 1, "Weekly" => 7);
+	$schedule = array("None" => 0, "Daily" => 1);
 	foreach ($schedule as $name => $value) {
 		echo ' <input type="radio" name="cron_schedule"';
 		if ($wp_cron_backup_schedule == $value) {
