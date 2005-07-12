@@ -13,6 +13,7 @@ in turn was derived from phpMyAdmin.
 */
 
 add_action('admin_menu', 'add_wp_backup_menu');
+add_action('wp_cron_daily', 'wp_cron_db_backup');
 global $wp_backup_dir, $wp_backup_error;
 $wp_backup_error = '';
 $wp_backup_dir = 'wp-content/backup/';
@@ -452,5 +453,35 @@ if (function_exists('wp_cron_db_backup')) {
 echo '</fieldset></div>';
 
 }// end wp_backup_menu()
+
+/////////////////////////////
+function wp_cron_db_backup() {
+
+$schedule = intval(get_option('wp_cron_backup_schedule'));
+if (0 == $schedule) {
+        // Scheduled backup is disabled
+        return;
+}
+
+global $wp_backup_dir, $wp_backup_error, $table_prefix;
+$core_tables = array ($table_prefix . categories,
+        $table_prefix . comments,
+        $table_prefix . linkcategories,
+        $table_prefix . links,
+        $table_prefix . options,
+        $table_prefix . post2cat,
+        $table_prefix . postmeta,
+        $table_prefix . posts,
+        $table_prefix . users);
+
+$recipient = get_option('wp_cron_backup_recipient');
+
+$backup_file = wp_db_backup(TRUE, $core_tables);
+if (FALSE !== $backup_file) {
+        wp_deliver_backup ($backup_file, 'smtp', $recipient);
+}
+
+return;
+} // wp_cron_db_backup
 
 ?>
