@@ -1,0 +1,90 @@
+= WP-DB-Backup =
+tags: mysql, database, backup
+Contributors: Firas, LaughingLizard, MtDewVirus, Podz
+
+copyright (c) 2005 Scott Merrill (skippy@skippy.net)
+
+WP-DB-Backup allows you to easily backup your core WordPress database tables.  You may also optionally backup other tables in the same database.
+
+Released under the terms of the GNU GPL, version 2.
+   http://www.fsf.org/licensing/licenses/gpl.html
+
+              NO WARRANTY.
+
+== Installation ==
+1. Create a directory /wp-content/backup/ inside your WordPress directory.
+2. Make this directory writable by your webserver.
+   For example:
+   $ cd wordpress/wp-content
+   $ mkdir backup
+   $ chgrp www-data backup
+   $ chmod g+w backup
+3. Install and activate wp-db-backup.php
+
+== Usage ==
+1) Click the Manage menu in your WordPress admin area.
+2) Click the Backup sub-menu.
+
+The following core WordPress tables will be included in every backup:
+* wp_categories
+* wp_comments
+* wp_linkcategories
+* wp_links
+* wp_options
+* wp_post2cat
+* wp_postmeta
+* wp_posts
+* wp_users
+(Where "wp_" will automatically be replaced by whatever table prefix you use.)
+
+3) The plugin will look for other tables in the same database.  You may elect to include other tables in the backup.
+  ** NOTE **
+  Including other tables in your backup may substantially increase the
+  size of the backup, which may in turn cause several problems:
+  * PHP may run out of memory
+  * PHP may run out of time
+  * emailing the backup may fail because it's too big
+
+4) Select how you'd like the backup to be delivered:
+* None : this will create a file in /wp-content/backup/ for you to retreive later
+* Email : this will email the backup file to the address you specify
+* Download : this will send the backup file to your browser to be downloaded
+
+5) Optionally elect to have the backup gzip.  This is strongly recommended.
+6) Click "Backup!" and your database backup will be delivered to you.
+
+The filename of the backup file will be of the form
+   DB_prefix_date.sql
+DB = the name of your WordPress database, as defined in wp-config.php
+prefix = the table prefix for this WordPress blog, as defined in wp-config.php
+date = CCYYmmdd_B format:  20050711_039
+       the "B" is the internet "Swatch" time.  
+       See the PHP date() function for details.
+
+When having the database backup emailed or sent to your browser for immediate download, the backup file will be _deleted_ from the server when the transfer is finished.  Only if you select delivery method "None" will the backup file remain on your server.
+
+   *** SECURITY WARNING ***
+   Your database backup contains sensitive information,
+   and should not be left on the server for any extended
+   period of time.  The "None" delivery method is provided
+   as a convenience only.  I will not accept any responsibility
+   if other people obtain your backup file.
+   *** SECURITY WARNING ***
+
+== Advanced ==
+Included with this plugin is a supplemental plugin, wp-cron-db-backup.php, which makes use of my WP-Cron plugin:
+   http://www.skippy.net/blog/2005/05/26/plugin-wp-cron/
+
+If all three plugins are activated:
+* WP-Cron
+* WP-DB-Backup
+* WP-DB-Cron-Backup
+You will have another set of options available at Manage -> Backup.
+
+Here you can schedule automated backups of your core WordPress tables, and have them emailed to the address of your choice.
+
+   ONLY the core WordPress tables will be backed up
+   no plugin tables will be included.
+
+This backup will occur once per day (or week).
+
