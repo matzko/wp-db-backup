@@ -4,7 +4,7 @@ Plugin Name: WordPress Database Backup
 Plugin URI: http://www.skippy.net/plugins/
 Description: On-demand backup of your WordPress database.
 Author: Scott Merrill
-Version: 1.3
+Version: 1.4
 Author URI: http://www.skippy.net/
 
 Much of this was modified from Mark Ghosh's One Click Backup, which
@@ -411,7 +411,7 @@ echo '<input type="radio" name="deliver" value="http" /> ' . __('Download', 'wp_
 echo '</td><td align="left">' . __('Email backup to', 'wp_backup') . ':<br /> <input type="text" name="backup_recipient" size="20" value="' . get_settings('admin_email') . '" /></td></tr>';
 echo '<tr class="alternate"><td colspan="2" align="center">';
 if (! $WHOOPS) {
-	echo __('Use gzip compression', 'wp_backup') . '? <input type="checkbox" name="gzip" value="gzip" /><br />';
+	echo __('Use gzip compression', 'wp_backup') . '? <input type="checkbox" checked="checked" name="gzip" value="gzip" /><br />';
 	echo '<input type="hidden" name="do_backup" value="backup" />';
 	echo '<input type="submit" name="submit" value="' . __('Backup', 'wp_backup') . '!" / >';
 } else {
