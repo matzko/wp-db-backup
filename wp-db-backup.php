@@ -7,9 +7,14 @@ Author: Scott Merrill
 Version: 1.2
 Author URI: http://www.skippy.net/
 
-Much of this was modified from Mark Ghosh's One Click Backup, which
-in turn was derived from phpMyAdmin.
+Released under the terms of the GNU GPL, version 2.
+   http://www.fsf.org/licensing/licenses/gpl.html
 
+                    NO WARRANTY.
+
+Much of the database functionality
+was modified from Mark Ghosh's One Click Backup, which
+in turn was derived from phpMyAdmin.
 */
 
 add_action('admin_menu', 'add_wp_backup_menu');
