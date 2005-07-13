@@ -84,3 +84,15 @@ Here you can schedule automated backups of your core WordPress tables, and have 
 
 This backup will occur once per day. To disable, select "None" for the schedule.
 
+== Frequently Asked Questions ==
+Q. Why are only the core database files backed up by default?
+A. Because it's a fairly safe bet that the core WordPress files will be successfully backed up.  Plugins vary wildly in the amount of data that they store, so it's quite likely that backing up your plugins will cause the backup process to time out, or run out of memory.
+
+Q. Will you add a button so that I can automatically select all my other tables to back up?
+A. No.  Such a button would encourage people to click it, and for many people that would be a very bad thing.  The way it is now, you must deliberately select which additional tables to include in the backup.  This is a safety mechanism as much for me as it is for you.
+
+Q. But I've got a lot of extra tables to back up!
+A. If you have a lot of extra tables, the chances are high that you have a lot of extra data in those tables.  This significantly increases the chances that the backup from this plugin will fail.  If you do have a large volume of data to backup, consider phpMyAdmin, or the command-line `mysqldump` utility.
+
+Q. Can you set this up to run weekly, instead of daily?
+A. No.  If you get even one new comment per day, a daily backup of your database will ensure that you have the most recent version of everything.  If you have an extremely low-volume blog, then the daily backups won't hurt anything.  You can always turn them off, and run on-demand backups as needed.
