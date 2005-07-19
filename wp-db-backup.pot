@@ -15,7 +15,7 @@ msgstr ""
 "X-Poedit-SearchPath-0: .\n"
 
 #: wp-db-backup.php:300
-msgid "The script to backup your database is too large for PHP to load entirely into memory, and so cannot be compressed within PHP.  <strong>Please turn off the gzip compression option.</strong>"
+msgid "The script to backup your database is too large for PHP to load entirely into memory, and so cannot be compressed within PHP.<br /><strong>Please turn off the gzip compression option.</strong>"
 msgstr ""
 
 #: wp-db-backup.php:347
