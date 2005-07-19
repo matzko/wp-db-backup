@@ -290,12 +290,14 @@ if ($gzip) {
 		// Uh, oh.
 		$wp_backup_error = __('The script to backup your database is too large for PHP to load entirely into memory, and so cannot be compressed within PHP.<br /><strong>Your database was too large to compress.<br />Your backup has been saved uncompressed.</strong>', 'wp-db-backup');
 	} else {
-		$data = implode("", file(ABSPATH . $wp_backup_dir . $wp_backup_temp));
+		$data = implode("", file(ABSPATH . $wp_backup_dir . $wp_backup_filename));
 		$gzdata = gzencode($data, 9);
-		$wp_backup_filename .= '.gz';
 		$fp = fopen(ABSPATH . $wp_backup_dir . $wp_backup_filename, "w");
 		fwrite($fp, $gzdata);
 		fclose($fp);
+		$new_filename = "$wp_backup_filename.gz";
+		rename(ABSPATH . $wp_backup_dir . $wp_backup_filename, ABSPATH . $wp_backup_dir . $new_filename);
+		$wp_backup_filename = $new_filename;
 	}
 	return $wp_backup_filename;
 }
@@ -368,7 +370,7 @@ $feedback = '';
 $gzip = FALSE;
 $WHOOPS = FALSE;
 
-// first, did we just do a backup?  If so, let's report the status
+// did we just do a backup?  If so, let's report the status
 if ( (isset($_POST['do_backup'])) && ('DONE' == $_POST['do_backup']) ) {
 	$feedback = '<div class="updated"><p>' . __('Backup Successful', 'wp-db-backup') . '!';
 	// we stuff the filename into gzip to avoid another global
@@ -383,7 +385,7 @@ if ( (isset($_POST['do_backup'])) && ('DONE' == $_POST['do_backup']) ) {
 			$feedback .= $_POST['backup_recipient'];
 		}
 	} elseif ('none' == $_POST['deliver']) {
-		$feedback .= '<br />' . __('Your backup file', 'wp-db-backup') . ' ' .  __('is ready for download; right click and select "Save As"', 'wp-db-backup') . ':<br /> <a href="' . get_settings('siteurl') . "/$wp_backup_dir$file\">$file</a> : " . filesize(ABSPATH . $wp_backup_dir . $file) . __(' bytes', 'wp-db-backup');
+		$feedback .= '<br />' . __('Your backup file has been saved on the server. If you would like to download it now, right click and select "Save As"', 'wp-db-backup') . ':<br /> <a href="' . get_settings('siteurl') . "/$wp_backup_dir$file\">$file</a> : " . filesize(ABSPATH . $wp_backup_dir . $file) . __(' bytes', 'wp-db-backup');
 	}
 	$feedback .= '</p></div>';
 }
@@ -428,7 +430,7 @@ if ('' != $feedback) {
 }
 
 if (! is_writable(ABSPATH . $wp_backup_dir)) {
-	echo '<div class="updated"><p align="center">' . __('WARNING: Your backup directory is <strong>NOT</strong> writable!</strong>', 'wp-db-backup') . '<br />' . ABSPATH . "$wp_backup_dir</p></div>";
+	echo '<div class="updated"><p align="center">' . __('WARNING: Your backup directory is <strong>NOT</strong> writable!', 'wp-db-backup') . '<br />' . ABSPATH . "$wp_backup_dir</p></div>";
 	$WHOOPS = TRUE;
 }
 echo "<div class='wrap'>";
@@ -461,7 +463,7 @@ if (! $WHOOPS) {
 	echo '<input type="hidden" name="do_backup" value="backup" />';
 	echo '<input type="submit" name="submit" value="' . __('Backup', 'wp-db-backup') . '!" / >';
 } else {
-	echo __('WARNING: Your backup directory is <strong>NOT</strong> writable!</strong>', 'wp-db-backup');
+	echo __('WARNING: Your backup directory is <strong>NOT</strong> writable!', 'wp-db-backup');
 }
 echo '</td></tr></form></table>';
 echo '</fieldset>';

@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: wp-db-backup\n"
+"Project-Id-Version: WP-DB Backup\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2005-07-19 07:44-0500\n"
+"PO-Revision-Date: 2005-07-19 18:58-0500\n"
 "Last-Translator: skippy <skippy@skippy.net>\n"
 "Language-Team: skippy <skippy@skippy.net>\n"
 "MIME-Version: 1.0\n"
@@ -14,132 +14,134 @@ msgstr ""
 "X-Poedit-Basepath: .\n"
 "X-Poedit-SearchPath-0: .\n"
 
-#: wp-db-backup.php:300
-msgid "The script to backup your database is too large for PHP to load entirely into memory, and so cannot be compressed within PHP.<br /><strong>Please turn off the gzip compression option.</strong>"
+#: wp-db-backup.php:291
+msgid "The script to backup your database is too large for PHP to load entirely into memory, and so cannot be compressed within PHP.<br /><strong>Your database was too large to compress.<br />Your backup has been saved uncompressed.</strong>"
 msgstr ""
 
-#: wp-db-backup.php:347
+#: wp-db-backup.php:341
 msgid "Attached to this email is"
 msgstr ""
 
-#: wp-db-backup.php:347
+#: wp-db-backup.php:341
 msgid "Size"
 msgstr ""
 
-#: wp-db-backup.php:347
+#: wp-db-backup.php:341
 msgid "kilobytes"
 msgstr ""
 
-#: wp-db-backup.php:365
+#: wp-db-backup.php:359
 msgid "Database Backup"
 msgstr ""
 
-#: wp-db-backup.php:381
+#: wp-db-backup.php:375
 msgid "Backup Successful"
 msgstr ""
 
-#: wp-db-backup.php:385
-#: wp-db-backup.php:394
+#: wp-db-backup.php:379
 msgid "Your backup file"
 msgstr ""
 
-#: wp-db-backup.php:385
+#: wp-db-backup.php:379
 msgid "should begin downloading shortly."
 msgstr ""
 
-#: wp-db-backup.php:387
+#: wp-db-backup.php:381
 msgid "Your backup has been emailed to "
 msgstr ""
 
-#: wp-db-backup.php:394
-msgid "is ready for download; right click and select \"Save As\""
+#: wp-db-backup.php:388
+msgid "Your backup file has been saved on the server. If you would like to download it now, right click and select \"Save As\""
 msgstr ""
 
-#: wp-db-backup.php:394
+#: wp-db-backup.php:388
 msgid " bytes"
 msgstr ""
 
-#: wp-db-backup.php:398
+#: wp-db-backup.php:394
 msgid "The following errors were reported"
 msgstr ""
 
-#: wp-db-backup.php:407
+#: wp-db-backup.php:403
 msgid "Scheduled Backup Options Saved!"
 msgstr ""
 
-#: wp-db-backup.php:437
-#: wp-db-backup.php:470
-msgid "WARNING: Your backup directory is <strong>NOT</strong> writable!</strong>"
+#: wp-db-backup.php:433
+#: wp-db-backup.php:466
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable!"
 msgstr ""
 
-#: wp-db-backup.php:441
-#: wp-db-backup.php:468
+#: wp-db-backup.php:437
+#: wp-db-backup.php:464
 msgid "Backup"
 msgstr ""
 
-#: wp-db-backup.php:442
+#: wp-db-backup.php:438
 msgid "Tables"
 msgstr ""
 
-#: wp-db-backup.php:445
+#: wp-db-backup.php:441
 msgid "These core WordPress tables will always be backed up"
 msgstr ""
 
-#: wp-db-backup.php:451
+#: wp-db-backup.php:447
 msgid "You may choose to include any of the following tables"
 msgstr ""
 
-#: wp-db-backup.php:457
+#: wp-db-backup.php:453
 msgid "Backup Options"
 msgstr ""
 
-#: wp-db-backup.php:459
-msgid "Deliver backup file by"
+#: wp-db-backup.php:455
+msgid "What to do with the backup file"
 msgstr ""
 
-#: wp-db-backup.php:460
-#: wp-db-backup.php:485
-msgid "None"
+#: wp-db-backup.php:456
+msgid "Save to server"
 msgstr ""
 
-#: wp-db-backup.php:461
+#: wp-db-backup.php:457
+msgid "Download to your computer"
+msgstr ""
+
+#: wp-db-backup.php:458
 msgid "Email"
 msgstr ""
 
-#: wp-db-backup.php:462
-msgid "Download"
-msgstr ""
-
-#: wp-db-backup.php:463
-#: wp-db-backup.php:498
+#: wp-db-backup.php:459
+#: wp-db-backup.php:494
 msgid "Email backup to"
 msgstr ""
 
-#: wp-db-backup.php:466
+#: wp-db-backup.php:462
 msgid "Use gzip compression"
 msgstr ""
 
-#: wp-db-backup.php:477
+#: wp-db-backup.php:473
 msgid "Scheduled Backup"
 msgstr ""
 
-#: wp-db-backup.php:478
+#: wp-db-backup.php:474
 msgid "Last WP-Cron Daily Execution"
 msgstr ""
 
-#: wp-db-backup.php:479
+#: wp-db-backup.php:475
 msgid "Next WP-Cron Daily Execution"
 msgstr ""
 
-#: wp-db-backup.php:483
+#: wp-db-backup.php:479
 msgid "Schedule: "
 msgstr ""
 
-#: wp-db-backup.php:485
+#: wp-db-backup.php:481
+msgid "None"
+msgstr ""
+
+#: wp-db-backup.php:481
 msgid "Daily"
 msgstr ""
 
-#: wp-db-backup.php:500
+#: wp-db-backup.php:496
 msgid "Submit"
 msgstr ""
 
