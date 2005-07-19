@@ -222,11 +222,7 @@ global $wp_backup_dir, $wp_backup_error, $table_prefix, $wpdb;
 $done = array();
 
 $datum = date("Ymd_B");
-$wp_backup_temp = DB_NAME . "_$table_prefix$datum.tmp";
 $wp_backup_filename = DB_NAME . "_$table_prefix$datum.sql";
-if ($gzip) {
-	$wp_backup_filename .= '.zip';
-}
 
 if (is_writable(ABSPATH . $wp_backup_dir)) {
 	if ($gzip) {
@@ -261,7 +257,6 @@ foreach ($core_tables as $table) {
 
 if (count($other_tables) > 0) {
 	foreach ($other_tables as $other_table) {
-		echo "$table<br/>";
 		if (in_array($other_table, $done)) { continue; }
 		// Increase script execution time-limit to 15 min for every table.
 		if ( !ini_get('safe_mode')) @set_time_limit(15*60);
@@ -301,11 +296,12 @@ if ($gzip) {
 	} else {
 		$data = implode("", file(ABSPATH . $wp_backup_dir . $wp_backup_temp));
 		$gzdata = gzencode($data, 9);
+		$wp_backup_filename .= '.gz';
 		$fp = fopen(ABSPATH . $wp_backup_dir . $wp_backup_filename, "w");
 		fwrite($fp, $gzdata);
 		fclose($fp);
 	}
-	unlink (ABSPATH . $wp_backup_dir . $wp_backup_temp);
+	return $wp_backup_filename;
 }
 
 if ('' == $wp_backup_error) {
@@ -394,8 +390,10 @@ if ( (isset($_POST['do_backup'])) && ('DONE' == $_POST['do_backup']) ) {
 		$feedback .= '<br />' . __('Your backup file', 'wp-db-backup') . ' ' .  __('is ready for download; right click and select "Save As"', 'wp-db-backup') . ':<br /> <a href="' . get_settings('siteurl') . "/$wp_backup_dir$file\">$file</a> : " . filesize(ABSPATH . $wp_backup_dir . $file) . __(' bytes', 'wp-db-backup');
 	}
 	$feedback .= '</p></div>';
-} elseif ('' != $wp_backup_error) {
-	$feedback = '<div class="updated">' . __('The following errors were reported', 'wp-db-backup') . ":<br /><pre>$wp_backup_error</pre></div>";
+}
+
+if ('' != $wp_backup_error) {
+	$feedback .= '<div class="updated">' . __('The following errors were reported', 'wp-db-backup') . ":<br /><pre>$wp_backup_error</pre></div>";
 }
 
 // did we just save options for wp-cron?
@@ -459,7 +457,7 @@ echo '<tr><td align="left">';
 echo __('Deliver backup file by', 'wp-db-backup') . ":<br />";
 echo '<label style="display:block;"><input type="radio" name="deliver" value="none" /> ' . __('None', 'wp-db-backup') . '</label>';
 echo '<label style="display:block;"><input type="radio" name="deliver" value="smtp" /> ' . __('Email', 'wp-db-backup') . '</label>';
-echo '<label style="display:block;"><input type="radio" name="deliver" value="http" /> ' . __('Download', 'wp-db-backup') . '</label>';
+echo '<label style="display:block;"><input type="radio" checked="checked" name="deliver" value="http" /> ' . __('Download', 'wp-db-backup') . '</label>';
 echo '</td><td align="left">' . __('Email backup to', 'wp-db-backup') . ':<br /> <input type="text" name="backup_recipient" size="20" value="' . get_settings('admin_email') . '" /></td></tr>';
 echo '<tr class="alternate"><td colspan="2" align="center"><label style="display:block;">';
 if (! $WHOOPS) {
