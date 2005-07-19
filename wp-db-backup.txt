@@ -46,11 +46,15 @@ The following core WordPress tables will be included in every backup:
   * emailing the backup may fail because it's too big
 
 4) Select how you'd like the backup to be delivered:
-* None : this will create a file in /wp-content/backup/ for you to retreive later
+* Save to server : this will create a file in /wp-content/backup/ for you to retreive later
+* Download to your computer : this will send the backup file to your browser to be downloaded
 * Email : this will email the backup file to the address you specify
-* Download : this will send the backup file to your browser to be downloaded
 
 5) Optionally elect to have the backup gzip compressed.  This is strongly recommended.
+
+  If your database is too large (currently, greater than 2 megabytes),
+  wp-db-backup will automatically disable gzip compression
+
 6) Click "Backup!" and your database backup will be delivered to you.
 
 The filename of the backup file will be of the form
@@ -61,7 +65,7 @@ date = CCYYmmdd_B format:  20050711_039
        the "B" is the internet "Swatch" time.  
        See the PHP date() function for details.
 
-When having the database backup emailed or sent to your browser for immediate download, the backup file will be _deleted_ from the server when the transfer is finished.  Only if you select delivery method "None" will the backup file remain on your server.
+When having the database backup emailed or sent to your browser for immediate download, the backup file will be _deleted_ from the server when the transfer is finished.  Only if you select delivery method "Save to server" will the backup file remain on your server.
 
    *** SECURITY WARNING ***
    Your database backup contains sensitive information,
