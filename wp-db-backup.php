@@ -4,19 +4,26 @@ Plugin Name: WordPress Database Backup
 Plugin URI: http://www.skippy.net/plugins/
 Description: On-demand backup of your WordPress database.
 Author: Scott Merrill
-Version: 1.4
+Version: 1.5
 Author URI: http://www.skippy.net/
 
 Much of this was modified from Mark Ghosh's One Click Backup, which
 in turn was derived from phpMyAdmin.
 
+Many thanks to Owen (http://asymptomatic.net/wp/) for his patch
+   http://dev.wp-plugins.org/ticket/219
 */
+
+// CHANGE THIS IF YOU WANT TO USE A 
+// DIFFERENT BACKUP LOCATION
+$wp_backup_dir = 'wp-content/backup/';
+$wp_backup_error = '';
+
+load_plugin_textdomain('wp-db-backup');
 
 add_action('admin_menu', 'add_wp_backup_menu');
 add_action('wp_cron_daily', 'wp_cron_db_backup');
 global $wp_backup_dir, $wp_backup_error;
-$wp_backup_error = '';
-$wp_backup_dir = 'wp-content/backup/';
 
 // this needs to live outside of any function so that the
 // download can be sent to the browser
@@ -42,7 +49,8 @@ if ( (isset($_POST['do_backup'])) && ('backup' == $_POST['do_backup']) ) {
 		if ('smtp' == $_POST['deliver']) {
 			wp_deliver_backup ($backup_file, $_POST['deliver'], $_POST['backup_recipient']);
 		} elseif ('http' == $_POST['deliver']) {
-			header('Refresh: 3; ' . get_settings('siteurl') . "/wp-admin/edit.php?page=wp-db-backup.php&backup=$backup_file");
+			$this_basename = preg_replace('/^.*wp-content[\\\\\/]plugins[\\\\\/]/', '', __FILE__);
+			header('Refresh: 3; ' . get_settings('siteurl') . "/wp-admin/edit.php?page={$this_basename}&backup=$backup_file");
 		}
 		// we do this to say we're done.
 		$_POST['do_backup'] = 'DONE';
@@ -97,7 +105,7 @@ function backquote($a_name)
 } // function backquote($a_name, $do_it = TRUE)
 
 /////////////////////////////
-function backup_table($table) {
+function backup_table($fp, $table) {
 global $wp_backup_error, $wpdb;
 
 /*
@@ -109,54 +117,46 @@ Modified by Scott Merril (http://www.skippy.net/)
 to use the WordPress $wpdb object
 */
 
-$sql_statements  = '';
-	
 //
 // Add SQL statement to drop existing table
-$sql_statements .= "\n";
-$sql_statements .= "\n";
-$sql_statements .= "#\n";
-$sql_statements .= "# Delete any existing table " . backquote($table) . "\n";
-$sql_statements .= "#\n";
-$sql_statements .= "\n";
-$sql_statements .= "DROP TABLE IF EXISTS " . backquote($table) . ";\n";
+fwrite($fp, "\n");
+fwrite($fp, "\n");
+fwrite($fp, "#\n");
+fwrite($fp, "# Delete any existing table " . backquote($table) . "\n");
+fwrite($fp, "#\n");
+fwrite($fp, "\n");
+fwrite($fp, "DROP TABLE IF EXISTS " . backquote($table) . ";\n");
 
 // 
 //Table structure
 // Comment in SQL-file
-$sql_statements .= "\n";
-$sql_statements .= "\n";
-$sql_statements .= "#\n";
-$sql_statements .= "# Table structure of table " . backquote($table) . "\n";
-$sql_statements .= "#\n";
-$sql_statements .= "\n";
+fwrite($fp, "\n");
+fwrite($fp, "\n");
+fwrite($fp, "#\n");
+fwrite($fp, "# Table structure of table " . backquote($table) . "\n");
+fwrite($fp, "#\n");
+fwrite($fp, "\n");
 
 $create_table = $wpdb->get_results("SHOW CREATE TABLE $table", ARRAY_N);
 if (FALSE === $create_table) {
 	$wp_backup_error .= "Error with SHOW CREATE TABLE for $table.\r\n";
-	return "#\n# Error with SHOW CREATE TABLE for $table!\n#\n";
+	fwrite($fp, "#\n# Error with SHOW CREATE TABLE for $table!\n#\n");
 }
-$sql_statements .= $create_table[0][1] . ' ;';
+fwrite($fp, $create_table[0][1] . ' ;');
 
 $table_structure = $wpdb->get_results("DESCRIBE $table");
 if (FALSE === $table_structure) {
 	$wp_backup_error .= "Error getting table structure of $table\r\n";
-	return "#\n# Error getting table structure of $table!\n#\n";
-}
-
-$table_data = $wpdb->get_results("SELECT * FROM $table", ARRAY_A);
-if (FALSE === $table_data) {
-	$wp_backup_error .= "Error getting table contents from $table\r\n";
-	return "#\n# Error getting table contents fom $table!\n#\n";
+	fwrite($fp, "#\n# Error getting table structure of $table!\n#\n");
 }
 
 //
 // Comment in SQL-file
-$sql_statements .= "\n";
-$sql_statements .= "\n";
-$sql_statements .= "#\n";
-$sql_statements .= '# Data contents of table ' . backquote($table) . "\n";
-$sql_statements .= "#\n";
+fwrite($fp, "\n");
+fwrite($fp, "\n");
+fwrite($fp, "#\n");
+fwrite($fp, '# Data contents of table ' . backquote($table) . "\n");
+fwrite($fp, "#\n");
 
 $ints = array();
 foreach ($table_structure as $struct) {
@@ -170,29 +170,47 @@ foreach ($table_structure as $struct) {
 	}
 }
 
-$entries = 'INSERT INTO ' . backquote($table) . ' VALUES (';	
-//    \x08\\x09, not required
-$search = array("\x00", "\x0a", "\x0d", "\x1a");
-$replace = array('\0', '\n', '\r', '\Z');
-foreach ($table_data as $row) {
-	$values = array();
-	foreach ($row as $key => $value) {
-		if ($ints[strtolower($key)]) {
-			$values[] = $value;
-		} else {
-			$values[] = "'" . str_replace($search, $replace, sql_addslashes($value)) . "'";
-		}
-	}
-	$sql_statements .= " \n" . $entries . implode(', ', $values) . ') ;';
-}
-// Create footer/closing comment in SQL-file
-$sql_statements .= "\n";
-$sql_statements .= "#\n";
-$sql_statements .= "# End of data contents of table " . backquote($table) . "\n";
-$sql_statements .= "# --------------------------------------------------------\n";
-$sql_statements .= "\n";
 
-return $sql_statements;
+// Batch by $row_inc
+
+$row_start = 0;
+$row_inc = 10;
+
+do {	
+	$table_data = $wpdb->get_results("SELECT * FROM $table LIMIT {$row_start}, {$row_inc}", ARRAY_A);
+	
+	/*
+	if (FALSE === $table_data) {
+		$wp_backup_error .= "Error getting table contents from $table\r\n";
+		fwrite($fp, "#\n# Error getting table contents fom $table!\n#\n");
+	}
+	*/
+		
+	$entries = 'INSERT INTO ' . backquote($table) . ' VALUES (';	
+	//    \x08\\x09, not required
+	$search = array("\x00", "\x0a", "\x0d", "\x1a");
+	$replace = array('\0', '\n', '\r', '\Z');
+	if($table_data) {
+		foreach ($table_data as $row) {
+			$values = array();
+			foreach ($row as $key => $value) {
+				if ($ints[strtolower($key)]) {
+					$values[] = $value;
+				} else {
+					$values[] = "'" . str_replace($search, $replace, sql_addslashes($value)) . "'";
+				}
+			}
+			fwrite($fp, " \n" . $entries . implode(', ', $values) . ') ;');
+		}
+		$row_start += $row_inc;
+	}
+} while(count($table_data) > 0);
+// Create footer/closing comment in SQL-file
+fwrite($fp, "\n");
+fwrite($fp, "#\n");
+fwrite($fp, "# End of data contents of table " . backquote($table) . "\n");
+fwrite($fp, "# --------------------------------------------------------\n");
+fwrite($fp, "\n");
 
 } // end backup_table()
 
@@ -204,18 +222,29 @@ global $wp_backup_dir, $wp_backup_error, $table_prefix, $wpdb;
 $done = array();
 
 $datum = date("Ymd_B");
+$wp_backup_temp = DB_NAME . "_$table_prefix$datum.tmp";
 $wp_backup_filename = DB_NAME . "_$table_prefix$datum.sql";
 if ($gzip) {
-	$wp_backup_filename .= '.gz';
+	$wp_backup_filename .= '.zip';
+}
+
+if (is_writable(ABSPATH . $wp_backup_dir)) {
+	if ($gzip) {
+		$fp = fopen(ABSPATH . $wp_backup_dir . $wp_backup_temp, 'w');
+	} else {
+		$fp = fopen(ABSPATH . $wp_backup_dir . $wp_backup_filename, 'w');
+	}
+} else {
+	return false;
 }
 
 //Begin new backup of MySql
-$sql  = "# WordPress MySQL database backup\n";
-$sql .= "#\n";
-$sql .= "# Generated: " . date("l j. F Y H:i T") . "\n";
-$sql .= "# Hostname: " . DB_HOST . "\n";
-$sql .= "# Database: " . backquote(DB_NAME) . "\n";
-$sql .= "# --------------------------------------------------------\n";
+fwrite($fp, "# WordPress MySQL database backup\n");
+fwrite($fp, "#\n");
+fwrite($fp, "# Generated: " . date("l j. F Y H:i T") . "\n");
+fwrite($fp, "# Hostname: " . DB_HOST . "\n");
+fwrite($fp, "# Database: " . backquote(DB_NAME) . "\n");
+fwrite($fp, "# --------------------------------------------------------\n");
 
 foreach ($core_tables as $table) {
 	if (in_array($table, $done)) { continue; }
@@ -223,37 +252,60 @@ foreach ($core_tables as $table) {
 	if ( !ini_get('safe_mode')) @set_time_limit(15*60);
 	//ini_set('memory_limit', '16M');
 	// Create the SQL statements
-	$tbl = "# --------------------------------------------------------\n";
-	$tbl .= "# Table: " . backquote($table) . "\n";
-	$tbl .= "# --------------------------------------------------------\n";
-	$tbl .= backup_table($table);
-	$sql .= $tbl;
+	fwrite($fp, "# --------------------------------------------------------\n");
+	fwrite($fp, "# Table: " . backquote($table) . "\n");
+	fwrite($fp, "# --------------------------------------------------------\n");
+	backup_table($fp, $table);
 	$done[] = $table;
 }
 
 if (count($other_tables) > 0) {
 	foreach ($other_tables as $other_table) {
+		echo "$table<br/>";
 		if (in_array($other_table, $done)) { continue; }
 		// Increase script execution time-limit to 15 min for every table.
 		if ( !ini_get('safe_mode')) @set_time_limit(15*60);
 		//ini_set('memory_limit', '16M');
 		// Create the SQL statements
-		$tbl = "# --------------------------------------------------------\n";
-		$tbl .= "# Table: " . backquote($other_table) . "\n";
-		$tbl .= "# --------------------------------------------------------\n";
-		$tbl .= backup_table($other_table);
-		$sql .= $tbl;
+		fwrite($fp, "# --------------------------------------------------------\n");
+		fwrite($fp, "# Table: " . backquote($other_table) . "\n");
+		fwrite($fp, "# --------------------------------------------------------\n");
+		backup_table($other_table, $fp);
 		$done[] = $other_table;
 	} // foreach
 } // if other_tables...
 
-if (is_writable(ABSPATH . $wp_backup_dir)) {
-	if ($gzip) {
-		$sql = gzencode($sql);
+fclose($fp);
+
+if ($gzip) {
+	$mem_limit = ini_get('memory_limit');
+	function return_bytes($val) {
+	   $val = trim($val);
+	   $last = strtolower($val{strlen($val)-1});
+	   switch($last) {
+	       // The 'G' modifier is available since PHP 5.1.0
+	       case 'g':
+	           $val *= 1024;
+	       case 'm':
+	           $val *= 1024;
+	       case 'k':
+	           $val *= 1024;
+	   }
+	
+	   return $val;
 	}
-	$cachefp = fopen(ABSPATH . $wp_backup_dir . $wp_backup_filename, "w");
-	fwrite($cachefp, $sql);
-	fclose($cachefp);
+	$mem_limit = return_bytes($mem_limit) - 2000000;  // Approx. 2M for running script?
+	if(filesize(ABSPATH . $wp_backup_dir . $wp_backup_temp) > $mem_limit) {
+		// Uh, oh.
+		$wp_backup_error = __('The script to backup your database is too large for PHP to load entirely into memory, and so cannot be compressed within PHP.  <strong>Please turn off the gzip compression option.</strong>');
+	} else {
+		$data = implode("", file(ABSPATH . $wp_backup_dir . $wp_backup_temp));
+		$gzdata = gzencode($data, 9);
+		$fp = fopen(ABSPATH . $wp_backup_dir . $wp_backup_filename, "w");
+		fwrite($fp, $gzdata);
+		fclose($fp);
+	}
+	unlink (ABSPATH . $wp_backup_dir . $wp_backup_temp);
 }
 
 if ('' == $wp_backup_error) {
@@ -292,7 +344,7 @@ if ('http' == $delivery) {
 	$headers .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n";
 	$headers .= 'From: ' . get_settings('admin_email') . "\n";
 
-	$message = __('Attached to this email is', 'wp_backup') . "\n   $filename\n". __('Size', 'wp_backup') . ": " . round(filesize($diskfile)/1024) . ' ' . __('kilobytes', 'wp_backup') . "\n";
+	$message = __('Attached to this email is', 'wp-db-backup') . "\n   $filename\n". __('Size', 'wp-db-backup') . ": " . round(filesize($diskfile)/1024) . ' ' . __('kilobytes', 'wp-db-backup') . "\n";
 	// Add a multipart boundary above the plain message
 	$message = "This is a multi-part message in MIME format.\n\n" .
         	"--{$boundary}\n" .
@@ -310,7 +362,7 @@ if ('http' == $delivery) {
 		$data . "\n\n" .
 		"--{$boundary}--\n";
 	
-	mail ($recipient, get_bloginfo('name') . ' ' . __('Database Backup', 'wp_backup'), $message, $headers);
+	mail ($recipient, get_bloginfo('name') . ' ' . __('Database Backup', 'wp-db-backup'), $message, $headers);
 	
 	unlink($diskfile);
 }
@@ -326,24 +378,24 @@ $WHOOPS = FALSE;
 
 // first, did we just do a backup?  If so, let's report the status
 if ( (isset($_POST['do_backup'])) && ('DONE' == $_POST['do_backup']) ) {
-	$feedback = '<div class="updated"><p>' . __('Backup Successful', 'wp_backup') . '!';
+	$feedback = '<div class="updated"><p>' . __('Backup Successful', 'wp-db-backup') . '!';
 	// we stuff the filename into gzip to avoid another global
 	$file = $_POST['gzip'];
 	if ('http' == $_POST['deliver']) {
-		$feedback .= '<br />' . __('Your backup file', 'wp_backup') . ': <a href="' . get_settings('siteurl') . "/$wp_backup_dir$file\">$file</a> " . __('should begin downloading shortly.', 'wp_backup');
+		$feedback .= '<br />' . __('Your backup file', 'wp-db-backup') . ': <a href="' . get_settings('siteurl') . "/$wp_backup_dir$file\">$file</a> " . __('should begin downloading shortly.', 'wp-db-backup');
 	} elseif ('smtp' == $_POST['deliver']) {
-		$feedback .= '<br />' . __('Your backup has been emailed to ', 'wp_backup');
+		$feedback .= '<br />' . __('Your backup has been emailed to ', 'wp-db-backup');
 		if (! is_email($_POST['backup_recipient'])) {
 			$feedback .= get_settings('admin_email');
 		} else {
 			$feedback .= $_POST['backup_recipient'];
 		}
 	} elseif ('none' == $_POST['deliver']) {
-		$feedback .= '<br />' . __('Your backup file', 'wp_backup') . ' ' .  __('is ready for download; right click and select "Save As"', 'wp_backup') . ':<br /> <a href="' . get_settings('siteurl') . "/$wp_backup_dir$file\">$file</a> : " . filesize(ABSPATH . $wp_backup_dir . $file) . __(' bytes', 'wp_backup');
+		$feedback .= '<br />' . __('Your backup file', 'wp-db-backup') . ' ' .  __('is ready for download; right click and select "Save As"', 'wp-db-backup') . ':<br /> <a href="' . get_settings('siteurl') . "/$wp_backup_dir$file\">$file</a> : " . filesize(ABSPATH . $wp_backup_dir . $file) . __(' bytes', 'wp-db-backup');
 	}
 	$feedback .= '</p></div>';
 } elseif ('' != $wp_backup_error) {
-	$feedback = '<div class="updated">' . __('The following errors were reported', 'wp_backup') . ":<br /><pre>$wp_backup_error</pre></div>";
+	$feedback = '<div class="updated">' . __('The following errors were reported', 'wp-db-backup') . ":<br /><pre>$wp_backup_error</pre></div>";
 }
 
 // did we just save options for wp-cron?
@@ -352,7 +404,7 @@ if ( (function_exists('wp_cron_db_backup')) && isset($_POST['wp_cron_backup_opti
 	if (is_email($_POST['cron_backup_recipient'])) {
 		update_option('wp_cron_backup_recipient', $_POST['cron_backup_recipient'], FALSE);
 	}
-	$feedback .= '<div class="updated"><p>' . __('Scheduled Backup Options Saved!', 'wp_backup') . '</p></div>';
+	$feedback .= '<div class="updated"><p>' . __('Scheduled Backup Options Saved!', 'wp-db-backup') . '</p></div>';
 }
 
 $gzip = FALSE;
@@ -382,70 +434,70 @@ if ('' != $feedback) {
 }
 
 if (! is_writable(ABSPATH . $wp_backup_dir)) {
-	echo '<div class="updated"><p align="center">' . __('WARNING: Your backup directory is <strong>NOT</strong> writable!</strong>', 'wp_backup') . '<br />' . ABSPATH . "$wp_backup_dir</p></div>";
+	echo '<div class="updated"><p align="center">' . __('WARNING: Your backup directory is <strong>NOT</strong> writable!</strong>', 'wp-db-backup') . '<br />' . ABSPATH . "$wp_backup_dir</p></div>";
 	$WHOOPS = TRUE;
 }
 echo "<div class='wrap'>";
-echo '<h2>' . __('Backup', 'wp_backup') . '</h2>';
-echo '<fieldset class="options"><legend>' . __('Tables', 'wp_backup') . '</legend>';
+echo '<h2>' . __('Backup', 'wp-db-backup') . '</h2>';
+echo '<fieldset class="options"><legend>' . __('Tables', 'wp-db-backup') . '</legend>';
 echo '<form method="post">';
 echo '<table align="center" cellspacing="5" cellpadding="5"><tr><td width="50%" align="left" class="alternate">';
-echo __('These core WordPress tables will always be backed up', 'wp_backup') . ': <br /><ul>';
+echo __('These core WordPress tables will always be backed up', 'wp-db-backup') . ': <br /><ul>';
 foreach ($wp_backup_default_tables as $table) {
 	echo "<input type='hidden' name='core_tables[]' value='$table' /><li>$table</li>";
 }
 echo '</ul></td><td width="50%" align="left">';
 if (count($other_tables) > 0) {
-	echo __('You may choose to include any of the following tables', 'wp_backup') . ': <br />';
+	echo __('You may choose to include any of the following tables', 'wp-db-backup') . ': <br />';
 	foreach ($other_tables as $table) {
 		echo "<input type='checkbox' name='other_tables[]' value='$table' />$table<br />";
 	}
 }
 echo '</tr></table></fieldset>';
-echo '<fieldset class="options"><legend>' . __('Backup Options', 'wp_backup') . '</legend><table width="100%" align="center" cellpadding="5" cellspacing="5">';
-echo '<tr><td align="center">';
-echo __('Deliver backup file by', 'wp_backup') . ":<br />";
-echo '<input type="radio" name="deliver" value="none" /> ' . __('None', 'wp_backup') . '&nbsp;&nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />';
-echo '<input type="radio" name="deliver" value="smtp" /> ' . __('Email', 'wp_backup') . '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br />';
-echo '<input type="radio" name="deliver" value="http" /> ' . __('Download', 'wp_backup');
-echo '</td><td align="left">' . __('Email backup to', 'wp_backup') . ':<br /> <input type="text" name="backup_recipient" size="20" value="' . get_settings('admin_email') . '" /></td></tr>';
-echo '<tr class="alternate"><td colspan="2" align="center">';
+echo '<fieldset class="options"><legend>' . __('Backup Options', 'wp-db-backup') . '</legend><table width="100%" align="center" cellpadding="5" cellspacing="5">';
+echo '<tr><td align="left">';
+echo __('Deliver backup file by', 'wp-db-backup') . ":<br />";
+echo '<label style="display:block;"><input type="radio" name="deliver" value="none" /> ' . __('None', 'wp-db-backup') . '</label>';
+echo '<label style="display:block;"><input type="radio" name="deliver" value="smtp" /> ' . __('Email', 'wp-db-backup') . '</label>';
+echo '<label style="display:block;"><input type="radio" name="deliver" value="http" /> ' . __('Download', 'wp-db-backup') . '</label>';
+echo '</td><td align="left">' . __('Email backup to', 'wp-db-backup') . ':<br /> <input type="text" name="backup_recipient" size="20" value="' . get_settings('admin_email') . '" /></td></tr>';
+echo '<tr class="alternate"><td colspan="2" align="center"><label style="display:block;">';
 if (! $WHOOPS) {
-	echo __('Use gzip compression', 'wp_backup') . '? <input type="checkbox" checked="checked" name="gzip" value="gzip" /><br />';
+	echo __('Use gzip compression', 'wp-db-backup') . '? <input type="checkbox" checked="checked" name="gzip" value="gzip" /></label>';
 	echo '<input type="hidden" name="do_backup" value="backup" />';
-	echo '<input type="submit" name="submit" value="' . __('Backup', 'wp_backup') . '!" / >';
+	echo '<input type="submit" name="submit" value="' . __('Backup', 'wp-db-backup') . '!" / >';
 } else {
-	echo __('WARNING: Your backup directory is <strong>NOT</strong> writable!</strong>', 'wp_backup');
+	echo __('WARNING: Your backup directory is <strong>NOT</strong> writable!</strong>', 'wp-db-backup');
 }
 echo '</td></tr></form></table>';
 echo '</fieldset>';
 
 // this stuff only displays if wp_cron is installed
-if (function_exists('wp_cron_db_backup')) {
-	echo '<fieldset class="options"><legend>' . __('Scheduled', 'wp_backup') . ' ' . __('Backup', 'wp_backup') . '</legend>';
-	echo '<p>' . __('Last WP-Cron Daily Execution', 'wp_backup') . ': ' . date('Y-m-d @ h:i', get_option('wp_cron_daily_lastrun')) . '<br />';
-	echo __('Next WP-Cron Daily Execution', 'wp_backup') . ': ' . date('Y-m-d @ h:i', (get_option('wp_cron_daily_lastrun') + 86400)) . '</p>';
+if (function_exists('wp_cron_init')) {
+	echo '<fieldset class="options"><legend>' . __('Scheduled Backup', 'wp-db-backup') . '</legend>';
+	echo '<p>' . __('Last WP-Cron Daily Execution', 'wp-db-backup') . ': ' . date('Y-m-d @ h:i', get_option('wp_cron_daily_lastrun')) . '<br />';
+	echo __('Next WP-Cron Daily Execution', 'wp-db-backup') . ': ' . date('Y-m-d @ h:i', (get_option('wp_cron_daily_lastrun') + 86400)) . '</p>';
 	echo '<form method="post">';
 	echo '<table width="100%" callpadding="5" cellspacing="5">';
 	echo '<tr><td align="center">';
-	echo __('Schedule: ', 'wp_backup');
+	echo __('Schedule: ', 'wp-db-backup');
 	$wp_cron_backup_schedule = get_option('wp_cron_backup_schedule');
-	$schedule = array("None" => 0, "Daily" => 1);
-	foreach ($schedule as $name => $value) {
+	$schedule = array(0 => __('None', 'wp-db-backup'), 1 => __('Daily', 'wp-db-backup'));
+	foreach ($schedule as $value => $name) {
 		echo ' <input type="radio" name="cron_schedule"';
 		if ($wp_cron_backup_schedule == $value) {
 			echo ' checked="checked" ';
 		}
-		echo 'value="' . $value . '" /> ' . __($name, 'wp_backup');
+		echo 'value="' . $value . '" /> ' . __($name, 'wp-db-backup');
 	}
 	echo '</td><td align="center">';
 	$cron_recipient = get_option('wp_cron_backup_recipient');
 	if (! is_email($cron_recipient)) {
 		$cron_recipient = get_settings('admin_email');
 	}
-	echo __('Email backup to', 'wp_backup') . ': <input type="text" name="cron_backup_recipient" size="20" value="' . $cron_recipient . '" />';
+	echo __('Email backup to', 'wp-db-backup') . ': <input type="text" name="cron_backup_recipient" size="20" value="' . $cron_recipient . '" />';
 	echo '</td></tr>';
-	echo '<tr><td colspan="2" align="center"><input type="hidden" name="wp_cron_backup_options" value="SET" /><input type="submit" name="submit" value="' . __('Submit', 'wp_backup') . '" /></td></tr></table></form>';
+	echo '<tr><td colspan="2" align="center"><input type="hidden" name="wp_cron_backup_options" value="SET" /><input type="submit" name="submit" value="' . __('Submit', 'wp-db-backup') . '" /></td></tr></table></form>';
 	echo '</fieldset>';
 }
 // end of wp_cron section
