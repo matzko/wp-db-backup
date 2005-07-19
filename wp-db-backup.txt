@@ -50,7 +50,7 @@ The following core WordPress tables will be included in every backup:
 * Email : this will email the backup file to the address you specify
 * Download : this will send the backup file to your browser to be downloaded
 
-5) Optionally elect to have the backup gzip.  This is strongly recommended.
+5) Optionally elect to have the backup gzip compressed.  This is strongly recommended.
 6) Click "Backup!" and your database backup will be delivered to you.
 
 The filename of the backup file will be of the form
@@ -96,3 +96,12 @@ A. If you have a lot of extra tables, the chances are high that you have a lot o
 
 Q. Can you set this up to run weekly, instead of daily?
 A. No.  If you get even one new comment per day, a daily backup of your database will ensure that you have the most recent version of everything.  If you have an extremely low-volume blog, then the daily backups won't hurt anything.  You can always turn them off, and run on-demand backups as needed.
+
+== Changelog ==
+1.5
+Applied patch from Owen (http://dev.wp-plugins.org/ticket/219)
+ -- the database dump is now spooled to disk to better support large databases.
+ If the user has selected immediate delivery, the file size will be evaluated.  If less than 2 MB, the file will be gzip compressed (if the user asked for it); otherwise a helpful error message will be displayed.
+1.4
+Initial relase.
+
