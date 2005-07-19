@@ -288,7 +288,7 @@ if ($gzip) {
 	$mem_limit = return_bytes($mem_limit) - 2000000;  // Approx. 2M for running script?
 	if(filesize(ABSPATH . $wp_backup_dir . $wp_backup_temp) > $mem_limit) {
 		// Uh, oh.
-		$wp_backup_error = __('The script to backup your database is too large for PHP to load entirely into memory, and so cannot be compressed within PHP.<br /><strong>Please turn off the gzip compression option.</strong>', 'wp-db-backup');
+		$wp_backup_error = __('The script to backup your database is too large for PHP to load entirely into memory, and so cannot be compressed within PHP.<br /><strong>Your database was too large to compress.<br />Your backup has been saved uncompressed.</strong>', 'wp-db-backup');
 	} else {
 		$data = implode("", file(ABSPATH . $wp_backup_dir . $wp_backup_temp));
 		$gzdata = gzencode($data, 9);
