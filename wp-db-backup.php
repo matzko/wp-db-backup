@@ -225,11 +225,7 @@ $datum = date("Ymd_B");
 $wp_backup_filename = DB_NAME . "_$table_prefix$datum.sql";
 
 if (is_writable(ABSPATH . $wp_backup_dir)) {
-	if ($gzip) {
-		$fp = fopen(ABSPATH . $wp_backup_dir . $wp_backup_temp, 'w');
-	} else {
-		$fp = fopen(ABSPATH . $wp_backup_dir . $wp_backup_filename, 'w');
-	}
+	$fp = fopen(ABSPATH . $wp_backup_dir . $wp_backup_filename, 'w');
 } else {
 	return false;
 }
@@ -454,10 +450,10 @@ if (count($other_tables) > 0) {
 echo '</tr></table></fieldset>';
 echo '<fieldset class="options"><legend>' . __('Backup Options', 'wp-db-backup') . '</legend><table width="100%" align="center" cellpadding="5" cellspacing="5">';
 echo '<tr><td align="left">';
-echo __('Deliver backup file by', 'wp-db-backup') . ":<br />";
-echo '<label style="display:block;"><input type="radio" name="deliver" value="none" /> ' . __('None', 'wp-db-backup') . '</label>';
+echo __('What to do with the backup file', 'wp-db-backup') . ":<br />";
+echo '<label style="display:block;"><input type="radio" name="deliver" value="none" /> ' . __('Save to server', 'wp-db-backup') . " ($wp_backup_dir)</label>";
+echo '<label style="display:block;"><input type="radio" checked="checked" name="deliver" value="http" /> ' . __('Download to your computer', 'wp-db-backup') . '</label>';
 echo '<label style="display:block;"><input type="radio" name="deliver" value="smtp" /> ' . __('Email', 'wp-db-backup') . '</label>';
-echo '<label style="display:block;"><input type="radio" checked="checked" name="deliver" value="http" /> ' . __('Download', 'wp-db-backup') . '</label>';
 echo '</td><td align="left">' . __('Email backup to', 'wp-db-backup') . ':<br /> <input type="text" name="backup_recipient" size="20" value="' . get_settings('admin_email') . '" /></td></tr>';
 echo '<tr class="alternate"><td colspan="2" align="center"><label style="display:block;">';
 if (! $WHOOPS) {
