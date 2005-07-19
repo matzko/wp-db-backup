@@ -1,6 +1,6 @@
 = WP-DB-Backup =
 tags: mysql, database, backup
-Contributors: Firas, LaughingLizard, MtDewVirus, Podz
+Contributors: Firas, LaughingLizard, MtDewVirus, Podz, Ringmaster
 
 copyright (c) 2005 Scott Merrill (skippy@skippy.net)
 
