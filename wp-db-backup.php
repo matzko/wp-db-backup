@@ -117,7 +117,6 @@ Modified by Scott Merril (http://www.skippy.net/)
 to use the WordPress $wpdb object
 */
 
-//
 // Add SQL statement to drop existing table
 fwrite($fp, "\n");
 fwrite($fp, "\n");
@@ -137,14 +136,14 @@ fwrite($fp, "# Table structure of table " . backquote($table) . "\n");
 fwrite($fp, "#\n");
 fwrite($fp, "\n");
 
-$create_table = $wpdb->get_results("SHOW CREATE TABLE $table", ARRAY_N);
+$create_table = @$wpdb->get_results("SHOW CREATE TABLE $table", ARRAY_N);
 if (FALSE === $create_table) {
 	$wp_backup_error .= "Error with SHOW CREATE TABLE for $table.\r\n";
 	fwrite($fp, "#\n# Error with SHOW CREATE TABLE for $table!\n#\n");
 }
 fwrite($fp, $create_table[0][1] . ' ;');
 
-$table_structure = $wpdb->get_results("DESCRIBE $table");
+$table_structure = @$wpdb->get_results("DESCRIBE $table");
 if (FALSE === $table_structure) {
 	$wp_backup_error .= "Error getting table structure of $table\r\n";
 	fwrite($fp, "#\n# Error getting table structure of $table!\n#\n");
@@ -242,7 +241,6 @@ foreach ($core_tables as $table) {
 	if (in_array($table, $done)) { continue; }
 	// Increase script execution time-limit to 15 min for every table.
 	if ( !ini_get('safe_mode')) @set_time_limit(15*60);
-	//ini_set('memory_limit', '16M');
 	// Create the SQL statements
 	fwrite($fp, "# --------------------------------------------------------\n");
 	fwrite($fp, "# Table: " . backquote($table) . "\n");
@@ -256,7 +254,6 @@ if (count($other_tables) > 0) {
 		if (in_array($other_table, $done)) { continue; }
 		// Increase script execution time-limit to 15 min for every table.
 		if ( !ini_get('safe_mode')) @set_time_limit(15*60);
-		//ini_set('memory_limit', '16M');
 		// Create the SQL statements
 		fwrite($fp, "# --------------------------------------------------------\n");
 		fwrite($fp, "# Table: " . backquote($other_table) . "\n");
