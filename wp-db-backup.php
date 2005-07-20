@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: WordPress Database Backup
-Plugin URI: http://www.skippy.net/plugins/
+Plugin URI: http://www.skippy.net/blog/plugins/
 Description: On-demand backup of your WordPress database.
 Author: Scott Merrill
 Version: 1.5
