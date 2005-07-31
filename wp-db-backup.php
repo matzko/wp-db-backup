@@ -583,13 +583,13 @@ class wpdbBackup {
 			if ('' == $filename) { return FALSE; }
 			
 			$diskfile = ABSPATH . $this->backup_dir . $filename;
+		if ('http' == $delivery) {
 			if (! file_exists($diskfile)) {
 				$msg = __('File not found:', 'wp-db-backup') . "<br /> <strong>$filename</strong><br />";
 				$this_basename = preg_replace('/^.*wp-content[\\\\\/]plugins[\\\\\/]/', '', __FILE__);
 				$msg .= '<br /><a href="' . get_settings('siteurl') . "/wp-admin/edit.php?page={$this_basename}" . '">' . __('Return to Backup', 'wp-db-backup');
 			die($msg);
-		}
-		if ('http' == $delivery) {
+			}
 			header('Content-Description: File Transfer');
 			header('Content-Type: application/octet-stream');
 			header('Content-Length: ' . filesize($diskfile));
@@ -597,6 +597,8 @@ class wpdbBackup {
 			readfile($diskfile);
 			unlink($diskfile);
 		} elseif ('smtp' == $delivery) {
+			if (! file_exists($diskfile)) return false;
+
 			if (! is_email ($recipient)) {
 				$recipient = get_settings('admin_email');
 			}
