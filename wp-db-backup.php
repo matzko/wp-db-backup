@@ -684,6 +684,7 @@ class wpdbBackup {
 		// did we just save options for wp-cron?
 		if ( (function_exists('wp_cron_init')) && isset($_POST['wp_cron_backup_options']) ) {
 			update_option('wp_cron_backup_schedule', intval($_POST['cron_schedule']), FALSE);
+			update_option('wp_cron_backup_tables', $_POST['wp_cron_backup_tables']);
 			if (is_email($_POST['cron_backup_recipient'])) {
 				update_option('wp_cron_backup_recipient', $_POST['cron_backup_recipient'], FALSE);
 			}
@@ -789,6 +790,21 @@ class wpdbBackup {
 			}
 			echo __('Email backup to', 'wp-db-backup') . ': <input type="text" name="cron_backup_recipient" size="20" value="' . $cron_recipient . '" />';
 			echo '</td></tr>';
+			$cron_tables = get_option('wp_cron_backup_tables');
+			if (! is_array($cron_tables)) {
+				$cron_tables = array();
+			}
+			if (count($other_tables) > 0) {
+				echo '<tr><td colspan="2" align="left">' . __('Tables to include', 'wp-db-backup') . ':<br />';
+				foreach ($other_tables as $table) {
+					echo '<input type="checkbox" ';
+					if (in_array($table, $cron_tables)) {
+						echo 'checked=checked ';
+					}
+					echo "name='wp_cron_backup_tables[]' value='{$table}' /> {$table}<br />";
+				}
+				echo '</td></tr>';
+			}
 			echo '<tr><td colspan="2" align="center"><input type="hidden" name="wp_cron_backup_options" value="SET" /><input type="submit" name="submit" value="' . __('Submit', 'wp-db-backup') . '" /></td></tr></table></form>';
 			echo '</fieldset>';
 		}
@@ -814,7 +830,7 @@ class wpdbBackup {
 		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
 		$all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
 		$core_tables = array_intersect($all_tables, $wp_table_names);
-		$other_tables = array();
+		$other_tables = get_option('wp_cron_backup_tables');
 		
 		$recipient = get_option('wp_cron_backup_recipient');
 		
