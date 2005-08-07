@@ -90,7 +90,7 @@ A. No.  If you get even one new comment per day, a daily backup of your database
 
 == Changelog ==
 1.6
-Integrated Owen's massive rewrite, the most noticable element being the introduction of a progress meter.  The backup is now spooled to disk, a few rows at a time, to ensure that databases of all sizes can be backed up.  Additionally, gzip support is now automatically detected, and used if available.  This has been tested on a database almost 70 megabytes uncompressed.  Version 1.6 of wp-db-backup successfully backed up the whole thing without error, and transparently compressed it to just over 10 megabytes (many thanks to Lorelle for being such a willing guinea pig!).
+Integrated Owen's massive rewrite, the most noticable element being the introduction of a progress meter.  The backup is now spooled to disk, a few rows at a time, to ensure that databases of all sizes can be backed up.  Additionally, gzip support is now automatically detected, and used if available.  This has been tested on a database over 30 megabytes uncompressed.  Version 1.6 of wp-db-backup successfully backed up the whole thing without error, and transparently compressed it to just over 10 megabytes (many thanks to Lorelle for being such a willing guinea pig!).
 
 1.5
 Applied patch from Owen (http://dev.wp-plugins.org/ticket/219)
