@@ -539,7 +539,7 @@ class wpdbBackup {
 			$datum = date("Ymd_B");
 			$wp_backup_filename = DB_NAME . "_$table_prefix$datum.sql";
 			if ($this->gzip()) {
-				$wp_db_backup_filename .= '.gz';
+				$wp_backup_filename .= '.gz';
 			}
 			
 			if (is_writable(ABSPATH . $this->backup_dir)) {
@@ -561,7 +561,7 @@ class wpdbBackup {
 			$this->stow("# Database: " . $this->backquote(DB_NAME) . "\n");
 			$this->stow("# --------------------------------------------------------\n");
 			
-			if(is_array($other_tables))
+			if ( (is_array($other_tables)) && (count($other_tables) > 0) )
 				$tables = array_merge($core_tables, $other_tables);
 			else
 				$tables = $core_tables;
@@ -807,17 +807,18 @@ class wpdbBackup {
 		        return;
 		}
 		
-		global $table_prefix;
+		global $table_prefix, $wpdb;
 
 		$wp_table_names = explode(',','categories,comments,linkcategories,links,options,post2cat,postmeta,posts,users,usermeta');
 		$wp_table_names = array_map(create_function('$a', 'global $table_prefix;return "{$table_prefix}{$a}";'), $wp_table_names);
 		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
 		$all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
 		$core_tables = array_intersect($all_tables, $wp_table_names);
+		$other_tables = array();
 		
 		$recipient = get_option('wp_cron_backup_recipient');
 		
-		$backup_file = $this->db_backup($core_tables);
+		$backup_file = $this->db_backup($core_tables, $other_tables);
 		if (FALSE !== $backup_file) {
 			$this->deliver_backup ($backup_file, 'smtp', $recipient);
 		}
