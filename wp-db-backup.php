@@ -282,8 +282,6 @@ class wpdbBackup {
 		$also_backup = array();
 		if (isset($_POST['other_tables'])) {
 			$also_backup = $_POST['other_tables'];
-		} else {
-			$also_backup = array();
 		}
 		
 		$core_tables = $_POST['core_tables'];
@@ -349,6 +347,7 @@ class wpdbBackup {
 	    }
 	} // function backquote($a_name, $do_it = TRUE)
 
+	/////////////
 	function open($filename = '', $mode = 'w') {
 		if ('' == $filename) return false;
 		if ($this->gzip()) {
@@ -359,6 +358,7 @@ class wpdbBackup {
 		return $fp;
 	}
 
+	//////////////
 	function close($fp) {
 		if ($this->gzip()) {
 			gzclose($fp);
@@ -367,15 +367,16 @@ class wpdbBackup {
 		}
 	}
 	
+	//////////////
 	function stow($query_line) {
 		if ($this->gzip()) {
 			if(@gzwrite($this->fp, $query_line) === FALSE) {
-				backup_error(__('There was an error writing a line to the backup script:'));
+				backup_error(__('There was an error writing a line to the backup script:', 'wp-db-backup'));
 				backup_error('&nbsp;&nbsp;' . $query_line);
 			}
 		} else {
 			if(@fwrite($this->fp, $query_line) === FALSE) {
-				backup_error(__('There was an error writing a line to the backup script:'));
+				backup_error(__('There was an error writing a line to the backup script:', 'wp-db-backup'));
 				backup_error('&nbsp;&nbsp;' . $query_line);
 			}
 		}
@@ -385,7 +386,7 @@ class wpdbBackup {
 		if(count($this->backup_errors) < 20) {
 			$this->backup_errors[] = $err;
 		} elseif(count($this->backup_errors) == 20) {
-			$this->backup_errors[] = __('Subsequent errors have been omitted from this log.');
+			$this->backup_errors[] = __('Subsequent errors have been omitted from this log.', 'wp-db-backup');
 		}
 	}
 	
@@ -403,6 +404,10 @@ class wpdbBackup {
 		*/
 
 			$table_structure = $wpdb->get_results("DESCRIBE $table");
+			if (! $table_structure) {
+				backup_errors(__('Error getting table details', 'wp-db-backup') . ": $table");
+				return FALSE;
+			}
 		
 			if(($segment == 'none') || ($segment == 0)) {
 				//
@@ -533,6 +538,9 @@ class wpdbBackup {
 			
 			$datum = date("Ymd_B");
 			$wp_backup_filename = DB_NAME . "_$table_prefix$datum.sql";
+			if ($this->gzip()) {
+				$wp_db_backup_filename .= '.gz';
+			}
 			
 			if (is_writable(ABSPATH . $this->backup_dir)) {
 				$this->fp = $this->open(ABSPATH . $this->backup_dir . $wp_backup_filename);
