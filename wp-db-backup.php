@@ -638,7 +638,11 @@ class wpdbBackup {
 				$data . "\n\n" .
 				"--{$boundary}--\n";
 			
-			mail ($recipient, get_bloginfo('name') . ' ' . __('Database Backup', 'wp-db-backup'), $message, $headers);
+			if (function_exists('wp_mail')) {
+				wp_mail ($recipient, get_bloginfo('name') . ' ' . __('Database Backup', 'wp-db-backup'), $message, $headers);
+			} else {
+				mail ($recipient, get_bloginfo('name') . ' ' . __('Database Backup', 'wp-db-backup'), $message, $headers);
+			}
 			
 			unlink($diskfile);
 		}
