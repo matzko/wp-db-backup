@@ -190,10 +190,12 @@ class wpdbBackup {
 		foreach ($tables as $table) {
 			$rec_count = $wpdb->get_var("SELECT count(*) FROM {$table}");
 			$rec_segments = ceil($rec_count / ROWS_PER_SEGMENT);
-			for($z = 0; $z < $rec_segments; $z++) {
-				echo "case {$step_count}: backup(\"{$table}\", {$z}); break;\n";
+			$table_count = 0;
+			do {
+				echo "case {$step_count}: backup(\"{$table}\", {$table_count}); break;\n";
 				$step_count++;
-			}
+				$table_count++;
+			} while($table_count < $rec_segments);
 			echo "case {$step_count}: backup(\"{$table}\", -1); break;\n";
 			$step_count++;
 		}
