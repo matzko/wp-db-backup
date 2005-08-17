@@ -784,8 +784,9 @@ class wpdbBackup {
 		// this stuff only displays if wp_cron is installed
 		if (function_exists('wp_cron_init')) {
 			echo '<fieldset class="options"><legend>' . __('Scheduled Backup', 'wp-db-backup') . '</legend>';
-			echo '<p>' . __('Last WP-Cron Daily Execution', 'wp-db-backup') . ': ' . date('Y-m-d @ h:i', get_option('wp_cron_daily_lastrun')) . '<br />';
-			echo __('Next WP-Cron Daily Execution', 'wp-db-backup') . ': ' . date('Y-m-d @ h:i', (get_option('wp_cron_daily_lastrun') + 86400)) . '</p>';
+			$datetime = get_settings('date_format') . ' @ ' . get_settings('time_format');
+			echo '<p>' . __('Last WP-Cron Daily Execution', 'wp-db-backup') . ': ' . date($datetime, get_option('wp_cron_daily_lastrun')) . '<br />';
+			echo __('Next WP-Cron Daily Execution', 'wp-db-backup') . ': ' . date($datetime, (get_option('wp_cron_daily_lastrun') + 86400)) . '</p>';
 			echo '<form method="post">';
 			echo '<table width="100%" callpadding="5" cellspacing="5">';
 			echo '<tr><td align="center">';
