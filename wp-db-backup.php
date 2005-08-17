@@ -4,7 +4,7 @@ Plugin Name: WordPress Database Backup
 Plugin URI: http://www.skippy.net/blog/plugins/
 Description: On-demand backup of your WordPress database.
 Author: Scott Merrill
-Version: 1.6
+Version: 1.7
 Author URI: http://www.skippy.net/
 
 Much of this was modified from Mark Ghosh's One Click Backup, which
@@ -83,7 +83,7 @@ class wpdbBackup {
 					}
 				}
 				echo '
-					alert("' . __(' Backup Complete! ') . '");
+					alert("' . __('Backup Complete!', 'wp-db-backup') . '");
 					</script>
 				';
 				break;
@@ -111,9 +111,9 @@ class wpdbBackup {
 		//echo "<pre>" . print_r($_POST, 1) . "</pre>";
 		echo '<h2>' . __('Backup', 'wp-db-backup') . '</h2>
 			<fieldset class="options"><legend>' . __('Progress', 'wp-db-backup') . '</legend>
-			' . __('<p><strong>DO NOT DO THE FOLLOWING AS IT WILL CAUSE YOUR BACKUP TO FAIL:</strong></p> <ol><li>Close this browser</li><li>Reload this page</li><li>Click the Stop or Back buttons in your browser</li></ol>') . '
-			<p><strong>' . __('Progress:') . '</strong></p>
-			<div id="meterbox" style="height:11px;width:80%;padding:3px;border:1px solid #659fff;"><div id="meter" style="height:11px;background-color:#659fff;width:0%;">&nbsp;</div></div>
+			' . __('<p><strong>DO NOT DO THE FOLLOWING AS IT WILL CAUSE YOUR BACKUP TO FAIL:</strong></p> <ol><li>Close this browser</li><li>Reload this page</li><li>Click the Stop or Back buttons in your browser</li></ol>', 'wp-db-backup') . '
+			<p><strong>' . __('Progress:', 'wp-db-backup') . '</strong></p>
+			<div id="meterbox" style="height:11px;width:80%;padding:3px;border:1px solid #659fff;"><div id="meter" style="height:11px;background-color:#659fff;width:0%;text-align:center;font-size:6pt;">&nbsp;</div></div>
 			<div id="progress_message"></div>
 			<div id="errors"></div>
 			</fieldset>
@@ -122,6 +122,7 @@ class wpdbBackup {
 			function setMeter(pct) {
 				var meter = document.getElementById("meter");
 				meter.style.width = pct + "%";
+				meter.innerHTML = Math.floor(pct) + "%";
 			}
 			function setProgress(str) {
 				var progress = document.getElementById("progress_message");
@@ -235,46 +236,54 @@ class wpdbBackup {
 			$this->fp = $this->open(ABSPATH . $this->backup_dir . $filename, 'a');
 			if(!$this->fp) {
 				$this->backup_error(__('Could not open the backup file for writing!', 'wp-db-backup'));
-				die();
+				$this->fatal_error = __('The backup file could not be saved.  Please check the permissions for writing to your backup directory and try again.', 'wp-db-backup');
+			}
+			else {
+				if($table == '') {		
+					//Begin new backup of MySql
+					$this->stow("# WordPress MySQL database backup\n");
+					$this->stow("#\n");
+					$this->stow("# Generated: " . date("l j. F Y H:i T") . "\n");
+					$this->stow("# Hostname: " . DB_HOST . "\n");
+					$this->stow("# Database: " . $this->backquote(DB_NAME) . "\n");
+					$this->stow("# --------------------------------------------------------\n");
+				} else {
+					if($segment == 0) {
+						// Increase script execution time-limit to 15 min for every table.
+						if ( !ini_get('safe_mode')) @set_time_limit(15*60);
+						//ini_set('memory_limit', '16M');
+						// Create the SQL statements
+						$this->stow("# --------------------------------------------------------\n");
+						$this->stow("# Table: " . $this->backquote($table) . "\n");
+						$this->stow("# --------------------------------------------------------\n");
+					}			
+					$this->backup_table($table, $segment);
+				}
 			}
 		} else {
 			$this->backup_error(__('The backup directory is not writeable!', 'wp-db-backup'));
-			die();
+			$this->fatal_error = __('The backup directory is not writeable!  Please check the permissions for writing to your backup directory and try again.', 'wp-db-backup');
 		}
 
-		if($table == '') {		
-			//Begin new backup of MySql
-			$this->stow("# WordPress MySQL database backup\n");
-			$this->stow("#\n");
-			$this->stow("# Generated: " . date("l j. F Y H:i T") . "\n");
-			$this->stow("# Hostname: " . DB_HOST . "\n");
-			$this->stow("# Database: " . $this->backquote(DB_NAME) . "\n");
-			$this->stow("# --------------------------------------------------------\n");
-		} else {
-			if($segment == 0) {
-				// Increase script execution time-limit to 15 min for every table.
-				if ( !ini_get('safe_mode')) @set_time_limit(15*60);
-				//ini_set('memory_limit', '16M');
-				// Create the SQL statements
-				$this->stow("# --------------------------------------------------------\n");
-				$this->stow("# Table: " . $this->backquote($table) . "\n");
-				$this->stow("# --------------------------------------------------------\n");
-			}			
-			$this->backup_table($table, $segment);
-		}
-				
-		$this->close($this->fp);
+		if($this->fp) $this->close($this->fp);
 		
 		if($this->backup_errors) {
 			foreach($this->backup_errors as $error) {
 				echo "window.parent.addError('$error');\n";
 			}
 		}
-
-		echo '
-			window.parent.nextStep();
-			//--></script>
-		';
+		if($this->fatal_error) {
+			echo '
+				alert("' . addslashes($this->fatal_error) . '");
+				//--></script>
+			';
+		}
+		else {
+			echo '
+				window.parent.nextStep();
+				//--></script>
+			';
+		}
 		
 		die();
 	}
@@ -353,9 +362,9 @@ class wpdbBackup {
 	function open($filename = '', $mode = 'w') {
 		if ('' == $filename) return false;
 		if ($this->gzip()) {
-			$fp = gzopen($filename, $mode);
+			$fp = @gzopen($filename, $mode);
 		} else {
-			$fp = fopen($filename, $mode);
+			$fp = @fopen($filename, $mode);
 		}
 		return $fp;
 	}
@@ -405,197 +414,197 @@ class wpdbBackup {
 		to use the WordPress $wpdb object
 		*/
 
-			$table_structure = $wpdb->get_results("DESCRIBE $table");
-			if (! $table_structure) {
-				backup_errors(__('Error getting table details', 'wp-db-backup') . ": $table");
-				return FALSE;
+		$table_structure = $wpdb->get_results("DESCRIBE $table");
+		if (! $table_structure) {
+			backup_errors(__('Error getting table details', 'wp-db-backup') . ": $table");
+			return FALSE;
+		}
+	
+		if(($segment == 'none') || ($segment == 0)) {
+			//
+			// Add SQL statement to drop existing table
+			$this->stow("\n\n");
+			$this->stow("#\n");
+			$this->stow("# Delete any existing table " . $this->backquote($table) . "\n");
+			$this->stow("#\n");
+			$this->stow("\n");
+			$this->stow("DROP TABLE IF EXISTS " . $this->backquote($table) . ";\n");
+			
+			// 
+			//Table structure
+			// Comment in SQL-file
+			$this->stow("\n\n");
+			$this->stow("#\n");
+			$this->stow("# Table structure of table " . $this->backquote($table) . "\n");
+			$this->stow("#\n");
+			$this->stow("\n");
+			
+			$create_table = $wpdb->get_results("SHOW CREATE TABLE $table", ARRAY_N);
+			if (FALSE === $create_table) {
+				$this->backup_error(sprintf(__("Error with SHOW CREATE TABLE for %s.", 'wp-db-backup'), $table));
+				$this->stow("#\n# Error with SHOW CREATE TABLE for $table!\n#\n");
+			}
+			$this->stow($create_table[0][1] . ' ;');
+			
+			if (FALSE === $table_structure) {
+				$this->backup_error(sprintf(__("Error getting table structure of %s", 'wp-db-backup'), $table));
+				$this->stow("#\n# Error getting table structure of $table!\n#\n");
 			}
 		
-			if(($segment == 'none') || ($segment == 0)) {
-				//
-				// Add SQL statement to drop existing table
-				$this->stow("\n\n");
-				$this->stow("#\n");
-				$this->stow("# Delete any existing table " . $this->backquote($table) . "\n");
-				$this->stow("#\n");
-				$this->stow("\n");
-				$this->stow("DROP TABLE IF EXISTS " . $this->backquote($table) . ";\n");
-				
-				// 
-				//Table structure
-				// Comment in SQL-file
-				$this->stow("\n\n");
-				$this->stow("#\n");
-				$this->stow("# Table structure of table " . $this->backquote($table) . "\n");
-				$this->stow("#\n");
-				$this->stow("\n");
-				
-				$create_table = $wpdb->get_results("SHOW CREATE TABLE $table", ARRAY_N);
-				if (FALSE === $create_table) {
-					$this->backup_error(sprintf(__("Error with SHOW CREATE TABLE for %s.", 'wp-db-backup'), $table));
-					$this->stow("#\n# Error with SHOW CREATE TABLE for $table!\n#\n");
-				}
-				$this->stow($create_table[0][1] . ' ;');
-				
-				if (FALSE === $table_structure) {
-					$this->backup_error(sprintf(__("Error getting table structure of %s", 'wp-db-backup'), $table));
-					$this->stow("#\n# Error getting table structure of $table!\n#\n");
-				}
-			
-				//
-				// Comment in SQL-file
-				$this->stow("\n\n");
-				$this->stow("#\n");
-				$this->stow('# Data contents of table ' . $this->backquote($table) . "\n");
-				$this->stow("#\n");
-			}
-			
-			if(($segment == 'none') || ($segment >= 0)) {
-				$ints = array();
-				foreach ($table_structure as $struct) {
-					if ( (0 === strpos($struct->Type, 'tinyint')) ||
-						(0 === strpos(strtolower($struct->Type), 'smallint')) ||
-						(0 === strpos(strtolower($struct->Type), 'mediumint')) ||
-						(0 === strpos(strtolower($struct->Type), 'int')) ||
-						(0 === strpos(strtolower($struct->Type), 'bigint')) ||
-						(0 === strpos(strtolower($struct->Type), 'timestamp')) ) {
-							$ints[strtolower($struct->Field)] = "1";
-					}
-				}
-				
-				
-				// Batch by $row_inc
-				
-				if($segment == 'none') {
-					$row_start = 0;
-					$row_inc = ROWS_PER_SEGMENT;
-				} else {
-					$row_start = $segment * ROWS_PER_SEGMENT;
-					$row_inc = ROWS_PER_SEGMENT;
-				}
-				
-				do {	
-					if ( !ini_get('safe_mode')) @set_time_limit(15*60);
-					$table_data = $wpdb->get_results("SELECT * FROM $table LIMIT {$row_start}, {$row_inc}", ARRAY_A);
-					
-					/*
-					if (FALSE === $table_data) {
-						$wp_backup_error .= "Error getting table contents from $table\r\n";
-						fwrite($fp, "#\n# Error getting table contents fom $table!\n#\n");
-					}
-					*/
-						
-					$entries = 'INSERT INTO ' . $this->backquote($table) . ' VALUES (';	
-					//    \x08\\x09, not required
-					$search = array("\x00", "\x0a", "\x0d", "\x1a");
-					$replace = array('\0', '\n', '\r', '\Z');
-					if($table_data) {
-						foreach ($table_data as $row) {
-							$values = array();
-							foreach ($row as $key => $value) {
-								if ($ints[strtolower($key)]) {
-									$values[] = $value;
-								} else {
-									$values[] = "'" . str_replace($search, $replace, $this->sql_addslashes($value)) . "'";
-								}
-							}
-							$this->stow(" \n" . $entries . implode(', ', $values) . ') ;');
-						}
-						$row_start += $row_inc;
-					}
-				} while((count($table_data) > 0) and ($segment=='none'));
-			}
-			
-			
-			if(($segment == 'none') || ($segment < 0)) {
-				// Create footer/closing comment in SQL-file
-				$this->stow("\n");
-				$this->stow("#\n");
-				$this->stow("# End of data contents of table " . $this->backquote($table) . "\n");
-				$this->stow("# --------------------------------------------------------\n");
-				$this->stow("\n");
-			}
-			
-		} // end backup_table()
-		
-		function return_bytes($val) {
-		   $val = trim($val);
-		   $last = strtolower($val{strlen($val)-1});
-		   switch($last) {
-		       // The 'G' modifier is available since PHP 5.1.0
-		       case 'g':
-			   $val *= 1024;
-		       case 'm':
-			   $val *= 1024;
-		       case 'k':
-			   $val *= 1024;
-		   }
-		
-		   return $val;
+			//
+			// Comment in SQL-file
+			$this->stow("\n\n");
+			$this->stow("#\n");
+			$this->stow('# Data contents of table ' . $this->backquote($table) . "\n");
+			$this->stow("#\n");
 		}
 		
-		////////////////////////////
-		function db_backup($core_tables, $other_tables) {
-			global $table_prefix, $wpdb;
+		if(($segment == 'none') || ($segment >= 0)) {
+			$ints = array();
+			foreach ($table_structure as $struct) {
+				if ( (0 === strpos($struct->Type, 'tinyint')) ||
+					(0 === strpos(strtolower($struct->Type), 'smallint')) ||
+					(0 === strpos(strtolower($struct->Type), 'mediumint')) ||
+					(0 === strpos(strtolower($struct->Type), 'int')) ||
+					(0 === strpos(strtolower($struct->Type), 'bigint')) ||
+					(0 === strpos(strtolower($struct->Type), 'timestamp')) ) {
+						$ints[strtolower($struct->Field)] = "1";
+				}
+			}
 			
-			$datum = date("Ymd_B");
-			$wp_backup_filename = DB_NAME . "_$table_prefix$datum.sql";
+			
+			// Batch by $row_inc
+			
+			if($segment == 'none') {
+				$row_start = 0;
+				$row_inc = ROWS_PER_SEGMENT;
+			} else {
+				$row_start = $segment * ROWS_PER_SEGMENT;
+				$row_inc = ROWS_PER_SEGMENT;
+			}
+			
+			do {	
+				if ( !ini_get('safe_mode')) @set_time_limit(15*60);
+				$table_data = $wpdb->get_results("SELECT * FROM $table LIMIT {$row_start}, {$row_inc}", ARRAY_A);
+				
+				/*
+				if (FALSE === $table_data) {
+					$wp_backup_error .= "Error getting table contents from $table\r\n";
+					fwrite($fp, "#\n# Error getting table contents fom $table!\n#\n");
+				}
+				*/
+					
+				$entries = 'INSERT INTO ' . $this->backquote($table) . ' VALUES (';	
+				//    \x08\\x09, not required
+				$search = array("\x00", "\x0a", "\x0d", "\x1a");
+				$replace = array('\0', '\n', '\r', '\Z');
+				if($table_data) {
+					foreach ($table_data as $row) {
+						$values = array();
+						foreach ($row as $key => $value) {
+							if ($ints[strtolower($key)]) {
+								$values[] = $value;
+							} else {
+								$values[] = "'" . str_replace($search, $replace, $this->sql_addslashes($value)) . "'";
+							}
+						}
+						$this->stow(" \n" . $entries . implode(', ', $values) . ') ;');
+					}
+					$row_start += $row_inc;
+				}
+			} while((count($table_data) > 0) and ($segment=='none'));
+		}
+		
+		
+		if(($segment == 'none') || ($segment < 0)) {
+			// Create footer/closing comment in SQL-file
+			$this->stow("\n");
+			$this->stow("#\n");
+			$this->stow("# End of data contents of table " . $this->backquote($table) . "\n");
+			$this->stow("# --------------------------------------------------------\n");
+			$this->stow("\n");
+		}
+		
+	} // end backup_table()
+	
+	function return_bytes($val) {
+	   $val = trim($val);
+	   $last = strtolower($val{strlen($val)-1});
+	   switch($last) {
+	       // The 'G' modifier is available since PHP 5.1.0
+	       case 'g':
+	           $val *= 1024;
+	       case 'm':
+	           $val *= 1024;
+	       case 'k':
+	           $val *= 1024;
+	   }
+	
+	   return $val;
+	}
+	
+	////////////////////////////
+	function db_backup($core_tables, $other_tables) {
+		global $table_prefix, $wpdb;
+		
+		$datum = date("Ymd_B");
+		$wp_backup_filename = DB_NAME . "_$table_prefix$datum.sql";
 			if ($this->gzip()) {
 				$wp_backup_filename .= '.gz';
 			}
-			
-			if (is_writable(ABSPATH . $this->backup_dir)) {
-				$this->fp = $this->open(ABSPATH . $this->backup_dir . $wp_backup_filename);
-				if(!$this->fp) {
-					$this->backup_error(__('Could not open the backup file for writing!', 'wp-db-backup'));
-					return false;
-				}
-			} else {
-				$this->backup_error(__('The backup directory is not writeable!', 'wp-db-backup'));
-				return false;
-			}
-			
-			//Begin new backup of MySql
-			$this->stow("# WordPress MySQL database backup\n");
-			$this->stow("#\n");
-			$this->stow("# Generated: " . date("l j. F Y H:i T") . "\n");
-			$this->stow("# Hostname: " . DB_HOST . "\n");
-			$this->stow("# Database: " . $this->backquote(DB_NAME) . "\n");
-			$this->stow("# --------------------------------------------------------\n");
-			
-			if ( (is_array($other_tables)) && (count($other_tables) > 0) )
-				$tables = array_merge($core_tables, $other_tables);
-			else
-				$tables = $core_tables;
-			
-			foreach ($tables as $table) {
-				// Increase script execution time-limit to 15 min for every table.
-				if ( !ini_get('safe_mode')) @set_time_limit(15*60);
-				// Create the SQL statements
-				$this->stow("# --------------------------------------------------------\n");
-				$this->stow("# Table: " . $this->backquote($table) . "\n");
-				$this->stow("# --------------------------------------------------------\n");
-				$this->backup_table($table);
-			}
-					
-			$this->close($this->fp);
-			
-			if (count($this->backup_errors)) {
-				return false;
-			} else {
-				return $wp_backup_filename;
-			}
-			
-		} //wp_db_backup
 		
-		///////////////////////////
-		function deliver_backup ($filename = '', $delivery = 'http', $recipient = '') {
-			if ('' == $filename) { return FALSE; }
-			
-			$diskfile = ABSPATH . $this->backup_dir . $filename;
+		if (is_writable(ABSPATH . $this->backup_dir)) {
+			$this->fp = $this->open(ABSPATH . $this->backup_dir . $wp_backup_filename);
+			if(!$this->fp) {
+				$this->backup_error(__('Could not open the backup file for writing!', 'wp-db-backup'));
+				return false;
+			}
+		} else {
+			$this->backup_error(__('The backup directory is not writeable!', 'wp-db-backup'));
+			return false;
+		}
+		
+		//Begin new backup of MySql
+		$this->stow("# WordPress MySQL database backup\n");
+		$this->stow("#\n");
+		$this->stow("# Generated: " . date("l j. F Y H:i T") . "\n");
+		$this->stow("# Hostname: " . DB_HOST . "\n");
+		$this->stow("# Database: " . $this->backquote(DB_NAME) . "\n");
+		$this->stow("# --------------------------------------------------------\n");
+		
+			if ( (is_array($other_tables)) && (count($other_tables) > 0) )
+			$tables = array_merge($core_tables, $other_tables);
+		else
+			$tables = $core_tables;
+		
+		foreach ($tables as $table) {
+			// Increase script execution time-limit to 15 min for every table.
+			if ( !ini_get('safe_mode')) @set_time_limit(15*60);
+			// Create the SQL statements
+			$this->stow("# --------------------------------------------------------\n");
+			$this->stow("# Table: " . $this->backquote($table) . "\n");
+			$this->stow("# --------------------------------------------------------\n");
+			$this->backup_table($table);
+		}
+				
+		$this->close($this->fp);
+		
+		if (count($this->backup_errors)) {
+			return false;
+		} else {
+			return $wp_backup_filename;
+		}
+		
+	} //wp_db_backup
+	
+	///////////////////////////
+	function deliver_backup ($filename = '', $delivery = 'http', $recipient = '') {
+		if ('' == $filename) { return FALSE; }
+		
+		$diskfile = ABSPATH . $this->backup_dir . $filename;
 		if ('http' == $delivery) {
 			if (! file_exists($diskfile)) {
-				$msg = __('File not found:', 'wp-db-backup') . "<br /> <strong>$filename</strong><br />";
+				$msg = sprintf(__('File not found:<br /><strong>%1s</strong><br />', 'wp-db-backup'), $filename);
 				$this_basename = preg_replace('/^.*wp-content[\\\\\/]plugins[\\\\\/]/', '', __FILE__);
 				$msg .= '<br /><a href="' . get_settings('siteurl') . "/wp-admin/edit.php?page={$this_basename}" . '">' . __('Return to Backup', 'wp-db-backup');
 			die($msg);
@@ -622,7 +631,7 @@ class wpdbBackup {
 			$headers .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n";
 			$headers .= 'From: ' . get_settings('admin_email') . "\n";
 		
-			$message = __('Attached to this email is', 'wp-db-backup') . "\n   $filename\n". __('Size', 'wp-db-backup') . ": " . round(filesize($diskfile)/1024) . ' ' . __('kilobytes', 'wp-db-backup') . "\n";
+			$message = sprintf(__("Attached to this email is\n   %1s\n   Size:%2s kilobytes\n", 'wp-db-backup'), $filename, round(filesize($diskfile)/1024));
 			// Add a multipart boundary above the plain message
 			$message = "This is a multi-part message in MIME format.\n\n" .
 		        	"--{$boundary}\n" .
@@ -663,7 +672,7 @@ class wpdbBackup {
 			$file = $this->backup_file;
 			switch($_POST['deliver']) {
 			case 'http':
-				$feedback .= '<br />' . __('Your backup file', 'wp-db-backup') . ': <a href="' . get_settings('siteurl') . "/{$this->backup_dir}{$this->backup_file}\">{$this->backup_file}</a> " . __('should begin downloading shortly.', 'wp-db-backup');
+				$feedback .= '<br />' . sprintf(__('Your backup file: <a href="%1s">%2s</a> should begin downloading shortly.', 'wp-db-backup'), get_settings('siteurl') . "/{$this->backup_dir}{$this->backup_file}", $this->backup_file);
 				break;
 			case 'smtp':
 				if (! is_email($_POST['backup_recipient'])) {
@@ -674,7 +683,8 @@ class wpdbBackup {
 				$feedback = '<br />' . sprintf(__('Your backup has been emailed to %s', 'wp-db-backup'), $feedback);
 				break;
 			case 'none':
-				$feedback .= '<br />' . __('Your backup file has been saved on the server. If you would like to download it now, right click and select "Save As"', 'wp-db-backup') . ':<br /> <a href="' . get_settings('siteurl') . "/{$this->backup_dir}$file\">$file</a> : " . filesize(ABSPATH . $this->backup_dir . $file) . __(' bytes', 'wp-db-backup');
+				$feedback .= '<br />' . __('Your backup file has been saved on the server. If you would like to download it now, right click and select "Save As"', 'wp-db-backup');
+				$feedback .= ':<br /> <a href="' . get_settings('siteurl') . "/{$this->backup_dir}$file\">$file</a> : " . filesize(ABSPATH . $this->backup_dir . $file) . __(' bytes', 'wp-db-backup');
 			}
 			$feedback .= '</p></div>';
 		}
