@@ -749,7 +749,7 @@ class wpdbBackup {
 		echo sprintf(__('<label for="do_email">Email backup to:</label> %s', 'wp-db-backup'), '<input type="text" name="backup_recipient" size="20" value="' . get_settings('admin_email') . '" />');
 		
 		// Check DB dize.
-		$table_status = $wpdb->get_results("SHOW TABLE STATUS FROM " . DB_NAME);
+		$table_status = $wpdb->get_results("SHOW TABLE STATUS FROM " . $this->backquote(DB_NAME));
 		$core_size = $db_size = 0;
 		foreach($table_status as $table) {
 			$table_size = $table->Data_length - $table->Data_free;
