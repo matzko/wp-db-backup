@@ -19,7 +19,8 @@ Released under the terms of the GNU GPL, version 2.
    $ mkdir backup
    $ chgrp www-data backup
    $ chmod g+w backup
-3. Install and activate wp-db-backup.php
+3. Copy the wp-db-backup.php file to /wp-content/plugins/
+4. Activate the plugin at your blog Admin -> Plugins screen
 
 == Usage ==
 1) Click the Manage menu in your WordPress admin area.
@@ -79,6 +80,10 @@ You may download WP-Cron from:
    http://www.skippy.net/blog/categories/wordpress/plugins/wp-cron/
 
 == Frequently Asked Questions ==
+Q. What are wp-db-backup.mo and wp-db-backup.pot for?
+A. These files are used by non-English users to translate the display into their native language.  Translators are encouraged to send me translated files, which will be made available to others here:
+   http://dev.wp-plugins.org/browser/wp-db-backup/i18n/
+
 Q. Why are only the core database files backed up by default?
 A. Because it's a fairly safe bet that the core WordPress files will be successfully backed up.  Plugins vary wildly in the amount of data that they store.  For instance, it's not uncommon for some statistics plugins to have tens of megabytes worth of visitor statistics.  These are not exactly essential items to restore after a catastrophic failure.  Most poeple can reasonably live without this data in their backups.
 
@@ -89,6 +94,9 @@ Q. Can you set this up to run weekly, instead of daily?
 A. No.  If you get even one new comment per day, a daily backup of your database will ensure that you have the most recent version of everything.  If you have an extremely low-volume blog, then the daily backups won't hurt anything.  You can always turn them off, and run on-demand backups as needed.
 
 == Changelog ==
+1.7
+Better error handling.  Updated documentation.
+
 1.6
 Integrated Owen's massive rewrite, the most noticable element being the introduction of a progress meter.  The backup is now spooled to disk, a few rows at a time, to ensure that databases of all sizes can be backed up.  Additionally, gzip support is now automatically detected, and used if available.  This has been tested on a database over 30 megabytes uncompressed.  Version 1.6 of wp-db-backup successfully backed up the whole thing without error, and transparently compressed it to just over 10 megabytes (many thanks to Lorelle for being such a willing guinea pig!).
 
