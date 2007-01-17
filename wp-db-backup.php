@@ -3,9 +3,8 @@
 Plugin Name: WordPress Database Backup
 Plugin URI: http://www.skippy.net/blog/plugins/
 Description: On-demand backup of your WordPress database.
-Author: Scott Merrill
-Version: 1.8
-Author URI: http://www.skippy.net/
+Author: <a href="http://www.skippy.net/">Scott Merrill</a>
+Version: 2.0-alpha
 
 Much of this was modified from Mark Ghosh's One Click Backup, which
 in turn was derived from phpMyAdmin.
@@ -36,13 +35,23 @@ class wpdbBackup {
 	}
 
 	function wpdbBackup() {
+		global $table_prefix, $wpdb;
+		add_action('wp_db_backup_cron', array(&$this, 'cron_backup'));
 		add_action('wp_cron_daily', array(&$this, 'wp_cron_daily'));
-
+		add_filter('cron_schedules', array(&$this, 'add_sched_options'));
+		add_filter('wp_db_b_schedule_choices', array(&$this, 'schedule_choices'));
+		
+		$table_prefix = ( isset( $table_prefix ) ) ? $table_prefix : $wpdb->prefix;
+		if ( isset( $wpdb->link2cat ) )
+			$this->core_table_names = explode(',',"$wpdb->categories,$wpdb->comments,$wpdb->link2cat,$wpdb->links,$wpdb->options,$wpdb->post2cat,$wpdb->postmeta,$wpdb->posts,$wpdb->users,$wpdb->usermeta");
+		else 
+			$this->core_table_names = explode(',',"$wpdb->categories,$wpdb->comments,$wpdb->linkcategories,$wpdb->links,$wpdb->options,$wpdb->post2cat,$wpdb->postmeta,$wpdb->posts,$wpdb->users,$wpdb->usermeta");
+		
 		$this->backup_dir = trailingslashit($this->backup_dir);
 		$this->basename = preg_replace('/^.*wp-content[\\\\\/]plugins[\\\\\/]/', '', __FILE__);
 	
 		if (isset($_POST['do_backup'])) {
-			if ( !current_user_can('import') ) die(__('You are not allowed to perform backups.'));
+			if ( !$this->user_can_backup() ) die(__('You are not allowed to perform backups.'));
 			switch($_POST['do_backup']) {
 			case 'backup':
 				$this->perform_backup();
@@ -52,10 +61,10 @@ class wpdbBackup {
 				break;				
 			}
 		} elseif (isset($_GET['fragment'] )) {
-			if ( !current_user_can('import') ) die(__('You are not allowed to perform backups.'));
+			if ( !$this->user_can_backup() ) die(__('You are not allowed to perform backups.'));
 			add_action('init', array(&$this, 'init'));
 		} elseif (isset($_GET['backup'] )) {
-			if ( !current_user_can('import') ) die(__('You are not allowed to perform backups.'));
+			if ( !$this->user_can_backup() ) die(__('You are not allowed to perform backups.'));
 			add_action('init', array(&$this, 'init'));
 		} else {
 			add_action('admin_menu', array(&$this, 'admin_menu'));
@@ -63,7 +72,7 @@ class wpdbBackup {
 	}
 	
 	function init() {
-		if ( !current_user_can('import') ) die(__('You are not allowed to perform backups.'));
+		if ( !$this->user_can_backup() ) die(__('You are not allowed to perform backups.'));
 
 		if (isset($_GET['backup'])) {
 			$via = isset($_GET['via']) ? $_GET['via'] : 'http';
@@ -709,19 +718,28 @@ class wpdbBackup {
 		}
 		
 		// did we just save options for wp-cron?
-		if ( (function_exists('wp_cron_init')) && isset($_POST['wp_cron_backup_options']) ) {
-			update_option('wp_cron_backup_schedule', intval($_POST['cron_schedule']), FALSE);
+		if ( (function_exists('wp_schedule_event') || function_exists('wp_cron_init')) 
+			&& isset($_POST['wp_cron_backup_options']) ) :
+			if ( function_exists('wp_schedule_event') ) {
+				wp_clear_scheduled_hook( 'wp_db_backup_cron' ); // unschedule previous
+				$scheds = (array) wp_get_schedules();
+				$name = strval($_POST['wp_cron_schedule']);
+				$interval = ( isset($scheds[$name]['interval']) ) ? 
+					(int) $scheds[$name]['interval'] : 0;
+				update_option('wp_cron_backup_schedule', $name, FALSE);
+				if ( ! 0 == $interval ) {
+					wp_schedule_event(time() + $interval, $name, 'wp_db_backup_cron');
+				}
+			}
+			else {
+				update_option('wp_cron_backup_schedule', intval($_POST['cron_schedule']), FALSE);
+			}
 			update_option('wp_cron_backup_tables', $_POST['wp_cron_backup_tables']);
 			if (is_email($_POST['cron_backup_recipient'])) {
 				update_option('wp_cron_backup_recipient', $_POST['cron_backup_recipient'], FALSE);
 			}
 			$feedback .= '<div class="updated"><p>' . __('Scheduled Backup Options Saved!') . '</p></div>';
-		}
-		
-		// Simple table name storage
-		$wp_table_names = explode(',','categories,comments,linkcategories,links,options,post2cat,postmeta,posts,users,usermeta');
-		// Apply WP DB prefix to table names
-		$wp_table_names = array_map(create_function('$a', 'global $table_prefix;return "{$table_prefix}{$a}";'), $wp_table_names);
+		endif;
 		
 		$other_tables = array();
 		$also_backup = array();
@@ -730,7 +748,7 @@ class wpdbBackup {
 		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
 		$all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
 		// Get list of WP tables that actually exist in this DB (for 1.6 compat!)
-		$wp_backup_default_tables = array_intersect($all_tables, $wp_table_names);
+		$wp_backup_default_tables = array_intersect($all_tables, $this->core_table_names);
 		// Get list of non-WP tables
 		$other_tables = array_diff($all_tables, $wp_backup_default_tables);
 		
@@ -806,25 +824,38 @@ class wpdbBackup {
 		echo '</fieldset>';
 		echo '</form>';
 		
-		// this stuff only displays if wp_cron is installed
-		if (function_exists('wp_cron_init')) {
+		// this stuff only displays if some sort of wp-cron is available 
+		$cron = ( function_exists('wp_schedule_event') ) ? true : false; // wp-cron in WP 2.1+
+		$cron_old = ( function_exists('wp_cron_init') && ! $cron ) ? true : false; // wp-cron plugin by Skippy
+		if ( $cron_old || $cron ) :
 			echo '<fieldset class="options"><legend>' . __('Scheduled Backup') . '</legend>';
 			$datetime = get_settings('date_format') . ' @ ' . get_settings('time_format');
-			echo '<p>' . __('Last WP-Cron Daily Execution') . ': ' . date($datetime, get_option('wp_cron_daily_lastrun')) . '<br />';
-			echo __('Next WP-Cron Daily Execution') . ': ' . date($datetime, (get_option('wp_cron_daily_lastrun') + 86400)) . '</p>';
+			if ( $cron ) :
+				if ( ! ( 'never' == $this->get_sched() ) ) :
+					echo '<p>' .  __('Next Backup') . ': ';
+					echo gmdate($datetime, wp_next_scheduled('wp_db_backup_cron') + (get_option('gmt_offset') * 3600)) . '</p>';
+				endif;
+			elseif ( $cron_old ) :
+				echo '<p>' . __('Last WP-Cron Daily Execution') . ': ' . date($datetime, get_option('wp_cron_daily_lastrun')) . '<br />';
+				echo __('Next WP-Cron Daily Execution') . ': ' . date($datetime, (get_option('wp_cron_daily_lastrun') + 86400)) . '</p>';
+			endif;
 			echo '<form method="post">';
 			echo '<table width="100%" callpadding="5" cellspacing="5">';
 			echo '<tr><td align="center">';
 			echo __('Schedule: ');
-			$wp_cron_backup_schedule = get_option('wp_cron_backup_schedule');
-			$schedule = array(0 => __('None'), 1 => __('Daily'));
-			foreach ($schedule as $value => $name) {
-				echo ' <input type="radio" name="cron_schedule"';
-				if ($wp_cron_backup_schedule == $value) {
-					echo ' checked="checked" ';
+			if ( $cron_old ) :
+				$wp_cron_backup_schedule = get_option('wp_cron_backup_schedule');
+				$schedule = array(0 => __('None'), 1 => __('Daily'));
+				foreach ($schedule as $value => $name) {
+					echo ' <input type="radio" name="cron_schedule"';
+					if ($wp_cron_backup_schedule == $value) {
+						echo ' checked="checked" ';
+					}
+					echo 'value="' . $value . '" /> ' . __($name);
 				}
-				echo 'value="' . $value . '" /> ' . __($name);
-			}
+			elseif ( $cron ) :
+				echo apply_filters('wp_db_b_schedule_choices', wp_get_schedules() );
+			endif;
 			echo '</td><td align="center">';
 			$cron_recipient = get_option('wp_cron_backup_recipient');
 			if (! is_email($cron_recipient)) {
@@ -849,29 +880,59 @@ class wpdbBackup {
 			}
 			echo '<tr><td colspan="2" align="center"><input type="hidden" name="wp_cron_backup_options" value="SET" /><input type="submit" name="submit" value="' . __('Submit') . '" /></td></tr></table></form>';
 			echo '</fieldset>';
-		}
-		// end of wp_cron section
+		endif; // end of wp_cron (legacy) section
 		
 		echo '</div>';
 		
 	}// end wp_backup_menu()
+
+	function get_sched() {
+		$options = array_keys( (array) wp_get_schedules() );
+		$freq = get_option('wp_cron_backup_schedule'); 
+		$freq = ( in_array( $freq , $options ) ) ? $freq : 'never';
+		return $freq;
+	}
+
+	function schedule_choices($schedule) { // create the cron menu based on the schedule
+		$wp_cron_backup_schedule = $this->get_sched();
+		$sort = array();
+		foreach ( (array) $schedule as $key => $value ) $sort[$key] = $value['interval'];
+		asort( $sort );
+		$schedule_sorted = array();
+		foreach ( (array) $sort as $key => $value ) $schedule_sorted[$key] = $schedule[$key];
+		$menu = '<ul style="list-style: none; text-align: left">';
+		$schedule = array_merge( array( 'never' => array( 'interval' => 0, 'display' => __('Never') ) ),
+			(array) $schedule_sorted );
+		foreach ( $schedule as $name => $settings) {
+			$interval = (int) $settings['interval'];
+			if ( 0 == $interval && ! 'never' == $name ) continue;
+			$display = ( ! '' == $settings['display'] ) ? $settings['display'] : sprintf(__('%s seconds'),$interval);
+			$menu .= "<li><input type='radio' name='wp_cron_schedule'";
+			if ($wp_cron_backup_schedule == $name) {
+				$menu .= ' checked="checked" ';
+			}
+			$menu .= "value='$name' /> $display</li>";
+		}
+		$menu .= '</ul>';
+		return $menu;
+	} // end schedule_choices()
 	
 	/////////////////////////////
-	function wp_cron_daily() {
-		
+	function wp_cron_daily() { // for legacy cron plugin
 		$schedule = intval(get_option('wp_cron_backup_schedule'));
 		if (0 == $schedule) {
 		        // Scheduled backup is disabled
 		        return;
 		}
-		
+		else { $this->cron_backup(); }
+	} // wp_cron_daily
+
+	function cron_backup() {
 		global $table_prefix, $wpdb;
 
-		$wp_table_names = explode(',','categories,comments,linkcategories,links,options,post2cat,postmeta,posts,users,usermeta');
-		$wp_table_names = array_map(create_function('$a', 'global $table_prefix;return "{$table_prefix}{$a}";'), $wp_table_names);
 		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
 		$all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
-		$core_tables = array_intersect($all_tables, $wp_table_names);
+		$core_tables = array_intersect($all_tables, $this->core_table_names);
 		$other_tables = get_option('wp_cron_backup_tables');
 		
 		$recipient = get_option('wp_cron_backup_recipient');
@@ -880,9 +941,17 @@ class wpdbBackup {
 		if (FALSE !== $backup_file) {
 			$this->deliver_backup ($backup_file, 'smtp', $recipient);
 		}
-		
 		return;
-	} // wp_cron_db_backup
+	}
+
+	function add_sched_options($sched) {
+		$sched['weekly'] = array('interval' => 604800, 'display' => __('Once Weekly'));
+		return $sched;
+	}
+
+	function user_can_backup() {
+		return current_user_can('import');
+	}
 
 	function validate_file($file) {
 		if (false !== strpos($file, '..'))
@@ -899,9 +968,6 @@ class wpdbBackup {
 
 function wpdbBackup_init() {
 	global $mywpdbbackup;
-
-	if ( !current_user_can('import') ) return;
-
 	$mywpdbbackup = new wpdbBackup(); 	
 }
 
