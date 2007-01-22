@@ -1,10 +1,10 @@
 = WP-DB-Backup =
 tags: mysql, database, backup
-Contributors: Firas, LaughingLizard, MtDewVirus, Podz, Ringmaster
+Contributors: Scott Merrill, Firas, LaughingLizard, MtDewVirus, Podz, Ringmaster
 
-copyright (c) 2005 Scott Merrill (skippy@skippy.net)
+copyright (c) 2007 Austin Matzko
 
-WP-DB-Backup allows you to easily backup your core WordPress database tables.  You may also optionally backup other tables in the same database.
+WP-DB-Backup allows you easily to backup your core WordPress database tables.  You may also backup other tables in the same database.
 
 Released under the terms of the GNU GPL, version 2.
    http://www.fsf.org/licensing/licenses/gpl.html
@@ -12,7 +12,7 @@ Released under the terms of the GNU GPL, version 2.
               NO WARRANTY.
 
 == Installation ==
-1. Create a directory /wp-content/backup/ inside your WordPress directory.
+1. Create a directory /wp-content/backup-*/ inside your WordPress directory.
 2. Make this directory writable by your webserver.
    For example:
    $ cd wordpress/wp-content
@@ -29,7 +29,7 @@ Released under the terms of the GNU GPL, version 2.
 The following core WordPress tables will be included in every backup:
 * wp_categories
 * wp_comments
-* wp_linkcategories
+* wp_linkcategories / wp_link2cat
 * wp_links
 * wp_options
 * wp_post2cat
@@ -45,7 +45,7 @@ The following core WordPress tables will be included in every backup:
   This may prevent you from emailing the backup file because it's too big.
 
 4) Select how you'd like the backup to be delivered:
-* Save to server : this will create a file in /wp-content/backup/ for you to retreive later
+* Save to server : this will create a file in /wp-content/backup-*/ for you to retreive later
 * Download to your computer : this will send the backup file to your browser to be downloaded
 * Email : this will email the backup file to the address you specify
 
@@ -70,14 +70,8 @@ When having the database backup emailed or sent to your browser for immediate do
    *** SECURITY WARNING ***
 
 == Advanced ==
-If you also have installed and activated  WP-Cron, you will have another set of options available at Manage -> Backup.
-
-Here you can schedule automated backups emailed to the address of your choice.  The core WordPress tables will always be included, and you can optionally select additional tables in the same database to be included in the backup.
-
-This backup will occur once per day. To disable, select "None" for the schedule.
-
-You may download WP-Cron from:
-   http://www.skippy.net/blog/categories/wordpress/plugins/wp-cron/
+If you are using WordPress version 2.1 or newer, you can schedule automated backups to be sent to the email address 
+of your choice.
 
 == Frequently Asked Questions ==
 Q. What are wp-db-backup.mo and wp-db-backup.pot for?
@@ -90,10 +84,10 @@ A. Because it's a fairly safe bet that the core WordPress files will be successf
 Q. Will you add a button so that I can automatically select all my other tables to back up?
 A. No.  Such a button would encourage people to click it.  The way it is now, you must deliberately select which additional tables to include in the backup.  This is a safety mechanism as much for me as it is for you.
 
-Q. Can you set this up to run weekly, instead of daily?
-A. No.  If you get even one new comment per day, a daily backup of your database will ensure that you have the most recent version of everything.  If you have an extremely low-volume blog, then the daily backups won't hurt anything.  You can always turn them off, and run on-demand backups as needed.
-
 == Changelog ==
+2.0
+Support for WordPress 2.1's built-in cron, for automated scheduled backups.
+
 1.7
 Better error handling.  Updated documentation.
 
