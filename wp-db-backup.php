@@ -3,14 +3,33 @@
 Plugin Name: WordPress Database Backup
 Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup.php">Manage &rarr; Backup</a> to get started.
-Author: <a href="http://www.skippy.net/">Scott Merrill</a> and <a href="http://www.ilfilosofo.com/blog/">Austin Matzko</a>
-Version: 2.0.1
+Author: Austin Matzko 
+Author URI: http://www.ilfilosofo.com/blog/
+Version: 2.0.2
+
+Development continued from that done by Skippy (http://www.skippy.net/)
 
 Much of this was modified from Mark Ghosh's One Click Backup, which
 in turn was derived from phpMyAdmin.
 
 Many thanks to Owen (http://asymptomatic.net/wp/) for his patch
    http://dev.wp-plugins.org/ticket/219
+
+Copyright 2007  Austin Matzko  (email : if.website at gmail.com)
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 // CHANGE THIS IF YOU WANT TO USE A 
@@ -428,7 +447,7 @@ class wpdbBackup {
 
 		$table_structure = $wpdb->get_results("DESCRIBE $table");
 		if (! $table_structure) {
-			backup_errors(__('Error getting table details','wp-db-backup') . ": $table");
+			backup_error(__('Error getting table details','wp-db-backup') . ": $table");
 			return FALSE;
 		}
 	
