@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup.php">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/blog/
-Version: 2.0.2
+Version: 2.0.3
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -414,13 +414,13 @@ class wpdbBackup {
 	function stow($query_line) {
 		if ($this->gzip()) {
 			if(@gzwrite($this->fp, $query_line) === FALSE) {
-				backup_error(__('There was an error writing a line to the backup script:','wp-db-backup'));
-				backup_error('&nbsp;&nbsp;' . $query_line);
+				$this->backup_error(__('There was an error writing a line to the backup script:','wp-db-backup'));
+				$this->backup_error('&nbsp;&nbsp;' . $query_line);
 			}
 		} else {
 			if(@fwrite($this->fp, $query_line) === FALSE) {
-				backup_error(__('There was an error writing a line to the backup script:','wp-db-backup'));
-				backup_error('&nbsp;&nbsp;' . $query_line);
+				$this->backup_error(__('There was an error writing a line to the backup script:','wp-db-backup'));
+				$this->backup_error('&nbsp;&nbsp;' . $query_line);
 			}
 		}
 	}
@@ -447,7 +447,7 @@ class wpdbBackup {
 
 		$table_structure = $wpdb->get_results("DESCRIBE $table");
 		if (! $table_structure) {
-			backup_error(__('Error getting table details','wp-db-backup') . ": $table");
+			$this->backup_error(__('Error getting table details','wp-db-backup') . ": $table");
 			return FALSE;
 		}
 	
