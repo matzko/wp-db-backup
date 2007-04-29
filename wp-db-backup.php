@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup.php">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/blog/
-Version: 2.0.5
+Version: 2.0.6
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -32,14 +32,23 @@ Copyright 2007  Austin Matzko  (email : if.website at gmail.com)
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-// CHANGE THIS IF YOU WANT TO USE A 
-// DIFFERENT BACKUP LOCATION
+/**
+ * Change WP_BACKUP_DIR if you want to
+ * use a different backup location
+ */
 
 $rand = substr( md5( md5( DB_PASSWORD ) ), -5 );
-
 define('WP_BACKUP_DIR', 'wp-content/backup-' . $rand);
 
 define('ROWS_PER_SEGMENT', 100);
+
+/** 
+ * Set MOD_EVASIVE_OVERRIDE to true 
+ * and increase MOD_EVASIVE_DELAY 
+ * if the backup stops prematurely.
+ */
+define('MOD_EVASIVE_OVERRIDE', false);
+define('MOD_EVASIVE_DELAY', '500');
 
 class wpdbBackup {
 
@@ -52,6 +61,15 @@ class wpdbBackup {
 
 	function gzip() {
 		return function_exists('gzopen');
+	}
+
+	function module_check() {
+		$mod_evasive = false;
+		if ( true == MOD_EVASIVE_OVERRIDE ) return true;
+		if ( function_exists('apache_get_modules') ) 
+			foreach( (array) apache_get_modules() as $mod ) 
+				if ( false !== strpos($mod,'mod_evasive') || false !== strpos($mod,'mod_dosevasive') ) $mod_evasive = true;
+		return $mod_evasive;
 	}
 
 	function wpdbBackup() {
@@ -233,12 +251,17 @@ class wpdbBackup {
 			$rec_count = $wpdb->get_var("SELECT count(*) FROM {$table}");
 			$rec_segments = ceil($rec_count / ROWS_PER_SEGMENT);
 			$table_count = 0;
+			if ( $this->module_check() ) {
+				$delay = "setTimeout('";
+				$delay_time = "', " . (int) MOD_EVASIVE_DELAY . ")";
+			}
+			else { $delay = $delay_time = ''; }
 			do {
-				echo "case {$step_count}: backup(\"{$table}\", {$table_count}); break;\n";
+				echo "case {$step_count}: {$delay}backup(\"{$table}\", {$table_count}){$delay_time}; break;\n";
 				$step_count++;
 				$table_count++;
 			} while($table_count < $rec_segments);
-			echo "case {$step_count}: backup(\"{$table}\", -1); break;\n";
+			echo "case {$step_count}: {$delay}backup(\"{$table}\", -1){$delay_time}; break;\n";
 			$step_count++;
 		}
 		echo "case {$step_count}: finishBackup(); break;";
@@ -359,58 +382,50 @@ class wpdbBackup {
 		add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', basename(__FILE__), array(&$this, 'build_backup_script'));
 	}
 
+	/**
+	 * Better addslashes for SQL queries.
+	 * Taken from phpMyAdmin.
+	 */
 	function sql_addslashes($a_string = '', $is_like = FALSE) {
-	        /*
-	                Better addslashes for SQL queries.
-	                Taken from phpMyAdmin.
-	        */
-	    if ($is_like) {
-	        $a_string = str_replace('\\', '\\\\\\\\', $a_string);
-	    } else {
-	        $a_string = str_replace('\\', '\\\\', $a_string);
-	    }
-	    $a_string = str_replace('\'', '\\\'', $a_string);
+		if ($is_like) $a_string = str_replace('\\', '\\\\\\\\', $a_string);
+		else $a_string = str_replace('\\', '\\\\', $a_string);
+		return str_replace('\'', '\\\'', $a_string);
+	} 
 
-	    return $a_string;
-	} // function sql_addslashes($a_string = '', $is_like = FALSE)
-
+	/**
+	 * Add backquotes to tables and db-names in
+	 * SQL queries. Taken from phpMyAdmin.
+	 */
 	function backquote($a_name) {
-	        /*
-	                Add backqouotes to tables and db-names in
-	                SQL queries. Taken from phpMyAdmin.
-	        */
-	    if (!empty($a_name) && $a_name != '*') {
-	        if (is_array($a_name)) {
-	             $result = array();
-	             reset($a_name);
-	             while(list($key, $val) = each($a_name)) {
-	                 $result[$key] = '`' . $val . '`';
-	             }
-	             return $result;
-	        } else {
-	            return '`' . $a_name . '`';
-	        }
-	    } else {
-	        return $a_name;
-	    }
-	} // function backquote($a_name, $do_it = TRUE)
+		if (!empty($a_name) && $a_name != '*') {
+			if (is_array($a_name)) {
+				$result = array();
+				reset($a_name);
+				while(list($key, $val) = each($a_name)) 
+					$result[$key] = '`' . $val . '`';
+				return $result;
+			} else {
+				return '`' . $a_name . '`';
+			}
+		} else {
+			return $a_name;
+		}
+	} 
 
 	function open($filename = '', $mode = 'w') {
 		if ('' == $filename) return false;
-		if ($this->gzip()) {
+		if ($this->gzip()) 
 			$fp = @gzopen($filename, $mode);
-		} else {
+		else
 			$fp = @fopen($filename, $mode);
-		}
 		return $fp;
 	}
 
 	function close($fp) {
-		if ($this->gzip()) {
+		if ($this->gzip())
 			gzclose($fp);
-		} else {
+		else 
 			fclose($fp);
-		}
 	}
 
 	function stow($query_line) {
@@ -428,24 +443,22 @@ class wpdbBackup {
 	}
 	
 	function backup_error($err) {
-		if(count($this->backup_errors) < 20) {
+		if(count($this->backup_errors) < 20) 
 			$this->backup_errors[] = $err;
-		} elseif(count($this->backup_errors) == 20) {
+		elseif(count($this->backup_errors) == 20)
 			$this->backup_errors[] = __('Subsequent errors have been omitted from this log.','wp-db-backup');
-		}
 	}
 
+	/**
+	 * Taken partially from phpMyAdmin and partially from
+	 * Alain Wolf, Zurich - Switzerland
+	 * Website: http://restkultur.ch/personal/wolf/scripts/db_backup/
+	
+	 * Modified by Scott Merril (http://www.skippy.net/) 
+	 * to use the WordPress $wpdb object
+	 */
 	function backup_table($table, $segment = 'none') {
 		global $wpdb;
-		
-		/*
-		Taken partially from phpMyAdmin and partially from
-		Alain Wolf, Zurich - Switzerland
-		Website: http://restkultur.ch/personal/wolf/scripts/db_backup/
-		
-		Modified by Scott Merril (http://www.skippy.net/) 
-		to use the WordPress $wpdb object
-		*/
 
 		$table_structure = $wpdb->get_results("DESCRIBE $table");
 		if (! $table_structure) {
@@ -545,7 +558,6 @@ class wpdbBackup {
 			} while((count($table_data) > 0) and ($segment=='none'));
 		}
 		
-		
 		if(($segment == 'none') || ($segment < 0)) {
 			// Create footer/closing comment in SQL-file
 			$this->stow("\n");
@@ -554,23 +566,21 @@ class wpdbBackup {
 			$this->stow("# --------------------------------------------------------\n");
 			$this->stow("\n");
 		}
-		
 	} // end backup_table()
 	
 	function return_bytes($val) {
-	   $val = trim($val);
-	   $last = strtolower($val{strlen($val)-1});
-	   switch($last) {
-	       // The 'G' modifier is available since PHP 5.1.0
-	       case 'g':
-	           $val *= 1024;
-	       case 'm':
-	           $val *= 1024;
-	       case 'k':
-	           $val *= 1024;
-	   }
-	
-	   return $val;
+		$val = trim($val);
+		$last = strtolower($val{strlen($val)-1});
+		switch($last) {
+		// The 'G' modifier is available since PHP 5.1.0
+			case 'g':
+				$val *= 1024;
+			case 'm':
+				$val *= 1024;
+			case 'k':
+				$val *= 1024;
+		}
+		return $val;
 	}
 	
 	function db_backup($core_tables, $other_tables) {
@@ -578,9 +588,8 @@ class wpdbBackup {
 		
 		$datum = date("Ymd_B");
 		$wp_backup_filename = DB_NAME . "_$table_prefix$datum.sql";
-			if ($this->gzip()) {
-				$wp_backup_filename .= '.gz';
-			}
+		if ($this->gzip())
+			$wp_backup_filename .= '.gz';
 		
 		if (is_writable(ABSPATH . $this->backup_dir)) {
 			$this->fp = $this->open(ABSPATH . $this->backup_dir . $wp_backup_filename);
@@ -774,9 +783,8 @@ class wpdbBackup {
 		// Get list of non-WP tables
 		$other_tables = array_diff($all_tables, $wp_backup_default_tables);
 		
-		if ('' != $feedback) {
+		if ('' != $feedback)
 			echo $feedback;
-		}
 
 		// Give the new dirs the same perms as wp-content.
 		$stat = stat( ABSPATH . 'wp-content' );
@@ -786,18 +794,17 @@ class wpdbBackup {
 			if ( @ mkdir( ABSPATH . $this->backup_dir) ) {
 				@ chmod( ABSPATH . $this->backup_dir, $dir_perms);
 			} else {
-				echo '<div class="updated error"><p align="center">' . __('WARNING: Your wp-content directory is <strong>NOT</strong> writable! We can not create the backup directory.','wp-db-backup') . '<br />' . ABSPATH . $this->backup_dir . "</p></div>";
+				echo '<div class="updated error"><p style="text-align:center">' . __('WARNING: Your wp-content directory is <strong>NOT</strong> writable! We can not create the backup directory.','wp-db-backup') . '<br />' . ABSPATH . $this->backup_dir . "</p></div>";
 			$WHOOPS = TRUE;
 			}
 		}
 		
 		if ( !is_writable( ABSPATH . $this->backup_dir) ) {
-			echo '<div class="updated error"><p align="center">' . __('WARNING: Your backup directory is <strong>NOT</strong> writable! We can not create the backup directory.','wp-db-backup') . '<br />' . ABSPATH . "</p></div>";
+			echo '<div class="updated error"><p style="text-align:center">' . __('WARNING: Your backup directory is <strong>NOT</strong> writable! We can not create the backup directory.','wp-db-backup') . '<br />' . ABSPATH . "</p></div>";
 		}
 
-		if ( !file_exists( ABSPATH . $this->backup_dir . 'index.php') ) {
+		if ( !file_exists( ABSPATH . $this->backup_dir . 'index.php') )
 			@ touch( ABSPATH . $this->backup_dir . "index.php");
-		}
 
 		?><div class='wrap'>
 		<h2><?php _e('Backup','wp-db-backup') ?></h2>
@@ -996,5 +1003,4 @@ function wpdbBackup_init() {
 }
 
 add_action('plugins_loaded', 'wpdbBackup_init');
-
 ?>
