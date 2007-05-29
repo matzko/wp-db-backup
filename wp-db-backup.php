@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/blog/
-Version: 2.1.1
+Version: 2.1.2
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -139,19 +139,21 @@ class wpdbBackup {
 			switch($via) {
 			case 'smtp':
 			case 'email':
-				$this->deliver_backup ($this->backup_file, 'smtp', $_GET['recipient']);
+				$success = $this->deliver_backup($this->backup_file, 'smtp', $_GET['recipient']);
 				$this->error_display( 'frame' );
-				echo '
-					<!-- ' . $via . ' -->
-					<script type="text/javascript"><!--\\
-				';
-				echo '
-					alert("' . __('Backup Complete!','wp-db-backup') . '");
-					</script>
-				';
+				if ( $success ) {
+					echo '
+						<!-- ' . $via . ' -->
+						<script type="text/javascript"><!--\\
+					';
+					echo '
+						alert("' . __('Backup Complete!','wp-db-backup') . '");
+						</script>
+					';
+				}
 				break;
 			default:
-				$this->deliver_backup ($this->backup_file, $via);
+				$this->deliver_backup($this->backup_file, $via);
 				$this->error_display( 'frame' );
 			}
 			die();
@@ -466,7 +468,7 @@ class wpdbBackup {
 			$err_list[9] = __('Subsequent errors have been omitted from this log.','wp-db-backup');
 		$wrap = ( 'frame' == $loc ) ? "<script type=\"text/javascript\">\n var msgList = '';\n %1\$s \n alert(msgList); \n </script>" : '%1$s';
 		$line = ( 'frame' == $loc ) ? 
-			"try{ window.parent.addError('%1\$s'); } catch(e) { msgList += ' %1\$s';}\n" :
+			"try{ window.parent.addError('%1\$s'); msgList += ' %1\$s'; } catch(e) { msgList += ' %1\$s';}\n" :
 			"%1\$s<br />\n";
 		foreach( (array) $err_list as $err )
 			$msg .= sprintf($line,$err);
@@ -666,7 +668,7 @@ class wpdbBackup {
 	}
 
 	function deliver_backup($filename = '', $delivery = 'http', $recipient = '') {
-		if ('' == $filename) { return FALSE; }
+		if ('' == $filename) { return false; }
 		
 		$this->diskfile = ABSPATH . $this->backup_dir . $filename;
 		$this->filename = $filename;
@@ -677,7 +679,7 @@ class wpdbBackup {
 			header('Content-Type: application/octet-stream');
 			header('Content-Length: ' . filesize($this->diskfile));
 			header("Content-Disposition: attachment; filename=$filename");
-			readfile($this->diskfile);
+			$success = readfile($this->diskfile);
 			unlink($this->diskfile);
 		} elseif ('smtp' == $delivery) {
 			if (! file_exists($this->diskfile)) return false;
@@ -697,7 +699,7 @@ class wpdbBackup {
 		
 			$this->message = $message = sprintf(__("Attached to this email is\n   %1s\n   Size:%2s kilobytes\n",'wp-db-backup'), $filename, round(filesize($this->diskfile)/1024));
 			// Add a multipart boundary above the plain message
-			$message = "This is a multi-part message in MIME format.\n\n" .
+			$message .= "This is a multi-part message in MIME format.\n\n" .
 		        	"--{$boundary}\n" .
 				"Content-Type: text/plain; charset=\"utf-8\"\n" .
 				"Content-Transfer-Encoding: 7bit\n\n" .
@@ -715,15 +717,21 @@ class wpdbBackup {
 			
 			if (function_exists('wp_mail')) {
 				$this->useMailer = true;
-				wp_mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $headers);
+				$success = @wp_mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $headers);
 				$this->useMailer = false;
 			} else {
-				mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $headers);
+				$success = @mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $headers);
+			}
+
+			if ( false == $success ) {
+				$msg = __('The following errors were reported:','wp-db-backup') . "\n ";
+				$msg = ( function_exists('error_get_last') ) ? error_get_last('message') : __('ERROR: The mail application has failed to deliver the backup.','wp-db-backup'); 
+				$this->error($msg);
 			}
 			
 			unlink($this->diskfile);
 		}
-		return;
+		return $success;
 	}
 	
 	function backup_menu() {
@@ -956,7 +964,7 @@ class wpdbBackup {
 		// If scheduled backup is disabled
 		if (0 == $schedule)
 		        return;
-		else $this->cron_backup();
+		else return $this->cron_backup();
 	} 
 
 	function cron_backup() {
@@ -968,8 +976,8 @@ class wpdbBackup {
 		$recipient = get_option('wp_cron_backup_recipient');
 		$backup_file = $this->db_backup($core_tables, $other_tables);
 		if (FALSE !== $backup_file) 
-			$this->deliver_backup($backup_file, 'smtp', $recipient);
-		return;
+			return $this->deliver_backup($backup_file, 'smtp', $recipient);
+		else return false;
 	}
 
 	function add_sched_options($sched) {

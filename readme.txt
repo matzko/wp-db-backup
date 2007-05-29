@@ -4,7 +4,7 @@ Donate link: http://www.ilfilosofo.com/blog/wp-db-backup/
 Tags: mysql, database, backup, cron
 Requires at least: 2.0.3
 Tested up to: 2.3
-Stable tag: 2.1.1
+Stable tag: 2.1.2
 
 On-demand backup of your WordPress database.
 
@@ -34,7 +34,8 @@ Released under the terms of the GNU GPL, version 2.
 = What are wp-db-backup.mo and wp-db-backup.pot for? =
 
 These files are used by non-English users to translate the display into their native language.  Translators are encouraged to send me translated files, which will be made available to others here:
-   http://dev.wp-plugins.org/browser/wp-db-backup/i18n/
+http://www.ilfilosofo.com/blog/wp-db-backup/i18n/
+http://dev.wp-plugins.org/browser/wp-db-backup/i18n/
 
 = Why are only the core database files backed up by default? =
 
