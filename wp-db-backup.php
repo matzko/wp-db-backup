@@ -5,11 +5,11 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/blog/
-Version: 2.1.2
+Version: 2.1.3
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
-Much of this was modified from Mark Ghosh's One Click Backup, which
+Originally modified from Mark Ghosh's One Click Backup, which 
 in turn was derived from phpMyAdmin.
 
 Many thanks to Owen (http://asymptomatic.net/wp/) for his patch
@@ -29,7 +29,7 @@ Copyright 2007  Austin Matzko  (email : if.website at gmail.com)
 
     You should have received a copy of the GNU General Public License
     along with this program; if not, write to the Free Software
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 */
 
 /**
@@ -56,6 +56,7 @@ class wpdbBackup {
 	var $backup_file = '';
 	var $backup_filename;
 	var $backup_dir = WP_BACKUP_DIR;
+	var $core_table_names;
 	var $errors = array();
 	var $basename;
 	var $page_url;
@@ -91,10 +92,22 @@ class wpdbBackup {
 		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql";
 		if ($this->gzip()) $this->backup_filename .= '.gz';
 
-		if ( isset( $wpdb->link2cat ) )
-			$this->core_table_names = explode(',',"$wpdb->categories,$wpdb->comments,$wpdb->link2cat,$wpdb->links,$wpdb->options,$wpdb->post2cat,$wpdb->postmeta,$wpdb->posts,$wpdb->users,$wpdb->usermeta");
-		else 
-			$this->core_table_names = explode(',',"$wpdb->categories,$wpdb->comments,$wpdb->linkcategories,$wpdb->links,$wpdb->options,$wpdb->post2cat,$wpdb->postmeta,$wpdb->posts,$wpdb->users,$wpdb->usermeta");
+		$this->core_table_names = array(
+			$wpdb->categories,
+			$wpdb->comments,
+			$wpdb->link2cat,
+			$wpdb->linkcategories,
+			$wpdb->links,
+			$wpdb->options,
+			$wpdb->post2cat,
+			$wpdb->postmeta,
+			$wpdb->posts,
+			$wpdb->terms,
+			$wpdb->term_taxonomy,
+			$wpdb->term_relationships,
+			$wpdb->users,
+			$wpdb->usermeta,
+		);
 		
 		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir',$this->backup_dir));
 		$this->basename = 'wp-db-backup';
@@ -838,13 +851,30 @@ class wpdbBackup {
 		<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field($this->referer_check_key); ?>
 		<fieldset class="options"><legend><?php _e('Tables','wp-db-backup') ?></legend>
 		<table align="center" cellspacing="5" cellpadding="5"><tr><td width="50%" align="left" class="alternate" valign="top">
-		<?php _e('These core WordPress tables will always be backed up:','wp-db-backup') ?><br /><ul><?php
+		<p><?php _e('These core WordPress tables will always be backed up:','wp-db-backup') ?></p><ul><?php
 		foreach ($wp_backup_default_tables as $table) {
 			echo "<li><input type='hidden' name='core_tables[]' value='$table' />$table</li>";
 		}
 		?></ul></td><td width="50%" align="left" valign="top"><?php 
 		if (count($other_tables) > 0) {
-			echo __('You may choose to include any of the following tables:','wp-db-backup') . ' <br />';
+			echo '<p>' . __('You may choose to include any of the following tables:','wp-db-backup') . '</p>';
+			?><script type="text/javascript">
+			//<![CDATA[
+				var wpdbBackup = function() {};
+				(function(b){
+					var n = function(c) {
+						var p = document.getElementsByTagName("input");
+						for(var i=0;i<p.length;i++)
+							if('other_tables[]' == p[i].getAttribute('name'))
+								p[i].checked = c;
+					}
+					b.a = function() { n(true) }
+					b.n = function() { n(false) }
+
+					document.write('<p><a href="javascript:void(0)" onclick="wpdbBackup.a()"><?php _e('Select all','wp-db-backup') ?></a> / <a href="javascript:void(0)" onclick="wpdbBackup.n()"><?php _e('Select none','wp-db-backup') ?></a></p>');
+				})(wpdbBackup)
+			//]]>
+			</script><?php
 			foreach ($other_tables as $table) {
 				echo "<label style=\"display:block;\"><input type='checkbox' name='other_tables[]' value='{$table}' /> {$table}</label>";
 			}
@@ -871,9 +901,10 @@ class wpdbBackup {
 			echo '<fieldset class="options"><legend>' . __('Scheduled Backup','wp-db-backup') . '</legend>';
 			$datetime = get_option('date_format') . ' @ ' . get_option('time_format');
 			if ( $cron ) :
-				if ( ! ( 'never' == $this->get_sched() ) ) :
+				$next_cron = wp_next_scheduled('wp_db_backup_cron');
+				if ( ! empty( $next_cron ) ) :
 					echo '<p>' .  __('Next Backup','wp-db-backup') . ': ';
-					echo gmdate($datetime, wp_next_scheduled('wp_db_backup_cron') + (get_option('gmt_offset') * 3600)) . '</p>';
+					echo gmdate($datetime, $next_cron + (get_option('gmt_offset') * 3600)) . '</p>';
 				endif;
 			elseif ( $cron_old ) :
 				echo '<p>' . __('Last WP-Cron Daily Execution','wp-db-backup') . ': ' . gmdate($datetime, get_option('wp_cron_daily_lastrun') + (get_option('gmt_offset') * 3600)) . '<br />';
@@ -914,7 +945,7 @@ class wpdbBackup {
 				foreach ($other_tables as $table) {
 					echo '<input type="checkbox" ';
 					if (in_array($table, $cron_tables)) {
-						echo 'checked=checked ';
+						echo 'checked="checked" ';
 					}
 					echo "name='wp_cron_backup_tables[]' value='{$table}' /> {$table}<br />";
 				}
@@ -937,6 +968,8 @@ class wpdbBackup {
 
 	function schedule_choices($schedule) { // create the cron menu based on the schedule
 		$wp_cron_backup_schedule = $this->get_sched();
+		$next_cron = wp_next_scheduled('wp_db_backup_cron');
+		$wp_cron_backup_schedule = ( empty( $next_cron ) ) ? 'never' : $wp_cron_backup_schedule;
 		$sort = array();
 		foreach ( (array) $schedule as $key => $value ) $sort[$key] = $value['interval'];
 		asort( $sort );
@@ -949,9 +982,9 @@ class wpdbBackup {
 			$interval = (int) $settings['interval'];
 			if ( 0 == $interval && ! 'never' == $name ) continue;
 			$display = ( ! '' == $settings['display'] ) ? $settings['display'] : sprintf(__('%s seconds','wp-db-backup'),$interval);
-			$menu .= "<li><input type='radio' name='wp_cron_schedule' style='border:none;'";
+			$menu .= "<li><input type='radio' name='wp_cron_schedule' style='border:none;' ";
 			if ($wp_cron_backup_schedule == $name) {
-				$menu .= ' checked="checked" ';
+				$menu .= " checked='checked' ";
 			}
 			$menu .= "value='$name' /> $display</li>";
 		}

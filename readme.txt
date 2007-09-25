@@ -4,7 +4,7 @@ Donate link: http://www.ilfilosofo.com/blog/wp-db-backup/
 Tags: mysql, database, backup, cron
 Requires at least: 2.0.3
 Tested up to: 2.3
-Stable tag: 2.1.2
+Stable tag: 2.1.3
 
 On-demand backup of your WordPress database.
 
@@ -41,25 +41,9 @@ http://dev.wp-plugins.org/browser/wp-db-backup/i18n/
 
 Because it's a fairly safe bet that the core WordPress files will be successfully backed up.  Plugins vary wildly in the amount of data that they store.  For instance, it's not uncommon for some statistics plugins to have tens of megabytes worth of visitor statistics.  These are not exactly essential items to restore after a catastrophic failure.  Most poeple can reasonably live without this data in their backups.
 
-= Will you add a button so that I can automatically select all my other tables to back up? =
-
-No.  Such a button would encourage people to click it.  The way it is now, you must deliberately select which additional tables to include in the backup.  This is a safety mechanism as much for me as it is for you.
-
 == Usage ==
 1. Click the Manage menu in your WordPress admin area.
 1. Click the Backup sub-menu.
-
-The following core WordPress tables will be included in every backup:
-* wp_categories
-* wp_comments
-* wp_linkcategories / wp_link2cat
-* wp_links
-* wp_options
-* wp_post2cat
-* wp_postmeta
-* wp_posts
-* wp_users
-(Where "wp_" will automatically be replaced by whatever table prefix you use.)
 
 1. The plugin will look for other tables in the same database.  You may elect to include other tables in the backup.
   ** NOTE **
