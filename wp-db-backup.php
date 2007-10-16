@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/blog/
-Version: 2.1.3
+Version: 2.1.4
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -555,6 +555,7 @@ class wpdbBackup {
 		}
 		
 		if(($segment == 'none') || ($segment >= 0)) {
+			$defs = array();
 			$ints = array();
 			foreach ($table_structure as $struct) {
 				if ( (0 === strpos($struct->Type, 'tinyint')) ||
@@ -563,6 +564,7 @@ class wpdbBackup {
 					(0 === strpos(strtolower($struct->Type), 'int')) ||
 					(0 === strpos(strtolower($struct->Type), 'bigint')) ||
 					(0 === strpos(strtolower($struct->Type), 'timestamp')) ) {
+						$defs[strtolower($struct->Field)] = $struct->Default;
 						$ints[strtolower($struct->Field)] = "1";
 				}
 			}
@@ -582,14 +584,6 @@ class wpdbBackup {
 				if ( !ini_get('safe_mode')) @set_time_limit(15*60);
 				$table_data = $wpdb->get_results("SELECT * FROM $table LIMIT {$row_start}, {$row_inc}", ARRAY_A);
 
-				/*
-				if (FALSE === $table_data) {
-					$err_msg = sprintf(__('Error getting table contents from %s','wp-db-backup'),$table);
-					$this->error($err_msg);
-					fwrite($fp, "#\n# $err_msg\n#\n");
-				}
-				*/
-					
 				$entries = 'INSERT INTO ' . $this->backquote($table) . ' VALUES (';	
 				//    \x08\\x09, not required
 				$search = array("\x00", "\x0a", "\x0d", "\x1a");
@@ -599,7 +593,10 @@ class wpdbBackup {
 						$values = array();
 						foreach ($row as $key => $value) {
 							if ($ints[strtolower($key)]) {
-								$values[] = $value;
+								// make sure there are no blank spots in the insert syntax,
+								// yet try to avoid quotation marks around integers
+								$value = ( '' === $value) ? $defs[strtolower($key)] : $value;
+								$values[] = ( '' === $value ) ? "''" : $value;
 							} else {
 								$values[] = "'" . str_replace($search, $replace, $this->sql_addslashes($value)) . "'";
 							}
@@ -674,6 +671,10 @@ class wpdbBackup {
 	 */
 	function setup_phpmailer(&$phpmailer) {
 		if ( $this->useMailer ) :
+			if ( empty( $phpmailer->CharSet ) ) {
+				$phpmailer->CharSet = apply_filters( 'wp_mail_charset', get_bloginfo('charset') );
+			}
+			$phpmailer->ClearCustomHeaders();
 			$phpmailer->AddAttachment($this->diskfile, $this->filename);
 			$phpmailer->Body = $this->message;
 		endif;
@@ -707,14 +708,14 @@ class wpdbBackup {
 			$this->close($fp);
 			$data = chunk_split(base64_encode($file));
 			$headers = "MIME-Version: 1.0\n";
-			$headers .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n";
+			$headers .= "Content-Type: multipart/mixed; \nboundary=\"$boundary\"\n";
 			$headers .= 'From: ' . get_option('admin_email') . "\n";
 		
 			$this->message = $message = sprintf(__("Attached to this email is\n   %1s\n   Size:%2s kilobytes\n",'wp-db-backup'), $filename, round(filesize($this->diskfile)/1024));
 			// Add a multipart boundary above the plain message
 			$message .= "This is a multi-part message in MIME format.\n\n" .
 		        	"--{$boundary}\n" .
-				"Content-Type: text/plain; charset=\"utf-8\"\n" .
+				"Content-Type: text/plain; charset=\"" . get_bloginfo('charset') . "\"\n" .
 				"Content-Transfer-Encoding: 7bit\n\n" .
 				$message . "\n\n";
 
@@ -728,21 +729,17 @@ class wpdbBackup {
 				$data . "\n\n" .
 				"--{$boundary}--\n";
 			
-			if (function_exists('wp_mail')) {
-				$this->useMailer = true;
-				$success = @wp_mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $headers);
-				$this->useMailer = false;
-			} else {
-				$success = @mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $headers);
-			}
+			$this->useMailer = true;
+			$success = @wp_mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $headers);
+			$this->useMailer = false;
 
 			if ( false == $success ) {
 				$msg = __('The following errors were reported:','wp-db-backup') . "\n ";
 				$msg = ( function_exists('error_get_last') ) ? error_get_last('message') : __('ERROR: The mail application has failed to deliver the backup.','wp-db-backup'); 
 				$this->error($msg);
+			} else {
+				unlink($this->diskfile);
 			}
-			
-			unlink($this->diskfile);
 		}
 		return $success;
 	}

@@ -4,7 +4,7 @@ Donate link: http://www.ilfilosofo.com/blog/wp-db-backup/
 Tags: mysql, database, backup, cron
 Requires at least: 2.0.3
 Tested up to: 2.3
-Stable tag: 2.1.3
+Stable tag: 2.1.4
 
 On-demand backup of your WordPress database.
 
@@ -80,6 +80,9 @@ If you are using WordPress version 2.1 or newer, you can schedule automated back
 of your choice.
 
 == Changelog ==
+2.1
+Major security upgrade
+
 2.0
 Support for WordPress 2.1's built-in cron, for automated scheduled backups.
 
