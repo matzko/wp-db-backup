@@ -714,6 +714,7 @@ class wpdbBackup {
 			$phpmailer->From = apply_filters( 'wp_mail_from', $from_email );
 			$phpmailer->FromName = apply_filters( 'wp_mail_from_name', $from_name );
 			$phpmailer->IsMail();
+			$phpmailer->Sender = apply_filters( 'wp_mail_from', $from_email );
 			$phpmailer->Subject = $subject;
 			
 			$result = @$phpmailer->Send();
