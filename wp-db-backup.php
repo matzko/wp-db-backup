@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/blog/
-Version: 2.1.5-alpha
+Version: 2.1.5
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -714,7 +714,6 @@ class wpdbBackup {
 			$phpmailer->From = apply_filters( 'wp_mail_from', $from_email );
 			$phpmailer->FromName = apply_filters( 'wp_mail_from_name', $from_name );
 			$phpmailer->IsMail();
-			$phpmailer->Sender = apply_filters( 'wp_mail_from', $from_email );
 			$phpmailer->Subject = $subject;
 			
 			$result = @$phpmailer->Send();
