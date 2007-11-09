@@ -1,3 +1,4 @@
+# WP-DB-Backup
 # Copyright (C) 2007 Austin Matzko
 # This file is distributed under the GPL 2 license.
 #
@@ -5,172 +6,177 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2007-09-25 02:01-0400\n"
+"POT-Creation-Date: 2007-11-09 11:00-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Austin Matzko if.website at gmail.com\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: wp-db-backup.php:163
+#: wp-db-backup.php:162
 msgid "Backup Complete!"
 msgstr ""
 
-#: wp-db-backup.php:192 wp-db-backup.php:387 wp-db-backup.php:391
-#: wp-db-backup.php:849 wp-db-backup.php:890
+#: wp-db-backup.php:191 wp-db-backup.php:386 wp-db-backup.php:390
+#: wp-db-backup.php:893 wp-db-backup.php:934
 msgid "Backup"
 msgstr ""
 
-#: wp-db-backup.php:193
+#: wp-db-backup.php:192
 msgid "Progress"
 msgstr ""
 
-#: wp-db-backup.php:195
+#: wp-db-backup.php:194
 msgid "DO NOT DO THE FOLLOWING AS IT WILL CAUSE YOUR BACKUP TO FAIL:"
 msgstr ""
 
-#: wp-db-backup.php:198
+#: wp-db-backup.php:197
 msgid "Close this browser"
 msgstr ""
 
-#: wp-db-backup.php:199
+#: wp-db-backup.php:198
 msgid "Reload this page"
 msgstr ""
 
-#: wp-db-backup.php:200
+#: wp-db-backup.php:199
 msgid "Click the Stop or Back buttons in your browser"
 msgstr ""
 
-#: wp-db-backup.php:202
+#: wp-db-backup.php:201
 msgid "Progress:"
 msgstr ""
 
-#: wp-db-backup.php:244
+#: wp-db-backup.php:243
 #, php-format
 msgid ""
 "Backup complete, preparing <a href=\\\"%s\\\">backup</a> for download..."
 msgstr ""
 
-#: wp-db-backup.php:250
+#: wp-db-backup.php:249
 #, php-format
 msgid "Backup complete, sending <a href=\\\"%s\\\">backup</a> via email..."
 msgstr ""
 
-#: wp-db-backup.php:256
+#: wp-db-backup.php:255
 #, php-format
 msgid "Backup complete, download <a href=\\\"%s\\\">here</a>."
 msgstr ""
 
-#: wp-db-backup.php:313
+#: wp-db-backup.php:312
 msgid "Creating backup file..."
 msgstr ""
 
-#: wp-db-backup.php:316
+#: wp-db-backup.php:315
 #, php-format
 msgid "Finished backing up table \\\"%s\\\"."
 msgstr ""
 
-#: wp-db-backup.php:318
+#: wp-db-backup.php:317
 #, php-format
 msgid "Backing up table \\\"%s\\\"..."
 msgstr ""
 
-#: wp-db-backup.php:325 wp-db-backup.php:630
+#: wp-db-backup.php:324 wp-db-backup.php:626
 msgid "Could not open the backup file for writing!"
 msgstr ""
 
-#: wp-db-backup.php:326
+#: wp-db-backup.php:325
 msgid ""
 "The backup file could not be saved.  Please check the permissions for "
 "writing to your backup directory and try again."
 msgstr ""
 
-#: wp-db-backup.php:331 wp-db-backup.php:639
+#: wp-db-backup.php:330 wp-db-backup.php:635
 msgid "WordPress MySQL database backup"
 msgstr ""
 
-#: wp-db-backup.php:333 wp-db-backup.php:641
+#: wp-db-backup.php:332 wp-db-backup.php:637
 #, php-format
 msgid "Generated: %s"
 msgstr ""
 
-#: wp-db-backup.php:334 wp-db-backup.php:642
+#: wp-db-backup.php:333 wp-db-backup.php:638
 #, php-format
 msgid "Hostname: %s"
 msgstr ""
 
-#: wp-db-backup.php:335 wp-db-backup.php:643
+#: wp-db-backup.php:334 wp-db-backup.php:639
 #, php-format
 msgid "Database: %s"
 msgstr ""
 
-#: wp-db-backup.php:343 wp-db-backup.php:656
+#: wp-db-backup.php:342 wp-db-backup.php:652
 #, php-format
 msgid "Table: %s"
 msgstr ""
 
-#: wp-db-backup.php:350
+#: wp-db-backup.php:349
 msgid ""
 "The backup directory is not writeable!  Please check the permissions for "
 "writing to your backup directory and try again."
 msgstr ""
 
-#: wp-db-backup.php:446 wp-db-backup.php:449
+#: wp-db-backup.php:445 wp-db-backup.php:448
 msgid "There was an error writing a line to the backup script:"
 msgstr ""
 
-#: wp-db-backup.php:481
+#: wp-db-backup.php:480
 msgid "Subsequent errors have been omitted from this log."
 msgstr ""
 
-#: wp-db-backup.php:515
+#: wp-db-backup.php:514
 msgid "Error getting table details"
 msgstr ""
 
-#: wp-db-backup.php:523
+#: wp-db-backup.php:522
 #, php-format
 msgid "Delete any existing table %s"
 msgstr ""
 
-#: wp-db-backup.php:532
+#: wp-db-backup.php:531
 #, php-format
 msgid "Table structure of table %s"
 msgstr ""
 
-#: wp-db-backup.php:538
+#: wp-db-backup.php:537
 #, php-format
 msgid "Error with SHOW CREATE TABLE for %s."
 msgstr ""
 
-#: wp-db-backup.php:545
+#: wp-db-backup.php:544
 #, php-format
 msgid "Error getting table structure of %s"
 msgstr ""
 
-#: wp-db-backup.php:553
+#: wp-db-backup.php:552
 #, php-format
 msgid "Data contents of table %s"
 msgstr ""
 
-#: wp-db-backup.php:618
+#: wp-db-backup.php:614
 #, php-format
 msgid "End of data contents of table %s"
 msgstr ""
 
-#: wp-db-backup.php:634
+#: wp-db-backup.php:630
 msgid "The backup directory is not writeable!"
 msgstr ""
 
-#: wp-db-backup.php:690
+#: wp-db-backup.php:764
 #, php-format
 msgid "File not found:%s"
 msgstr ""
 
-#: wp-db-backup.php:690
+#: wp-db-backup.php:764
 msgid "Return to Backup"
 msgstr ""
 
-#: wp-db-backup.php:713
+#: wp-db-backup.php:773
+#, php-format
+msgid "File %s does not exist!"
+msgstr ""
+
+#: wp-db-backup.php:780
 #, php-format
 msgid ""
 "Attached to this email is\n"
@@ -178,154 +184,154 @@ msgid ""
 "   Size:%2s kilobytes\n"
 msgstr ""
 
-#: wp-db-backup.php:733 wp-db-backup.php:736
+#: wp-db-backup.php:781
 msgid "Database Backup"
 msgstr ""
 
-#: wp-db-backup.php:740 wp-db-backup.php:782
+#: wp-db-backup.php:784 wp-db-backup.php:826
 msgid "The following errors were reported:"
 msgstr ""
 
-#: wp-db-backup.php:741
+#: wp-db-backup.php:785
 msgid "ERROR: The mail application has failed to deliver the backup."
 msgstr ""
 
-#: wp-db-backup.php:757
+#: wp-db-backup.php:801
 msgid "Backup Successful"
 msgstr ""
 
-#: wp-db-backup.php:761
+#: wp-db-backup.php:805
 #, php-format
 msgid ""
 "Your backup file: <a href=\"%1s\">%2s</a> should begin downloading shortly."
 msgstr ""
 
-#: wp-db-backup.php:769
+#: wp-db-backup.php:813
 #, php-format
 msgid "Your backup has been emailed to %s"
 msgstr ""
 
-#: wp-db-backup.php:772
+#: wp-db-backup.php:816
 msgid ""
 "Your backup file has been saved on the server. If you would like to download "
 "it now, right click and select \"Save As\""
 msgstr ""
 
-#: wp-db-backup.php:773
+#: wp-db-backup.php:817
 #, php-format
 msgid "%s bytes"
 msgstr ""
 
-#: wp-db-backup.php:809
+#: wp-db-backup.php:853
 msgid "Scheduled Backup Options Saved!"
 msgstr ""
 
-#: wp-db-backup.php:837
+#: wp-db-backup.php:881
 msgid ""
 "WARNING: Your wp-content directory is <strong>NOT</strong> writable! We can "
 "not create the backup directory."
 msgstr ""
 
-#: wp-db-backup.php:843
+#: wp-db-backup.php:887
 msgid ""
 "WARNING: Your backup directory is <strong>NOT</strong> writable! We can not "
 "create the backup directory."
 msgstr ""
 
-#: wp-db-backup.php:852
+#: wp-db-backup.php:896
 msgid "Tables"
 msgstr ""
 
-#: wp-db-backup.php:854
+#: wp-db-backup.php:898
 msgid "These core WordPress tables will always be backed up:"
 msgstr ""
 
-#: wp-db-backup.php:860
+#: wp-db-backup.php:904
 msgid "You may choose to include any of the following tables:"
 msgstr ""
 
-#: wp-db-backup.php:874
+#: wp-db-backup.php:918
 msgid "Select all"
 msgstr ""
 
-#: wp-db-backup.php:874
+#: wp-db-backup.php:918
 msgid "Select none"
 msgstr ""
 
-#: wp-db-backup.php:883
+#: wp-db-backup.php:927
 msgid "Backup Options"
 msgstr ""
 
-#: wp-db-backup.php:884
+#: wp-db-backup.php:928
 msgid "What to do with the backup file:"
 msgstr ""
 
-#: wp-db-backup.php:885
+#: wp-db-backup.php:929
 msgid "Save to server"
 msgstr ""
 
-#: wp-db-backup.php:887
+#: wp-db-backup.php:931
 msgid "Download to your computer"
 msgstr ""
 
-#: wp-db-backup.php:888 wp-db-backup.php:936
+#: wp-db-backup.php:932 wp-db-backup.php:980
 msgid "Email backup to:"
 msgstr ""
 
-#: wp-db-backup.php:892
+#: wp-db-backup.php:936
 msgid "WARNING: Your backup directory is <strong>NOT</strong> writable!"
 msgstr ""
 
-#: wp-db-backup.php:901
+#: wp-db-backup.php:945
 msgid "Scheduled Backup"
 msgstr ""
 
-#: wp-db-backup.php:906
+#: wp-db-backup.php:950
 msgid "Next Backup"
 msgstr ""
 
-#: wp-db-backup.php:910
+#: wp-db-backup.php:954
 msgid "Last WP-Cron Daily Execution"
 msgstr ""
 
-#: wp-db-backup.php:911
+#: wp-db-backup.php:955
 msgid "Next WP-Cron Daily Execution"
 msgstr ""
 
-#: wp-db-backup.php:917
+#: wp-db-backup.php:961
 msgid "Schedule: "
 msgstr ""
 
-#: wp-db-backup.php:920
+#: wp-db-backup.php:964
 msgid "None"
 msgstr ""
 
-#: wp-db-backup.php:920
+#: wp-db-backup.php:964
 msgid "Daily"
 msgstr ""
 
-#: wp-db-backup.php:944
+#: wp-db-backup.php:988
 msgid "Tables to include:"
 msgstr ""
 
-#: wp-db-backup.php:954
+#: wp-db-backup.php:998
 msgid "Submit"
 msgstr ""
 
-#: wp-db-backup.php:979
+#: wp-db-backup.php:1023
 msgid "Never"
 msgstr ""
 
-#: wp-db-backup.php:984
+#: wp-db-backup.php:1028
 #, php-format
 msgid "%s seconds"
 msgstr ""
 
-#: wp-db-backup.php:1017
+#: wp-db-backup.php:1061
 msgid "Once Weekly"
 msgstr ""
 
-#: wp-db-backup.php:1030
+#: wp-db-backup.php:1074
 #, php-format
 msgid ""
 "Your WordPress version, %1s, lacks important security features without which "
@@ -334,17 +340,17 @@ msgid ""
 "WordPress</a> to a more recent version."
 msgstr ""
 
-#: wp-db-backup.php:1045
+#: wp-db-backup.php:1089
 msgid "You are not allowed to perform backups."
 msgstr ""
 
-#: wp-db-backup.php:1060
+#: wp-db-backup.php:1104
 #, php-format
 msgid ""
 "There appears to be an unauthorized attempt from this site to access your "
 "database located at %1s.  The attempt has been halted."
 msgstr ""
 
-#: wp-db-backup.php:1071
+#: wp-db-backup.php:1115
 msgid "Cheatin' uh ?"
 msgstr ""
