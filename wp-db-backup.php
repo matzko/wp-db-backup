@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/blog/
-Version: 2.1.5
+Version: 2.1.6-alpha
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -441,11 +441,11 @@ class wpdbBackup {
 	 */
 	function stow($query_line) {
 		if ($this->gzip()) {
-			if(FALSE === @gzwrite($this->fp, $query_line))
-				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '&nbsp;&nbsp;' . $query_line);
+			if(! @gzwrite($this->fp, $query_line))
+				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
 		} else {
 			if(FALSE === @fwrite($this->fp, $query_line))
-				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '&nbsp;&nbsp;' . $query_line);
+				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
 		}
 	}
 	
@@ -478,12 +478,12 @@ class wpdbBackup {
 		$err_list = array_slice(array_merge( (array) $errs['fatal'], (array) $errs['warn']), 0, 10);
 		if ( 10 == count( $err_list ) )
 			$err_list[9] = __('Subsequent errors have been omitted from this log.','wp-db-backup');
-		$wrap = ( 'frame' == $loc ) ? "<script type=\"text/javascript\">\n var msgList = '';\n %1\$s \n alert(msgList); \n </script>" : '%1$s';
+		$wrap = ( 'frame' == $loc ) ? "<script type=\"text/javascript\">\n var msgList = ''; \n %1\$s \n if ( msgList ) alert(msgList); \n </script>" : '%1$s';
 		$line = ( 'frame' == $loc ) ? 
-			"try{ window.parent.addError('%1\$s'); msgList += ' %1\$s'; } catch(e) { msgList += ' %1\$s';}\n" :
+			"try{ window.parent.addError('%1\$s'); } catch(e) { msgList += ' %1\$s';}\n" :
 			"%1\$s<br />\n";
 		foreach( (array) $err_list as $err )
-			$msg .= sprintf($line,$err);
+			$msg .= sprintf($line,str_replace(array("\n","\r"), '', $err));
 		$msg = sprintf($wrap,$msg);
 		if ( count($errs['fatal'] ) ) {
 			if ( function_exists('wp_die') && 'frame' != $loc ) wp_die($msg);
