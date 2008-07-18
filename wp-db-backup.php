@@ -472,6 +472,10 @@ class wpdbBackup {
 					fieldset.options li {
 						text-align: left;
 					}
+
+				fieldset.options .submit {
+					border-top: none;
+				}
 		</style>
 		<?php 
 	}
