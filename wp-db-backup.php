@@ -38,9 +38,14 @@ Copyright 2007  Austin Matzko  (email : if.website at gmail.com)
  */
 
 $rand = substr( md5( md5( DB_PASSWORD ) ), -5 );
-define('WP_BACKUP_DIR', 'wp-content/backup-' . $rand);
+$wp_content = ( defined('WP_CONTENT_DIR') ) ? str_replace(ABSPATH, '', WP_CONTENT_DIR) : 'wp-content'; 
+if ( ! defined('WP_BACKUP_DIR') ) {
+	define('WP_BACKUP_DIR', $wp_content . '/backup-' . $rand);
+}
 
-define('ROWS_PER_SEGMENT', 100);
+if ( ! defined('ROWS_PER_SEGMENT') ) {
+	define('ROWS_PER_SEGMENT', 100);
+}
 
 /** 
  * Set MOD_EVASIVE_OVERRIDE to true 
@@ -48,9 +53,13 @@ define('ROWS_PER_SEGMENT', 100);
  * if the backup stops prematurely.
  */
 // define('MOD_EVASIVE_OVERRIDE', false);
-define('MOD_EVASIVE_DELAY', '500');
+if ( ! defined('MOD_EVASIVE_DELAY') ) {
+	define('MOD_EVASIVE_DELAY', '500');
+}
 
-define('WPDB_BACKUP_DIR_PATH', trailingslashit(dirname(__FILE__)));
+if ( ! defined('WPDB_BACKUP_DIR_PATH') ) {
+	define('WPDB_BACKUP_DIR_PATH', trailingslashit(dirname(__FILE__)));
+}
 
 class wpdbBackup {
 
@@ -477,7 +486,8 @@ class wpdbBackup {
 	}
 
 	function fragment_menu() {
-		add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'build_backup_script'));
+		$page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'build_backup_script'));
+		add_action('load-' . $page_hook, array(&$this, 'admin_load'));
 	}
 
 	/**
