@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/blog/
-Version: 2.1.6-alpha
+Version: 2.1.7-alpha
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -49,6 +49,8 @@ define('ROWS_PER_SEGMENT', 100);
  */
 // define('MOD_EVASIVE_OVERRIDE', false);
 define('MOD_EVASIVE_DELAY', '500');
+
+define('WPDB_BACKUP_DIR_PATH', trailingslashit(dirname(__FILE__)));
 
 class wpdbBackup {
 
@@ -180,7 +182,7 @@ class wpdbBackup {
 	}
 
 	function init_textdomain() {
-		load_plugin_textdomain('wp-db-backup');
+		load_plugin_textdomain('wp-db-backup', WPDB_BACKUP_DIR_PATH);
 	}
 
 	function build_backup_script() {
@@ -381,9 +383,94 @@ class wpdbBackup {
 			$this->backup_complete = true;
 		}
 	}
-	
+
+	function admin_header() {
+		?>
+		<script type="text/javascript">
+		//<![CDATA[
+		if ( 'undefined' != typeof addLoadEvent ) {
+			addLoadEvent(function() {
+				var t = {'extra-tables-list':{name: 'other_tables[]'}, 'include-tables-list':{name: 'wp_cron_backup_tables[]'}};
+				for ( var k in t ) {
+					t[k].s = null;
+					var d = document.getElementById(k);
+					var ul = d.getElementsByTagName('ul').item(0);
+					if ( ul ) {
+						var text = document.createElement('p');
+						text.className = 'instructions';
+						text.innerHTML = '<?php _e('Click and hold down <code>[SHIFT]</code> to toggle multiple checkboxes'); ?>';
+						ul.parentNode.insertBefore(text, ul);
+					}
+					t[k].p = d.getElementsByTagName("input");
+					for(var i=0; i < t[k].p.length; i++)
+						if(t[k].name == t[k].p[i].getAttribute('name')) {
+							t[k].p[i].id = k + '-table-' + i;
+							t[k].p[i].onkeyup = t[k].p[i].onclick = function(e) {
+								e = e ? e : event;
+								if ( 16  == e.keyCode ) 
+									return;
+								var match = /([\w-]*)-table-(\d*)/.exec(this.id);
+								var listname = match[1];
+								var that = match[2];
+								if ( null === t[listname].s )
+									t[listname].s = that;
+								else if ( e.shiftKey ) {
+									var start = Math.min(that, t[listname].s) + 1;
+									var end = Math.max(that, t[listname].s);
+									for( var j=start; j < end; j++)
+										t[listname].p[j].checked = t[listname].p[j].checked ? false : true;
+									t[listname].s = null;
+								}
+							}
+						}
+				}
+
+			});
+		}
+		//]]>
+		</script>
+		<style type="text/css">
+			fieldset.options {
+				border: 1px solid;
+				margin-top: 1em;
+				padding: 1em;
+			}
+				fieldset.options div.tables-list {
+					float: left;
+					padding: 1em;
+				}
+
+				fieldset.options input {
+				}
+
+				fieldset.options legend {
+					font-size: larger;
+					font-weight: bold;
+					margin-bottom: .5em;
+					padding: 1em;
+				}
+		
+				fieldset.options p.instructions {
+					font-size: smaller;
+				}
+
+				fieldset.options ul {
+					list-style-type: none;
+				}
+					fieldset.options li {
+						text-align: left;
+					}
+		</style>
+		<?php 
+	}
+
+	function admin_load() {
+		add_action('admin_head', array(&$this, 'admin_header'));
+	}
+
 	function admin_menu() {
-		add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
+		$page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
+		add_action('load-' . $page_hook, array(&$this, 'admin_load'));
 	}
 
 	function fragment_menu() {
@@ -562,7 +649,7 @@ class wpdbBackup {
 					(0 === strpos(strtolower($struct->Type), 'mediumint')) ||
 					(0 === strpos(strtolower($struct->Type), 'int')) ||
 					(0 === strpos(strtolower($struct->Type), 'bigint')) ) {
-						$defs[strtolower($struct->Field)] = $struct->Default;
+						$defs[strtolower($struct->Field)] = ( null === $struct->Default ) ? 'NULL' : $struct->Default;
 						$ints[strtolower($struct->Field)] = "1";
 				}
 			}
@@ -593,7 +680,7 @@ class wpdbBackup {
 							if ($ints[strtolower($key)]) {
 								// make sure there are no blank spots in the insert syntax,
 								// yet try to avoid quotation marks around integers
-								$value = ( '' === $value) ? $defs[strtolower($key)] : $value;
+								$value = ( null === $value || '' === $value) ? $defs[strtolower($key)] : $value;
 								$values[] = ( '' === $value ) ? "''" : $value;
 							} else {
 								$values[] = "'" . str_replace($search, $replace, $this->sql_addslashes($value)) . "'";
@@ -870,21 +957,39 @@ class wpdbBackup {
 			return;
 
 		// Give the new dirs the same perms as wp-content.
-		$stat = stat( ABSPATH . 'wp-content' );
-		$dir_perms = $stat['mode'] & 0000777; // Get the permission bits.
+//		$stat = stat( ABSPATH . 'wp-content' );
+//		$dir_perms = $stat['mode'] & 0000777; // Get the permission bits.
+		$dir_perms = '0777';
 
-		if ( !file_exists( ABSPATH . $this->backup_dir) ) {
-			if ( @ mkdir( ABSPATH . $this->backup_dir) ) {
-				@ chmod( ABSPATH . $this->backup_dir, $dir_perms);
-			} else {
-				echo '<div class="updated error"><p style="text-align:center">' . __('WARNING: Your wp-content directory is <strong>NOT</strong> writable! We can not create the backup directory.','wp-db-backup') . '<br />' . ABSPATH . $this->backup_dir . "</p></div>";
+		// the file doesn't exist and can't create it
+		if ( ! file_exists( ABSPATH . $this->backup_dir) && ! @ mkdir(ABSPATH . $this->backup_dir) ) {
+			?><div class="updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it.','wp-db-backup'); ?></p>
+			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . ABSPATH . $this->backup_dir . '</code>'); ?></p></div><?php
 			$WHOOPS = TRUE;
+		// not writable due to write permissions
+		} elseif ( !is_writable( ABSPATH . $this->backup_dir) && ! @ chmod( ABSPATH . $this->backup_dir, $dir_perms) ) {
+			?><div class="updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p>
+			<p><?php printf(__('Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s', 'wp-db-backup'), '<code>777</code>', '<code>a+w</code>', '<code>' . ABSPATH . $this->backup_dir . '</code>'); ?>
+			</p></div><?php 
+			$WHOOPS = TRUE;
+		} else {
+			$this->fp = $this->open(ABSPATH . $this->backup_dir . 'test' );
+			if( $this->fp ) { 
+				$this->close($this->fp);
+				@unlink(ABSPATH . $this->backup_dir . 'test' );
+			// the directory is not writable probably due to safe mode
+			} else {
+				?><div class="updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p><?php 
+				if( ini_get('safe_mode') ){
+					?><p><?php _e('This problem seems to be caused by your server&rsquo;s <code>safe_mode</code> file ownership restrictions, which limit what files web applications like WordPress can create.', 'wp-db-backup'); ?></p><?php 
+				}
+				?><?php printf(__('You can try to correct this problem by using your FTP client to delete and then re-create the backup directory: %s', 'wp-db-backup'), '<code>' . ABSPATH . $this->backup_dir . '</code>');
+				?></div><?php 
+				$WHOOPS = TRUE;
 			}
 		}
+
 		
-		if ( !is_writable( ABSPATH . $this->backup_dir) ) {
-			echo '<div class="updated error"><p style="text-align:center">' . __('WARNING: Your backup directory is <strong>NOT</strong> writable! We can not create the backup directory.','wp-db-backup') . '<br />' . ABSPATH . "</p></div>";
-		}
 
 		if ( !file_exists( ABSPATH . $this->backup_dir . 'index.php') )
 			@ touch( ABSPATH . $this->backup_dir . "index.php");
@@ -893,50 +998,62 @@ class wpdbBackup {
 		<form method="post" action="">
 		<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field($this->referer_check_key); ?>
 		<fieldset class="options"><legend><?php _e('Tables','wp-db-backup') ?></legend>
-		<table align="center" cellspacing="5" cellpadding="5"><tr><td width="50%" align="left" class="alternate" valign="top">
-		<p><?php _e('These core WordPress tables will always be backed up:','wp-db-backup') ?></p><ul><?php
+		<div class="tables-list core-tables alternate">
+		<h4><?php _e('These core WordPress tables will always be backed up:','wp-db-backup') ?></h4><ul><?php
 		foreach ($wp_backup_default_tables as $table) {
-			echo "<li><input type='hidden' name='core_tables[]' value='$table' />$table</li>";
+			echo "<li><input type='hidden' name='core_tables[]' value='$table' /><code>$table</code></li>";
 		}
-		?></ul></td><td width="50%" align="left" valign="top"><?php 
-		if (count($other_tables) > 0) {
-			echo '<p>' . __('You may choose to include any of the following tables:','wp-db-backup') . '</p>';
-			?><script type="text/javascript">
-			//<![CDATA[
-				var wpdbBackup = function() {};
-				(function(b){
-					var n = function(c) {
-						var p = document.getElementsByTagName("input");
-						for(var i=0;i<p.length;i++)
-							if('other_tables[]' == p[i].getAttribute('name'))
-								p[i].checked = c;
-					}
-					b.a = function() { n(true) }
-					b.n = function() { n(false) }
-
-					document.write('<p><a href="javascript:void(0)" onclick="wpdbBackup.a()"><?php _e('Select all','wp-db-backup') ?></a> / <a href="javascript:void(0)" onclick="wpdbBackup.n()"><?php _e('Select none','wp-db-backup') ?></a></p>');
-				})(wpdbBackup)
-			//]]>
-			</script><?php
+		?></ul>
+		</div>
+		<div class="tables-list extra-tables" id="extra-tables-list">
+		<?php 
+		if (count($other_tables) > 0) { 
+			?>
+			<h4><?php _e('You may choose to include any of the following tables:','wp-db-backup'); ?></h4>
+			<ul>
+			<?php
 			foreach ($other_tables as $table) {
-				echo "<label style=\"display:block;\"><input type='checkbox' name='other_tables[]' value='{$table}' /> {$table}</label>";
+				?>
+				<li><label><input type="checkbox" name="other_tables[]" value="<?php echo $table; ?>" /> <code><?php echo $table; ?></code></label>
+				<?php 
 			}
+			?></ul><?php 
 		}
-		?></td></tr></table></fieldset><?php
-		$backup_opts = '<fieldset class="options"><legend>' . __('Backup Options','wp-db-backup') . "</legend>\n";
-		$backup_opts .= __('What to do with the backup file:','wp-db-backup') . '<br />	<label for="do_save" style="display:block;"><input type="radio" id="do_save" name="deliver" value="none" style="border:none;" />' . "\n";
-		$backup_opts .= __('Save to server','wp-db-backup') . " ({$this->backup_dir})</label>\n";
-		$backup_opts .= '<label for="do_download" style="display:block;"><input type="radio" checked="checked" id="do_download" name="deliver" value="http" style="border:none;" />' . "\n";
-		$backup_opts .= __('Download to your computer','wp-db-backup') . "</label>\n" . '<label for="do_email"><input type="radio" name="deliver" id="do_email" value="smtp" style="border:none;" />' . "\n";
-		$backup_opts .= __('Email backup to:','wp-db-backup') . '</label><input type="text" name="backup_recipient" size="20" value="' . get_option('admin_email') . '" />';
-		if ( ! $WHOOPS )
-			$backup_opts .= '<input type="hidden" name="do_backup" id="do_backup" value="backup" /> <p class="submit"><input type="submit" name="submit" onclick="document.getElementById(\'do_backup\').value=\'fragments\';" value="' . __('Backup','wp-db-backup') . '!" /></p>';
-		else 
-			$backup_opts .= '<p class="alternate">' . __('WARNING: Your backup directory is <strong>NOT</strong> writable!','wp-db-backup') . '</p>';
-		$backup_opts .= '</fieldset>';
-		echo apply_filters('wp_db_b_backup_opts', $backup_opts);
-		echo '</form>';
+		?></div>
+		</fieldset>
 		
+		<fieldset class="options">
+			<legend><?php _e('Backup Options','wp-db-backup'); ?></legend>
+			<p><?php  _e('What to do with the backup file:','wp-db-backup'); ?></p>
+			<ul>
+			<li><label for="do_save">
+				<input type="radio" id="do_save" name="deliver" value="none" style="border:none;" />
+				<?php _e('Save to server','wp-db-backup'); 
+				echo " (<code>{$this->backup_dir}</code>)"; ?>
+			</label></li>
+			<li><label for="do_download">
+				<input type="radio" checked="checked" id="do_download" name="deliver" value="http" style="border:none;" />
+				<?php _e('Download to your computer','wp-db-backup'); ?>
+			</label></li>
+			<li><label for="do_email">
+				<input type="radio" name="deliver" id="do_email" value="smtp" style="border:none;" />
+				<?php _e('Email backup to:','wp-db-backup'); ?>
+				<input type="text" name="backup_recipient" size="20" value="<?php echo get_option('admin_email'); ?>" />
+			</label></li>
+			</ul>
+			<?php if ( ! $WHOOPS ) : ?>
+			<input type="hidden" name="do_backup" id="do_backup" value="backup" /> 
+			<p class="submit">
+				<input type="submit" name="submit" onclick="document.getElementById('do_backup').value='fragments';" value="<?php _e('Backup now!','wp-db-backup'); ?>" />
+			</p>
+			<?php else : ?>
+				<div class="updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable!','wp-db-backup'); ?></p></div>
+			<?php endif; // ! whoops ?>
+		</fieldset>
+		<?php do_action('wp_db_b_backup_opts'); ?>
+		</form>
+		
+		<?php
 		// this stuff only displays if some sort of wp-cron is available 
 		$cron = ( function_exists('wp_schedule_event') ) ? true : false; // wp-cron in WP 2.1+
 		$cron_old = ( function_exists('wp_cron_init') && ! $cron ) ? true : false; // wp-cron plugin by Skippy
@@ -955,8 +1072,7 @@ class wpdbBackup {
 			endif;
 			?><form method="post" action="">
 			<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field($this->referer_check_key); ?>
-			<table width="100%" cellpadding="5" cellspacing="5">
-			<tr><td align="center"><?php 
+			<div class="tables-list alternate"><?php 
 			echo __('Schedule: ','wp-db-backup');
 			if ( $cron_old ) :
 				$wp_cron_backup_schedule = get_option('wp_cron_backup_schedule');
@@ -971,30 +1087,29 @@ class wpdbBackup {
 			elseif ( $cron ) :
 				echo apply_filters('wp_db_b_schedule_choices', wp_get_schedules() );
 			endif;
-			echo '</td><td align="center">';
 			$cron_recipient = get_option('wp_cron_backup_recipient');
 			if (! is_email($cron_recipient)) {
 				$cron_recipient = get_option('admin_email');
 			}
-			$cron_recipient_input = '<label for="cron_backup_recipient">' . __('Email backup to:','wp-db-backup') . ' <input type="text" name="cron_backup_recipient" id="cron_backup_recipient" size="20" value="' . $cron_recipient . '" /></label>';
+			$cron_recipient_input = '<p><label for="cron_backup_recipient">' . __('Email backup to:','wp-db-backup') . ' <input type="text" name="cron_backup_recipient" id="cron_backup_recipient" size="20" value="' . $cron_recipient . '" /></label></p>';
 			echo apply_filters('wp_db_b_cron_recipient_input', $cron_recipient_input);
-			echo '</td></tr>';
+			echo '</div><div class="tables-list" id="include-tables-list">';
 			$cron_tables = get_option('wp_cron_backup_tables');
 			if (! is_array($cron_tables)) {
 				$cron_tables = array();
 			}
 			if (count($other_tables) > 0) {
-				echo '<tr><td colspan="2" align="left">' . __('Tables to include:','wp-db-backup') . '<br />';
+				echo '<h4>' . __('Tables to include in the scheduled backup:','wp-db-backup') . '</h4><ul>';
 				foreach ($other_tables as $table) {
-					echo '<input type="checkbox" ';
+					echo '<li><input type="checkbox" ';
 					if (in_array($table, $cron_tables)) {
 						echo 'checked="checked" ';
 					}
-					echo "name='wp_cron_backup_tables[]' value='{$table}' /> {$table}<br />";
+					echo "name='wp_cron_backup_tables[]' value='{$table}' /> <code>{$table}</code></li>";
 				}
-				echo '</td></tr>';
+				echo '</ul>';
 			}
-			echo '<tr><td colspan="2" align="center"><input type="hidden" name="wp_cron_backup_options" value="SET" /><p class="submit"><input type="submit" name="submit" value="' . __('Submit','wp-db-backup') . '" /></p></td></tr></table></form>';
+			echo '<input type="hidden" name="wp_cron_backup_options" value="SET" /><p class="submit"><input type="submit" name="submit" value="' . __('Schedule backup','wp-db-backup') . '" /></p></div></form>';
 			echo '</fieldset>';
 		endif; // end of wp_cron (legacy) section
 		
@@ -1018,7 +1133,7 @@ class wpdbBackup {
 		asort( $sort );
 		$schedule_sorted = array();
 		foreach ( (array) $sort as $key => $value ) $schedule_sorted[$key] = $schedule[$key];
-		$menu = '<ul style="list-style: none; text-align: left">';
+		$menu = '<ul>';
 		$schedule = array_merge( array( 'never' => array( 'interval' => 0, 'display' => __('Never','wp-db-backup') ) ),
 			(array) $schedule_sorted );
 		foreach ( $schedule as $name => $settings) {
