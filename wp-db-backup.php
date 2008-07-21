@@ -403,6 +403,8 @@ class wpdbBackup {
 				for ( var k in t ) {
 					t[k].s = null;
 					var d = document.getElementById(k);
+					if ( ! d )
+						continue;
 					var ul = d.getElementsByTagName('ul').item(0);
 					if ( ul ) {
 						var lis = ul.getElementsByTagName('li');
