@@ -133,7 +133,6 @@ class wpdbBackup {
 		if ( function_exists('wp_create_nonce') )
 			$query_args = array_merge( $query_args, array('_wpnonce' => wp_create_nonce($this->referer_check_key)) );
 		$this->page_url = add_query_arg( $query_args, get_option('siteurl') . '/wp-admin/edit.php');
-
 		if (isset($_POST['do_backup'])) {
 			$this->wp_secure('fatal');
 			check_admin_referer($this->referer_check_key);
@@ -152,9 +151,8 @@ class wpdbBackup {
 		} elseif (isset($_GET['backup'] )) {
 			$this->can_user_backup();
 			add_action('init', array(&$this, 'init'));
-		} else {
-			add_action('admin_menu', array(&$this, 'admin_menu'));
-		}
+		} 
+		add_action('admin_menu', array(&$this, 'admin_menu'));
 	}
 	
 	function init() {
@@ -393,6 +391,7 @@ class wpdbBackup {
 			} elseif ('http' == $_POST['deliver']) {
 				$download_uri = add_query_arg('backup',$this->backup_file,$this->page_url);
 				wp_redirect($download_uri); 
+				exit;
 			}
 			// we do this to say we're done.
 			$this->backup_complete = true;
@@ -452,15 +451,18 @@ class wpdbBackup {
 				else
 					var xml = new XMLHttpRequest();
 
-				var timeWrap = document.getElementById('backup-time-wrap');
-				var backupTime = document.getElementById('next-backup-time');
-				if ( !! timeWrap && !! backupTime ) {
-					var p = document.createElement('p');
-					p.className = 'instructions';
-					p.innerHTML = '<?php _e('Double-click date to modify the next backup time.','wp-db-backup'); ?>';
-					timeWrap.appendChild(p);
-					
-					backupTime.ondblclick = function(e) { clickTime(e, backupTime); };
+				var initTimeChange = function() {
+					var timeWrap = document.getElementById('backup-time-wrap');
+					var backupTime = document.getElementById('next-backup-time');
+					if ( !! timeWrap && !! backupTime ) {
+						var span = document.createElement('span');
+						span.className = 'submit';
+						span.id = 'change-wrap';
+						span.innerHTML = '<input type="submit" id="change-backup-time" name="change-backup-time" value="<?php _e('Change','wp-db-backup'); ?>" />';
+						timeWrap.appendChild(span);
+						backupTime.ondblclick = function(e) { span.parentNode.removeChild(span); clickTime(e, backupTime); };
+						span.onclick = function(e) { span.parentNode.removeChild(span); clickTime(e, backupTime); };
+					}
 				}
 
 				var clickTime = function(e, backupTime) {
@@ -493,10 +495,12 @@ class wpdbBackup {
 					xml.onreadystatechange = function() {
 						if ( 4 == xml.readyState && '0' != xml.responseText ) {
 							backupTime.innerHTML = xml.responseText;
-							backupTime.ondblclick = function(e) { clickTime(e, backupTime); };
+							initTimeChange();
 						}
 					}
 				}
+
+				initTimeChange();
 				<?php endif; // wp_schedule_event exists ?>
 			});
 		}
@@ -1161,9 +1165,9 @@ class wpdbBackup {
 				$next_cron = wp_next_scheduled('wp_db_backup_cron');
 				if ( ! empty( $next_cron ) ) :
 					?>
-					<div id="backup-time-wrap">
-					<p><?php printf(__('Next Backup: %s','wp-db-backup'), '<span id="next-backup-time">' . gmdate($datetime, $next_cron + (get_option('gmt_offset') * 3600)) . '</span>'); ?></p>
-					</div>
+					<p id="backup-time-wrap">
+					<?php printf(__('Next Backup: %s','wp-db-backup'), '<span id="next-backup-time">' . gmdate($datetime, $next_cron + (get_option('gmt_offset') * 3600)) . '</span>'); ?>
+					</p>
 					<?php 
 				endif;
 			elseif ( $cron_old ) :
