@@ -15,7 +15,7 @@ in turn was derived from phpMyAdmin.
 Many thanks to Owen (http://asymptomatic.net/wp/) for his patch
    http://dev.wp-plugins.org/ticket/219
 
-Copyright 2007  Austin Matzko  (email : if.website at gmail.com)
+Copyright 2008  Austin Matzko  (email : if.website at gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -91,6 +91,7 @@ class wpdbBackup {
 
 	function wpdbBackup() {
 		global $table_prefix, $wpdb;
+		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
 		add_action('init', array(&$this, 'init_textdomain'));
 		add_action('wp_db_backup_cron', array(&$this, 'cron_backup'));
 		add_action('wp_cron_daily', array(&$this, 'wp_cron_daily'));
@@ -400,6 +401,7 @@ class wpdbBackup {
 		if ( 'undefined' != typeof addLoadEvent ) {
 			addLoadEvent(function() {
 				var t = {'extra-tables-list':{name: 'other_tables[]'}, 'include-tables-list':{name: 'wp_cron_backup_tables[]'}};
+
 				for ( var k in t ) {
 					t[k].s = null;
 					var d = document.getElementById(k);
@@ -439,6 +441,58 @@ class wpdbBackup {
 						}
 				}
 
+				<?php if ( function_exists('wp_schedule_event') ) : // needs to be at least WP 2.1 for ajax ?>
+				if ( 'undefined' == typeof XMLHttpRequest ) 
+					var xml = new ActiveXObject( navigator.userAgent.indexOf('MSIE 5') >= 0 ? 'Microsoft.XMLHTTP' : 'Msxml2.XMLHTTP' );
+				else
+					var xml = new XMLHttpRequest();
+
+				var timeWrap = document.getElementById('backup-time-wrap');
+				var backupTime = document.getElementById('next-backup-time');
+				if ( !! timeWrap && !! backupTime ) {
+					var p = document.createElement('p');
+					p.className = 'instructions';
+					p.innerHTML = '<?php _e('Double-click date to modify the next backup time.','wp-db-backup'); ?>';
+					timeWrap.appendChild(p);
+					
+					backupTime.ondblclick = function(e) { clickTime(e, backupTime); };
+				}
+
+				var clickTime = function(e, backupTime) {
+					var tText = backupTime.innerHTML;
+					backupTime.innerHTML = '<input type="text" value="' + tText + '" name="backup-time-text" id="backup-time-text" /> <span class="submit"><input type="submit" name="save-backup-time" id="save-backup-time" value="<?php _e('Save', 'wp-db-backup'); ?>" /></span>';
+					backupTime.ondblclick = null;
+					var mainText = document.getElementById('backup-time-text');
+					mainText.focus();
+					var saveTButton = document.getElementById('save-backup-time');
+					if ( !! saveTButton )
+						saveTButton.onclick = function(e) { saveTime(backupTime, mainText); return false; };
+					if ( !! mainText )
+						mainText.onkeydown = function(e) { 
+							e = e || window.event;
+							if ( 13 == e.keyCode ) {
+								saveTime(backupTime, mainText);
+								return false;
+							}
+						}
+				}
+
+				var saveTime = function(backupTime, mainText) {
+					var tVal = mainText.value;
+
+					xml.open('POST', 'admin-ajax.php', true);
+					xml.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+					if ( xml.overrideMimeType )
+						xml.setRequestHeader('Connection', 'close');
+					xml.send('action=save_backup_time&_wpnonce=<?php echo wp_create_nonce($this->referer_check_key); ?>&backup-time='+tVal);
+					xml.onreadystatechange = function() {
+						if ( 4 == xml.readyState && '0' != xml.responseText ) {
+							backupTime.innerHTML = xml.responseText;
+							backupTime.ondblclick = function(e) { clickTime(e, backupTime); };
+						}
+					}
+				}
+				<?php endif; // wp_schedule_event exists ?>
 			});
 		}
 		//]]>
@@ -494,6 +548,25 @@ class wpdbBackup {
 	function fragment_menu() {
 		$page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'build_backup_script'));
 		add_action('load-' . $page_hook, array(&$this, 'admin_load'));
+	}
+
+	function save_backup_time() {
+		if ( $this->can_user_backup() ) {
+			// try to get a time from the input string
+			$time = strtotime(strval($_POST['backup-time']));
+			if ( ! empty( $time ) && time() < $time ) {
+				wp_clear_scheduled_hook( 'wp_db_backup_cron' ); // unschedule previous
+				$scheds = (array) wp_get_schedules();
+				$name = get_option('wp_cron_backup_schedule');
+				if ( 0 != $time ) {
+					wp_schedule_event($time, $name, 'wp_db_backup_cron');
+					echo gmdate(get_option('date_format') . ' ' . get_option('time_format'), $time + (get_option('gmt_offset') * 3600));
+					exit;
+				}
+			}
+		} else {
+			die(0);
+		}
 	}
 
 	/**
@@ -944,7 +1017,7 @@ class wpdbBackup {
 				$interval = ( isset($scheds[$name]['interval']) ) ? 
 					(int) $scheds[$name]['interval'] : 0;
 				update_option('wp_cron_backup_schedule', $name, FALSE);
-				if ( ! 0 == $interval ) {
+				if ( 0 !== $interval ) {
 					wp_schedule_event(time() + $interval, $name, 'wp_db_backup_cron');
 				}
 			}
@@ -981,12 +1054,12 @@ class wpdbBackup {
 		$dir_perms = '0777';
 
 		// the file doesn't exist and can't create it
-		if ( ! file_exists( ABSPATH . $this->backup_dir) && ! @ mkdir(ABSPATH . $this->backup_dir) ) {
+		if ( ! file_exists( ABSPATH . $this->backup_dir) && ! @mkdir(ABSPATH . $this->backup_dir) ) {
 			?><div class="updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it.','wp-db-backup'); ?></p>
 			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . ABSPATH . $this->backup_dir . '</code>'); ?></p></div><?php
 			$WHOOPS = TRUE;
 		// not writable due to write permissions
-		} elseif ( !is_writable( ABSPATH . $this->backup_dir) && ! @ chmod( ABSPATH . $this->backup_dir, $dir_perms) ) {
+		} elseif ( !is_writable( ABSPATH . $this->backup_dir) && ! @chmod( ABSPATH . $this->backup_dir, $dir_perms) ) {
 			?><div class="updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p>
 			<p><?php printf(__('Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s', 'wp-db-backup'), '<code>777</code>', '<code>a+w</code>', '<code>' . ABSPATH . $this->backup_dir . '</code>'); ?>
 			</p></div><?php 
@@ -1078,16 +1151,19 @@ class wpdbBackup {
 		$cron_old = ( function_exists('wp_cron_init') && ! $cron ) ? true : false; // wp-cron plugin by Skippy
 		if ( $cron_old || $cron ) :
 			echo '<fieldset class="options"><legend>' . __('Scheduled Backup','wp-db-backup') . '</legend>';
-			$datetime = get_option('date_format') . ' @ ' . get_option('time_format');
+			$datetime = get_option('date_format') . ' ' . get_option('time_format');
 			if ( $cron ) :
 				$next_cron = wp_next_scheduled('wp_db_backup_cron');
 				if ( ! empty( $next_cron ) ) :
-					echo '<p>' .  __('Next Backup','wp-db-backup') . ': ';
-					echo gmdate($datetime, $next_cron + (get_option('gmt_offset') * 3600)) . '</p>';
+					?>
+					<div id="backup-time-wrap">
+					<p><?php printf(__('Next Backup: %s','wp-db-backup'), '<span id="next-backup-time">' . gmdate($datetime, $next_cron + (get_option('gmt_offset') * 3600)) . '</span>'); ?></p>
+					</div>
+					<?php 
 				endif;
 			elseif ( $cron_old ) :
-				echo '<p>' . __('Last WP-Cron Daily Execution','wp-db-backup') . ': ' . gmdate($datetime, get_option('wp_cron_daily_lastrun') + (get_option('gmt_offset') * 3600)) . '<br />';
-				echo __('Next WP-Cron Daily Execution','wp-db-backup') . ': ' . gmdate($datetime, (get_option('wp_cron_daily_lastrun') + (get_option('gmt_offset') * 3600) + 86400)) . '</p>';
+				?><p><?php printf(__('Last WP-Cron Daily Execution: %s','wp-db-backup'), gmdate($datetime, get_option('wp_cron_daily_lastrun') + (get_option('gmt_offset') * 3600))); ?><br /><?php 
+				printf(__('Next WP-Cron Daily Execution: %s','wp-db-backup'), gmdate($datetime, (get_option('wp_cron_daily_lastrun') + (get_option('gmt_offset') * 3600) + 86400))); ?></p><?php 
 			endif;
 			?><form method="post" action="">
 			<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field($this->referer_check_key); ?>
