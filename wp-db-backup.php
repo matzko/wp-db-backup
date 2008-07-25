@@ -124,7 +124,8 @@ class wpdbBackup {
 			$wpdb->users,
 			$wpdb->usermeta,
 		);
-		
+	
+		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir', WP_BACKUP_DIR));
 		$this->basename = 'wp-db-backup';
 	
 		$this->referer_check_key = $this->basename . '-download_' . DB_NAME;
@@ -334,8 +335,8 @@ class wpdbBackup {
 			}
 		}
 		
-		if (is_writable(WP_BACKUP_DIR)) {
-			$this->fp = $this->open(WP_BACKUP_DIR . $filename, 'a');
+		if (is_writable($this->backup_dir)) {
+			$this->fp = $this->open($this->backup_dir . $filename, 'a');
 			if(!$this->fp) {
 				$this->error(__('Could not open the backup file for writing!','wp-db-backup'));
 				$this->error(array('loc' => 'frame', 'kind' => 'fatal', 'msg' =>  __('The backup file could not be saved.  Please check the permissions for writing to your backup directory and try again.','wp-db-backup')));
@@ -802,8 +803,8 @@ class wpdbBackup {
 	function db_backup($core_tables, $other_tables) {
 		global $table_prefix, $wpdb;
 		
-		if (is_writable(WP_BACKUP_DIR)) {
-			$this->fp = $this->open(WP_BACKUP_DIR . $this->backup_filename);
+		if (is_writable($this->backup_dir)) {
+			$this->fp = $this->open($this->backup_dir . $this->backup_filename);
 			if(!$this->fp) {
 				$this->error(__('Could not open the backup file for writing!','wp-db-backup'));
 				return false;
@@ -940,7 +941,7 @@ class wpdbBackup {
 	function deliver_backup($filename = '', $delivery = 'http', $recipient = '') {
 		if ('' == $filename) { return false; }
 		
-		$diskfile = WP_BACKUP_DIR . $filename;
+		$diskfile = $this->backup_dir . $filename;
 		if ('http' == $delivery) {
 			if (! file_exists($diskfile)) 
 				$this->error(array('kind' => 'fatal', 'msg' => sprintf(__('File not found:%s','wp-db-backup'), "&nbsp;<strong>$filename</strong><br />") . '<br /><a href="' . $this->page_url . '">' . __('Return to Backup','wp-db-backup') . '</a>'));
@@ -996,7 +997,7 @@ class wpdbBackup {
 				break;
 			case 'none':
 				$feedback .= '<br />' . __('Your backup file has been saved on the server. If you would like to download it now, right click and select "Save As"','wp-db-backup');
-				$feedback .= ':<br /> <a href="' . WP_BACKUP_URL . "$file\">$file</a> : " . sprintf(__('%s bytes','wp-db-backup'), filesize(WP_BACKUP_DIR . $file));
+				$feedback .= ':<br /> <a href="' . WP_BACKUP_URL . "$file\">$file</a> : " . sprintf(__('%s bytes','wp-db-backup'), filesize($this->backup_dir . $file));
 			}
 			$feedback .= '</p></div>';
 		}
@@ -1058,28 +1059,28 @@ class wpdbBackup {
 		$dir_perms = '0777';
 
 		// the file doesn't exist and can't create it
-		if ( ! file_exists(WP_BACKUP_DIR) && ! @mkdir(WP_BACKUP_DIR) ) {
+		if ( ! file_exists($this->backup_dir) && ! @mkdir($this->backup_dir) ) {
 			?><div class="updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it.','wp-db-backup'); ?></p>
-			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . WP_BACKUP_DIR . '</code>'); ?></p></div><?php
+			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . $this->backup_dir . '</code>'); ?></p></div><?php
 			$WHOOPS = TRUE;
 		// not writable due to write permissions
-		} elseif ( !is_writable(WP_BACKUP_DIR) && ! @chmod(WP_BACKUP_DIR, $dir_perms) ) {
+		} elseif ( !is_writable($this->backup_dir) && ! @chmod($this->backup_dir, $dir_perms) ) {
 			?><div class="updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p>
-			<p><?php printf(__('Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s', 'wp-db-backup'), '<code>777</code>', '<code>a+w</code>', '<code>' . WP_BACKUP_DIR . '</code>'); ?>
+			<p><?php printf(__('Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s', 'wp-db-backup'), '<code>777</code>', '<code>a+w</code>', '<code>' . $this->backup_dir . '</code>'); ?>
 			</p></div><?php 
 			$WHOOPS = TRUE;
 		} else {
-			$this->fp = $this->open(WP_BACKUP_DIR . 'test' );
+			$this->fp = $this->open($this->backup_dir . 'test' );
 			if( $this->fp ) { 
 				$this->close($this->fp);
-				@unlink(WP_BACKUP_DIR . 'test' );
+				@unlink($this->backup_dir . 'test' );
 			// the directory is not writable probably due to safe mode
 			} else {
 				?><div class="updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p><?php 
 				if( ini_get('safe_mode') ){
 					?><p><?php _e('This problem seems to be caused by your server&rsquo;s <code>safe_mode</code> file ownership restrictions, which limit what files web applications like WordPress can create.', 'wp-db-backup'); ?></p><?php 
 				}
-				?><?php printf(__('You can try to correct this problem by using your FTP client to delete and then re-create the backup directory: %s', 'wp-db-backup'), '<code>' . WP_BACKUP_DIR . '</code>');
+				?><?php printf(__('You can try to correct this problem by using your FTP client to delete and then re-create the backup directory: %s', 'wp-db-backup'), '<code>' . $this->backup_dir . '</code>');
 				?></div><?php 
 				$WHOOPS = TRUE;
 			}
@@ -1087,8 +1088,8 @@ class wpdbBackup {
 
 		
 
-		if ( !file_exists(WP_BACKUP_DIR . 'index.php') )
-			@ touch(WP_BACKUP_DIR . 'index.php');
+		if ( !file_exists($this->backup_dir . 'index.php') )
+			@ touch($this->backup_dir . 'index.php');
 		?><div class='wrap'>
 		<h2><?php _e('Backup','wp-db-backup') ?></h2>
 		<form method="post" action="">
@@ -1125,7 +1126,7 @@ class wpdbBackup {
 			<li><label for="do_save">
 				<input type="radio" id="do_save" name="deliver" value="none" style="border:none;" />
 				<?php _e('Save to server','wp-db-backup'); 
-				echo " (<code>" . WP_BACKUP_DIR . "</code>)"; ?>
+				echo " (<code>" . $this->backup_dir . "</code>)"; ?>
 			</label></li>
 			<li><label for="do_download">
 				<input type="radio" checked="checked" id="do_download" name="deliver" value="http" style="border:none;" />
