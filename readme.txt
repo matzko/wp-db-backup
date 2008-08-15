@@ -3,7 +3,7 @@ Contributors: filosofo, skippy, Firas, LaughingLizard, MtDewVirus, Podz, Ringmas
 Donate link: http://www.ilfilosofo.com/blog/wp-db-backup/
 Tags: mysql, database, backup, cron
 Requires at least: 2.0.3
-Tested up to: 2.6
+Tested up to: 2.7
 Stable tag: 2.1.5
 
 On-demand backup of your WordPress database.
@@ -17,7 +17,7 @@ Released under the terms of the GNU GPL, version 2.
 
               NO WARRANTY.
 
-	Copyright (c) 2007 Austin Matzko
+	Copyright (c) 2008 Austin Matzko
 
 == Installation ==
 1. Copy the wp-db-backup.php file to /wp-content/plugins/

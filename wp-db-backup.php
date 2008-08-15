@@ -4,7 +4,7 @@ Plugin Name: WordPress Database Backup
 Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
-Author URI: http://www.ilfilosofo.com/blog/
+Author URI: http://www.ilfilosofo.com/
 Version: 2.1.7-alpha
 
 Development continued from that done by Skippy (http://www.skippy.net/)
@@ -38,8 +38,10 @@ Copyright 2008  Austin Matzko  (email : if.website at gmail.com)
  */
 
 $rand = substr( md5( md5( DB_PASSWORD ) ), -5 );
+global $wpdbb_content_dir, $wpdbb_content_url, $wpdbb_plugin_dir;
 $wpdbb_content_dir = ( defined('WP_CONTENT_DIR') ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 $wpdbb_content_url = ( defined('WP_CONTENT_URL') ) ? WP_CONTENT_URL : get_option('siteurl') . '/wp-content';
+$wpdbb_plugin_dir = ( defined('WP_PLUGIN_DIR') ) ? WP_PLUGIN_DIR : $wpdbb_content_dir . '/plugins';
 
 if ( ! defined('WP_BACKUP_DIR') ) {
 	define('WP_BACKUP_DIR', $wpdbb_content_dir . '/backup-' . $rand . '/');
@@ -61,10 +63,6 @@ if ( ! defined('ROWS_PER_SEGMENT') ) {
 // define('MOD_EVASIVE_OVERRIDE', false);
 if ( ! defined('MOD_EVASIVE_DELAY') ) {
 	define('MOD_EVASIVE_DELAY', '500');
-}
-
-if ( ! defined('WPDB_BACKUP_DIR_PATH') ) {
-	define('WPDB_BACKUP_DIR_PATH', trailingslashit(dirname(__FILE__)));
 }
 
 class wpdbBackup {
@@ -137,6 +135,11 @@ class wpdbBackup {
 			$this->wp_secure('fatal');
 			check_admin_referer($this->referer_check_key);
 			$this->can_user_backup('main');
+			// save exclude prefs
+
+			$exc_revisions = (array) $_POST['exclude-revisions'];
+			$exc_spam = (array) $_POST['exclude-spam'];
+			update_option('wp_db_backup_excs', array('revisions' => $exc_revisions, 'spam' => $exc_spam));
 			switch($_POST['do_backup']) {
 			case 'backup':
 				add_action('init', array(&$this, 'perform_backup'));
@@ -151,8 +154,9 @@ class wpdbBackup {
 		} elseif (isset($_GET['backup'] )) {
 			$this->can_user_backup();
 			add_action('init', array(&$this, 'init'));
-		} 
-		add_action('admin_menu', array(&$this, 'admin_menu'));
+		} else {
+			add_action('admin_menu', array(&$this, 'admin_menu'));
+		}
 	}
 	
 	function init() {
@@ -166,7 +170,7 @@ class wpdbBackup {
 			switch($via) {
 			case 'smtp':
 			case 'email':
-				$success = $this->deliver_backup($this->backup_file, 'smtp', $_GET['recipient']);
+				$success = $this->deliver_backup($this->backup_file, 'smtp', $_GET['recipient'], 'frame');
 				$this->error_display( 'frame' );
 				if ( $success ) {
 					echo '
@@ -175,6 +179,7 @@ class wpdbBackup {
 					';
 					echo '
 						alert("' . __('Backup Complete!','wp-db-backup') . '");
+						window.onbeforeunload = null; 
 						</script>
 					';
 				}
@@ -195,16 +200,15 @@ class wpdbBackup {
 	}
 
 	function init_textdomain() {
-		load_plugin_textdomain('wp-db-backup', WPDB_BACKUP_DIR_PATH);
+		global $wpdbb_plugin_dir;
+		load_plugin_textdomain('wp-db-backup', trailingslashit(str_replace(ABSPATH, '', dirname(__FILE__))), trim(str_replace($wpdbb_plugin_dir, '', dirname(__FILE__)), '/'));
 	}
 
 	function build_backup_script() {
 		global $table_prefix, $wpdb;
 	
 		echo "<div class='wrap'>";
-		//echo "<pre>" . print_r($_POST, 1) . "</pre>";
-		echo '<h2>' . __('Backup','wp-db-backup') . '</h2>
-			<fieldset class="options"><legend>' . __('Progress','wp-db-backup') . '</legend>
+		echo 	'<fieldset class="options"><legend>' . __('Progress','wp-db-backup') . '</legend>
 			<p><strong>' .
 				__('DO NOT DO THE FOLLOWING AS IT WILL CAUSE YOUR BACKUP TO FAIL:','wp-db-backup').
 			'</strong></p>
@@ -218,8 +222,12 @@ class wpdbBackup {
 			<div id="progress_message"></div>
 			<div id="errors"></div>
 			</fieldset>
-			<iframe id="backuploader" src="about:blank" style="border:0px solid white;height:1em;width:1em;"></iframe>
-			<script type="text/javascript"><!--//
+			<iframe id="backuploader" src="about:blank" style="visibility:hidden;border:none;height:1em;width:1px;"></iframe>
+			<script type="text/javascript">
+			//<![CDATA[
+			window.onbeforeunload = function() {
+				return "' . __('Navigating away from this page will cause your backup to fail.', 'wp-db-backup') . '";
+			}
 			function setMeter(pct) {
 				var meter = document.getElementById("meter");
 				meter.style.width = pct + "%";
@@ -236,7 +244,7 @@ class wpdbBackup {
 
 			function backup(table, segment) {
 				var fram = document.getElementById("backuploader");
-				fram.src = "' . $this->page_url . '&fragment=" + table + ":" + segment + ":' . $this->backup_filename . '";
+				fram.src = "' . $this->page_url . '&fragment=" + table + ":" + segment + ":' . $this->backup_filename . ':";
 			}
 			
 			var curStep = 0;
@@ -256,18 +264,21 @@ class wpdbBackup {
 		case 'http':
 			echo '
 				setProgress("' . sprintf(__("Backup complete, preparing <a href=\\\"%s\\\">backup</a> for download...",'wp-db-backup'), $download_uri) . '");
+				window.onbeforeunload = null; 
 				fram.src = "' . $download_uri . '";
 			';
 			break;
 		case 'smtp':
 			echo '
 				setProgress("' . sprintf(__("Backup complete, sending <a href=\\\"%s\\\">backup</a> via email...",'wp-db-backup'), $download_uri) . '");
+				window.onbeforeunload = null; 
 				fram.src = "' . $download_uri . '&via=email&recipient=' . $_POST['backup_recipient'] . '";
 			';
 			break;
 		default:
 			echo '
 				setProgress("' . sprintf(__("Backup complete, download <a href=\\\"%s\\\">here</a>.",'wp-db-backup'), $download_uri) . '");
+				window.onbeforeunload = null; 
 			';
 		}
 		
@@ -313,9 +324,11 @@ class wpdbBackup {
 			}
 
 			nextStep();
-			//--></script>
+			// ]]>
+			</script>
 	</div>
 		';
+		$this->backup_menu();
 	}
 
 	function backup_fragment($table, $segment, $filename) {
@@ -386,7 +399,7 @@ class wpdbBackup {
 		$this->backup_file = $this->db_backup($core_tables, $also_backup);
 		if (FALSE !== $this->backup_file) {
 			if ('smtp' == $_POST['deliver']) {
-				$this->deliver_backup($this->backup_file, $_POST['deliver'], $_POST['backup_recipient']);
+				$this->deliver_backup($this->backup_file, $_POST['deliver'], $_POST['backup_recipient'], 'main');
 				wp_redirect($this->page_url);
 			} elseif ('http' == $_POST['deliver']) {
 				$download_uri = add_query_arg('backup',$this->backup_file,$this->page_url);
@@ -527,7 +540,7 @@ class wpdbBackup {
 					padding: 1em;
 				}
 		
-				fieldset.options p.instructions {
+				fieldset.options .instructions {
 					font-size: smaller;
 				}
 
@@ -671,10 +684,10 @@ class wpdbBackup {
 			"try{ window.parent.addError('%1\$s'); } catch(e) { msgList += ' %1\$s';}\n" :
 			"%1\$s<br />\n";
 		foreach( (array) $err_list as $err )
-			$msg .= sprintf($line,str_replace(array("\n","\r"), '', $err));
+			$msg .= sprintf($line,str_replace(array("\n","\r"), '', addslashes($err)));
 		$msg = sprintf($wrap,$msg);
 		if ( count($errs['fatal'] ) ) {
-			if ( function_exists('wp_die') && 'frame' != $loc ) wp_die($msg);
+			if ( function_exists('wp_die') && 'frame' != $loc ) wp_die(stripslashes($msg));
 			else die($msg);
 		}
 		else {
@@ -767,8 +780,17 @@ class wpdbBackup {
 			}
 			
 			do {	
+				// don't include extra stuff, if so requested
+				$excs = (array) get_option('wp_db_backup_excs');
+				$where = '';
+				if ( is_array($excs['spam'] ) && in_array($table, $excs['spam']) ) {
+					$where = ' WHERE comment_approved != "spam"';
+				} elseif ( is_array($excs['revisions'] ) && in_array($table, $excs['revisions']) ) {
+					$where = ' WHERE post_type != "revision"';
+				}
+				
 				if ( !ini_get('safe_mode')) @set_time_limit(15*60);
-				$table_data = $wpdb->get_results("SELECT * FROM $table LIMIT {$row_start}, {$row_inc}", ARRAY_A);
+				$table_data = $wpdb->get_results("SELECT * FROM $table $where LIMIT {$row_start}, {$row_inc}", ARRAY_A);
 
 				$entries = 'INSERT INTO ' . $this->backquote($table) . ' VALUES (';	
 				//    \x08\\x09, not required
@@ -858,7 +880,7 @@ class wpdbBackup {
 	 * @param string $message
 	 * @return bool
 	 */
-	function send_mail( $to, $subject, $message, $diskfile ) {
+	function send_mail( $to, $subject, $message, $diskfile) {
 		global $phpmailer;
 
 		$filename = basename($diskfile);
@@ -938,11 +960,12 @@ class wpdbBackup {
 			
 			$result = @wp_mail($to, $subject, $message, $headers);
 		}
+		return false;
 		return $result;
 
 	}
 
-	function deliver_backup($filename = '', $delivery = 'http', $recipient = '') {
+	function deliver_backup($filename = '', $delivery = 'http', $recipient = '', $location = 'main') {
 		if ('' == $filename) { return false; }
 		
 		$diskfile = $this->backup_dir . $filename;
@@ -969,8 +992,13 @@ class wpdbBackup {
 
 			if ( false == $success ) {
 				$msg = __('The following errors were reported:','wp-db-backup') . "\n ";
-				$msg = ( function_exists('error_get_last') ) ? error_get_last('message') : __('ERROR: The mail application has failed to deliver the backup.','wp-db-backup'); 
-				$this->error($msg);
+				if ( function_exists('error_get_last') ) {
+					$err = error_get_last();
+					$msg .= $err['message'];
+				} else {
+					$msg .= __('ERROR: The mail application has failed to deliver the backup.','wp-db-backup'); 
+				}
+				$this->error(array('kind' => 'fatal', 'loc' => $location, 'msg' => $msg));
 			} else {
 				unlink($diskfile);
 			}
@@ -1101,8 +1129,17 @@ class wpdbBackup {
 		<fieldset class="options"><legend><?php _e('Tables','wp-db-backup') ?></legend>
 		<div class="tables-list core-tables alternate">
 		<h4><?php _e('These core WordPress tables will always be backed up:','wp-db-backup') ?></h4><ul><?php
+		$excs = (array) get_option('wp_db_backup_excs');
 		foreach ($wp_backup_default_tables as $table) {
-			echo "<li><input type='hidden' name='core_tables[]' value='$table' /><code>$table</code></li>";
+			if ( $table == $wpdb->comments ) {
+				$checked = ( is_array($excs['spam'] ) && in_array($table, $excs['spam']) ) ? ' checked=\'checked\'' : '';
+				echo "<li><input type='hidden' name='core_tables[]' value='$table' /><code>$table</code> <span class='instructions'> <input type='checkbox' name='exclude-spam[]' value='$table' $checked /> " . __('Exclude spam comments', 'wp-db-backup') . '</span></li>';
+			} elseif ( function_exists('wp_get_post_revisions') && $table == $wpdb->posts ) {
+					$checked = ( is_array($excs['revisions'] ) && in_array($table, $excs['revisions']) ) ? ' checked=\'checked\'' : '';
+				echo "<li><input type='hidden' name='core_tables[]' value='$table' /><code>$table</code> <span class='instructions'> <input type='checkbox' name='exclude-revisions[]' value='$table' $checked /> " . __('Exclude post revisions', 'wp-db-backup') . '</span></li>';
+			} else {
+				echo "<li><input type='hidden' name='core_tables[]' value='$table' /><code>$table</code></li>";
+			}
 		}
 		?></ul>
 		</div>
@@ -1271,7 +1308,7 @@ class wpdbBackup {
 		$recipient = get_option('wp_cron_backup_recipient');
 		$backup_file = $this->db_backup($core_tables, $other_tables);
 		if (FALSE !== $backup_file) 
-			return $this->deliver_backup($backup_file, 'smtp', $recipient);
+			return $this->deliver_backup($backup_file, 'smtp', $recipient, 'main');
 		else return false;
 	}
 
@@ -1301,6 +1338,9 @@ class wpdbBackup {
 	 */
 	function can_user_backup($loc = 'main') {
 		$can = false;
+		// make sure WPMU users are site admins, not ordinary admins
+		if ( function_exists('is_site_admin') && ! is_site_admin() )
+			return false;
 		if ( ( $this->wp_secure('fatal', $loc) ) && current_user_can('import') )
 			$can = $this->verify_nonce($_REQUEST['_wpnonce'], $this->referer_check_key, $loc);
 		if ( false == $can ) 
