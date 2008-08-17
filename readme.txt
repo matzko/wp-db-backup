@@ -31,9 +31,33 @@ Released under the terms of the GNU GPL, version 2.
 
 == Frequently Asked Questions ==
 
-= What are wp-db-backup.mo and wp-db-backup.pot for? =
+= How do I restore my database from a backup? =
 
-These files are used by non-English users to translate the display into their native language.  Translators are encouraged to send me translated files, which will be made available to others here:
+Briefly, use phpMyAdmin, which is included with most hosting control panels. More details and links to further explanations are here: http://codex.wordpress.org/Restoring_Your_Database_From_Backup
+
+= My backup stops or hangs without completing. =
+
+If you edit the text of wp-db-backup.php in a text editor like Notepad, you’ll see around line 50 the following:
+
+`/**
+* Set MOD_EVASIVE_OVERRIDE to true
+* and increase MOD_EVASIVE_DELAY
+* if the backup stops prematurely.
+*/
+// define('MOD_EVASIVE_OVERRIDE', false);
+define('MOD_EVASIVE_DELAY', '500');`
+
+Do what it says: un-comment MOD_EVASIVE_OVERRIDE and set it to true like so:
+
+`define('MOD_EVASIVE_OVERRIDE', true);`
+
+That will slow down the plugin, and you can slow it even further by increasing the MOD_EVASIVE_DELAY number from 500.
+
+Better yet, define the `MOD_EVASIVE_OVERRIDE` and `MOD_EVASIVE_DELAY` constants in your wp-config.php file, so your settings don't get erased when you upgrade the plugin.
+
+= What is wp-db-backup.pot for? =
+
+This files is used by non-English users to translate the display into their native language.  Translators are encouraged to send me translated files, which will be made available to others here:
 http://www.ilfilosofo.com/blog/wp-db-backup/i18n/
 http://dev.wp-plugins.org/browser/wp-db-backup/i18n/
 
@@ -79,23 +103,6 @@ When having the database backup emailed or sent to your browser for immediate do
 If you are using WordPress version 2.1 or newer, you can schedule automated backups to be sent to the email address 
 of your choice.
 
-== Changelog ==
-2.1
-Major security upgrade
+== Translators ==
+Thanks to following people for providing translation files for WP-DB-Backup:
 
-2.0
-Support for WordPress 2.1's built-in cron, for automated scheduled backups.
-
-1.7
-Better error handling.  Updated documentation.
-
-1.6
-Integrated Owen's massive rewrite, the most noticable element being the introduction of a progress meter.  The backup is now spooled to disk, a few rows at a time, to ensure that databases of all sizes can be backed up.  Additionally, gzip support is now automatically detected, and used if available.  This has been tested on a database over 30 megabytes uncompressed.  Version 1.6 of wp-db-backup successfully backed up the whole thing without error, and transparently compressed it to just over 10 megabytes (many thanks to Lorelle for being such a willing guinea pig!).
-
-1.5
-Applied patch from Owen (http://dev.wp-plugins.org/ticket/219)
- -- the database dump is now spooled to disk to better support large databases.
- If the user has selected immediate delivery, the file size will be evaluated.  If less than 2 MB, the file will be gzip compressed (if the user asked for it); otherwise a helpful error message will be displayed.
-
-1.4
-Initial relase.
