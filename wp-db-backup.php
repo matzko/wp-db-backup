@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/
-Version: 2.1.7-alpha
+Version: 2.1.8-alpha
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -200,8 +200,7 @@ class wpdbBackup {
 	}
 
 	function init_textdomain() {
-		global $wpdbb_plugin_dir;
-		load_plugin_textdomain('wp-db-backup', trailingslashit(str_replace(ABSPATH, '', dirname(__FILE__))), trim(str_replace($wpdbb_plugin_dir, '', dirname(__FILE__)), '/'));
+		load_plugin_textdomain('wp-db-backup', str_replace(ABSPATH, '', dirname(__FILE__)), dirname(plugin_basename(__FILE__)));
 	}
 
 	function build_backup_script() {
@@ -520,6 +519,10 @@ class wpdbBackup {
 		//]]>
 		</script>
 		<style type="text/css">
+			.wp-db-backup-updated {
+				margin-top: 1em;
+			}
+
 			fieldset.options {
 				border: 1px solid;
 				margin-top: 1em;
@@ -1013,7 +1016,7 @@ class wpdbBackup {
 		
 		// did we just do a backup?  If so, let's report the status
 		if ( $this->backup_complete ) {
-			$feedback = '<div class="updated"><p>' . __('Backup Successful','wp-db-backup') . '!';
+			$feedback = '<div class="updated wp-db-backup-updated"><p>' . __('Backup Successful','wp-db-backup') . '!';
 			$file = $this->backup_file;
 			switch($_POST['deliver']) {
 			case 'http':
@@ -1038,7 +1041,7 @@ class wpdbBackup {
 		$this->wp_secure();  
 
 		if (count($this->errors)) {
-			$feedback .= '<div class="updated error"><p><strong>' . __('The following errors were reported:','wp-db-backup') . '</strong></p>';
+			$feedback .= '<div class="updated wp-db-backup-updated error"><p><strong>' . __('The following errors were reported:','wp-db-backup') . '</strong></p>';
 			$feedback .= '<p>' . $this->error_display( 'main', false ) . '</p>';
 			$feedback .= "</p></div>";
 		}
@@ -1065,7 +1068,7 @@ class wpdbBackup {
 			if (is_email($_POST['cron_backup_recipient'])) {
 				update_option('wp_cron_backup_recipient', $_POST['cron_backup_recipient'], FALSE);
 			}
-			$feedback .= '<div class="updated"><p>' . __('Scheduled Backup Options Saved!','wp-db-backup') . '</p></div>';
+			$feedback .= '<div class="updated wp-db-backup-updated"><p>' . __('Scheduled Backup Options Saved!','wp-db-backup') . '</p></div>';
 		endif;
 		
 		$other_tables = array();
@@ -1092,12 +1095,12 @@ class wpdbBackup {
 
 		// the file doesn't exist and can't create it
 		if ( ! file_exists($this->backup_dir) && ! @mkdir($this->backup_dir) ) {
-			?><div class="updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it.','wp-db-backup'); ?></p>
+			?><div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it.','wp-db-backup'); ?></p>
 			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . $this->backup_dir . '</code>'); ?></p></div><?php
 			$WHOOPS = TRUE;
 		// not writable due to write permissions
 		} elseif ( !is_writable($this->backup_dir) && ! @chmod($this->backup_dir, $dir_perms) ) {
-			?><div class="updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p>
+			?><div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p>
 			<p><?php printf(__('Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s', 'wp-db-backup'), '<code>777</code>', '<code>a+w</code>', '<code>' . $this->backup_dir . '</code>'); ?>
 			</p></div><?php 
 			$WHOOPS = TRUE;
@@ -1108,7 +1111,7 @@ class wpdbBackup {
 				@unlink($this->backup_dir . 'test' );
 			// the directory is not writable probably due to safe mode
 			} else {
-				?><div class="updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p><?php 
+				?><div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p><?php 
 				if( ini_get('safe_mode') ){
 					?><p><?php _e('This problem seems to be caused by your server&rsquo;s <code>safe_mode</code> file ownership restrictions, which limit what files web applications like WordPress can create.', 'wp-db-backup'); ?></p><?php 
 				}
@@ -1185,7 +1188,7 @@ class wpdbBackup {
 				<input type="submit" name="submit" onclick="document.getElementById('do_backup').value='fragments';" value="<?php _e('Backup now!','wp-db-backup'); ?>" />
 			</p>
 			<?php else : ?>
-				<div class="updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable!','wp-db-backup'); ?></p></div>
+				<div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable!','wp-db-backup'); ?></p></div>
 			<?php endif; // ! whoops ?>
 		</fieldset>
 		<?php do_action('wp_db_b_backup_opts'); ?>
@@ -1213,8 +1216,9 @@ class wpdbBackup {
 			endif;
 			?><form method="post" action="">
 			<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field($this->referer_check_key); ?>
-			<div class="tables-list alternate"><?php 
-			echo __('Schedule: ','wp-db-backup');
+			<div class="tables-list">
+			<h4><?php _e('Schedule: ','wp-db-backup'); ?></h4>
+			<?php 
 			if ( $cron_old ) :
 				$wp_cron_backup_schedule = get_option('wp_cron_backup_schedule');
 				$schedule = array(0 => __('None','wp-db-backup'), 1 => __('Daily','wp-db-backup'));
@@ -1223,7 +1227,7 @@ class wpdbBackup {
 					if ($wp_cron_backup_schedule == $value) {
 						echo ' checked="checked" ';
 					}
-					echo 'value="' . $value . '" /> ' . __($name,'wp-db-backup');
+					echo 'value="' . $value . '" /> ' . $name;
 				}
 			elseif ( $cron ) :
 				echo apply_filters('wp_db_b_schedule_choices', wp_get_schedules() );
@@ -1234,7 +1238,7 @@ class wpdbBackup {
 			}
 			$cron_recipient_input = '<p><label for="cron_backup_recipient">' . __('Email backup to:','wp-db-backup') . ' <input type="text" name="cron_backup_recipient" id="cron_backup_recipient" size="20" value="' . $cron_recipient . '" /></label></p>';
 			echo apply_filters('wp_db_b_cron_recipient_input', $cron_recipient_input);
-			echo '</div><div class="tables-list" id="include-tables-list">';
+			echo '</div><div class="tables-list alternate" id="include-tables-list">';
 			$cron_tables = get_option('wp_cron_backup_tables');
 			if (! is_array($cron_tables)) {
 				$cron_tables = array();
