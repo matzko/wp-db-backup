@@ -108,3 +108,4 @@ Thanks to following people for providing translation files for WP-DB-Backup:
 Timm Severin
 İzzet Emre Erkan
 Michele Spagnuolo
+吴曦
