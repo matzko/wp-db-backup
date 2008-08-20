@@ -4,7 +4,7 @@ Donate link: http://www.ilfilosofo.com/blog/wp-db-backup/
 Tags: mysql, database, backup, cron
 Requires at least: 2.0.3
 Tested up to: 2.7
-Stable tag: 2.1.5
+Stable tag: 2.2
 
 On-demand backup of your WordPress database.
 
@@ -53,7 +53,7 @@ Do what it says: un-comment MOD_EVASIVE_OVERRIDE and set it to true like so:
 
 That will slow down the plugin, and you can slow it even further by increasing the MOD_EVASIVE_DELAY number from 500.
 
-Better yet, define the `MOD_EVASIVE_OVERRIDE` and `MOD_EVASIVE_DELAY` constants in your wp-config.php file, so your settings don't get erased when you upgrade the plugin.
+Better yet, put the lines that define the `MOD_EVASIVE_OVERRIDE` and `MOD_EVASIVE_DELAY` constants in your wp-config.php file, so your settings don't get erased when you upgrade the plugin.
 
 = What is wp-db-backup.pot for? =
 
