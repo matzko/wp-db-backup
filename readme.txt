@@ -105,9 +105,9 @@ of your choice.
 
 == Translators ==
 Thanks to following people for providing translation files for WP-DB-Backup:
-İzzet Emre Erkan
-Michele Spagnuolo
-Sergey Biryukov
-Tai
-Timm Severin
-吴曦
+* İzzet Emre Erkan
+* Michele Spagnuolo
+* Sergey Biryukov
+* Tai
+* Timm Severin
+* 吴曦
