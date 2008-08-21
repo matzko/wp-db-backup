@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/
-Version: 2.2
+Version: 2.2.1-beta
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -963,7 +963,6 @@ class wpdbBackup {
 			
 			$result = @wp_mail($to, $subject, $message, $headers);
 		}
-		return false;
 		return $result;
 
 	}
@@ -993,7 +992,7 @@ class wpdbBackup {
 			$message = sprintf(__("Attached to this email is\n   %1s\n   Size:%2s kilobytes\n",'wp-db-backup'), $filename, round(filesize($diskfile)/1024));
 			$success = $this->send_mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $diskfile);
 
-			if ( false == $success ) {
+			if ( false === $success ) {
 				$msg = __('The following errors were reported:','wp-db-backup') . "\n ";
 				if ( function_exists('error_get_last') ) {
 					$err = error_get_last();
