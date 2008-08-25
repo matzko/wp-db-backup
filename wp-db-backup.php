@@ -130,7 +130,8 @@ class wpdbBackup {
 		$query_args = array( 'page' => $this->basename );
 		if ( function_exists('wp_create_nonce') )
 			$query_args = array_merge( $query_args, array('_wpnonce' => wp_create_nonce($this->referer_check_key)) );
-		$this->page_url = add_query_arg( $query_args, get_option('siteurl') . '/wp-admin/edit.php');
+		$base = ( function_exists('site_url') ) ? site_url('', 'admin') : get_option('siteurl');
+		$this->page_url = add_query_arg( $query_args, $base . '/wp-admin/edit.php');
 		if (isset($_POST['do_backup'])) {
 			$this->wp_secure('fatal');
 			check_admin_referer($this->referer_check_key);
