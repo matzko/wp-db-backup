@@ -107,6 +107,7 @@ of your choice.
 Thanks to following people for providing translation files for WP-DB-Backup:
 * İzzet Emre Erkan
 * Michele Spagnuolo
+* Rune Gulbrandsøy
 * Sergey Biryukov
 * Tai
 * Timm Severin
