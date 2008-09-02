@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/
-Version: 2.2.1-beta
+Version: 2.2.1
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -1238,12 +1238,14 @@ class wpdbBackup {
 			}
 			$cron_recipient_input = '<p><label for="cron_backup_recipient">' . __('Email backup to:','wp-db-backup') . ' <input type="text" name="cron_backup_recipient" id="cron_backup_recipient" size="20" value="' . $cron_recipient . '" /></label></p>';
 			echo apply_filters('wp_db_b_cron_recipient_input', $cron_recipient_input);
-			echo '</div><div class="tables-list alternate" id="include-tables-list">';
+			echo '<p class="submit"><input type="submit" name="submit" value="' . __('Schedule backup','wp-db-backup') . '" /></p>';
+			echo '</div>';
 			$cron_tables = get_option('wp_cron_backup_tables');
 			if (! is_array($cron_tables)) {
 				$cron_tables = array();
 			}
 			if (count($other_tables) > 0) {
+				echo '<div class="tables-list alternate" id="include-tables-list">';
 				echo '<h4>' . __('Tables to include in the scheduled backup:','wp-db-backup') . '</h4><ul>';
 				foreach ($other_tables as $table) {
 					echo '<li><input type="checkbox" ';
@@ -1252,13 +1254,13 @@ class wpdbBackup {
 					}
 					echo "name='wp_cron_backup_tables[]' value='{$table}' /> <code>{$table}</code></li>";
 				}
-				echo '</ul>';
+				echo '</ul></div>';
 			}
-			echo '<input type="hidden" name="wp_cron_backup_options" value="SET" /><p class="submit"><input type="submit" name="submit" value="' . __('Schedule backup','wp-db-backup') . '" /></p></div></form>';
+			echo '<input type="hidden" name="wp_cron_backup_options" value="SET" /></form>';
 			echo '</fieldset>';
 		endif; // end of wp_cron (legacy) section
 		
-		echo '</div>';
+		echo '</div><!-- .wrap -->';
 		
 	} // end wp_backup_menu()
 
