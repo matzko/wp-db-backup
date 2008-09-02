@@ -397,7 +397,7 @@ class wpdbBackup {
 			$also_backup = $_POST['other_tables'];
 		$core_tables = $_POST['core_tables'];
 		$this->backup_file = $this->db_backup($core_tables, $also_backup);
-		if (FALSE !== $this->backup_file) {
+		if (false !== $this->backup_file) {
 			if ('smtp' == $_POST['deliver']) {
 				$this->deliver_backup($this->backup_file, $_POST['deliver'], $_POST['backup_recipient'], 'main');
 				wp_redirect($this->page_url);
@@ -599,7 +599,7 @@ class wpdbBackup {
 	 * Better addslashes for SQL queries.
 	 * Taken from phpMyAdmin.
 	 */
-	function sql_addslashes($a_string = '', $is_like = FALSE) {
+	function sql_addslashes($a_string = '', $is_like = false) {
 		if ($is_like) $a_string = str_replace('\\', '\\\\\\\\', $a_string);
 		else $a_string = str_replace('\\', '\\\\', $a_string);
 		return str_replace('\'', '\\\'', $a_string);
@@ -649,7 +649,7 @@ class wpdbBackup {
 			if(! @gzwrite($this->fp, $query_line))
 				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
 		} else {
-			if(FALSE === @fwrite($this->fp, $query_line))
+			if(false === @fwrite($this->fp, $query_line))
 				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
 		}
 	}
@@ -717,7 +717,7 @@ class wpdbBackup {
 		$table_structure = $wpdb->get_results("DESCRIBE $table");
 		if (! $table_structure) {
 			$this->error(__('Error getting table details','wp-db-backup') . ": $table");
-			return FALSE;
+			return false;
 		}
 	
 		if(($segment == 'none') || ($segment == 0)) {
@@ -738,14 +738,14 @@ class wpdbBackup {
 			$this->stow("\n");
 			
 			$create_table = $wpdb->get_results("SHOW CREATE TABLE $table", ARRAY_N);
-			if (FALSE === $create_table) {
+			if (false === $create_table) {
 				$err_msg = sprintf(__('Error with SHOW CREATE TABLE for %s.','wp-db-backup'), $table);
 				$this->error($err_msg);
 				$this->stow("#\n# $err_msg\n#\n");
 			}
 			$this->stow($create_table[0][1] . ' ;');
 			
-			if (FALSE === $table_structure) {
+			if (false === $table_structure) {
 				$err_msg = sprintf(__('Error getting table structure of %s','wp-db-backup'), $table);
 				$this->error($err_msg);
 				$this->stow("#\n# $err_msg\n#\n");
@@ -1012,7 +1012,7 @@ class wpdbBackup {
 	function backup_menu() {
 		global $table_prefix, $wpdb;
 		$feedback = '';
-		$WHOOPS = FALSE;
+		$whoops = false;
 		
 		// did we just do a backup?  If so, let's report the status
 		if ( $this->backup_complete ) {
@@ -1056,17 +1056,17 @@ class wpdbBackup {
 				$name = strval($_POST['wp_cron_schedule']);
 				$interval = ( isset($scheds[$name]['interval']) ) ? 
 					(int) $scheds[$name]['interval'] : 0;
-				update_option('wp_cron_backup_schedule', $name, FALSE);
+				update_option('wp_cron_backup_schedule', $name, false);
 				if ( 0 !== $interval ) {
 					wp_schedule_event(time() + $interval, $name, 'wp_db_backup_cron');
 				}
 			}
 			else {
-				update_option('wp_cron_backup_schedule', intval($_POST['cron_schedule']), FALSE);
+				update_option('wp_cron_backup_schedule', intval($_POST['cron_schedule']), false);
 			}
 			update_option('wp_cron_backup_tables', $_POST['wp_cron_backup_tables']);
 			if (is_email($_POST['cron_backup_recipient'])) {
-				update_option('wp_cron_backup_recipient', $_POST['cron_backup_recipient'], FALSE);
+				update_option('wp_cron_backup_recipient', $_POST['cron_backup_recipient'], false);
 			}
 			$feedback .= '<div class="updated wp-db-backup-updated"><p>' . __('Scheduled Backup Options Saved!','wp-db-backup') . '</p></div>';
 		endif;
@@ -1097,13 +1097,13 @@ class wpdbBackup {
 		if ( ! file_exists($this->backup_dir) && ! @mkdir($this->backup_dir) ) {
 			?><div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it.','wp-db-backup'); ?></p>
 			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . $this->backup_dir . '</code>'); ?></p></div><?php
-			$WHOOPS = TRUE;
+			$whoops = true;
 		// not writable due to write permissions
 		} elseif ( !is_writable($this->backup_dir) && ! @chmod($this->backup_dir, $dir_perms) ) {
 			?><div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files.','wp-db-backup'); ?></p>
 			<p><?php printf(__('Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s', 'wp-db-backup'), '<code>777</code>', '<code>a+w</code>', '<code>' . $this->backup_dir . '</code>'); ?>
 			</p></div><?php 
-			$WHOOPS = TRUE;
+			$whoops = true;
 		} else {
 			$this->fp = $this->open($this->backup_dir . 'test' );
 			if( $this->fp ) { 
@@ -1117,7 +1117,7 @@ class wpdbBackup {
 				}
 				?><?php printf(__('You can try to correct this problem by using your FTP client to delete and then re-create the backup directory: %s', 'wp-db-backup'), '<code>' . $this->backup_dir . '</code>');
 				?></div><?php 
-				$WHOOPS = TRUE;
+				$whoops = true;
 			}
 		}
 
@@ -1182,7 +1182,7 @@ class wpdbBackup {
 				<input type="text" name="backup_recipient" size="20" value="<?php echo get_option('admin_email'); ?>" />
 			</label></li>
 			</ul>
-			<?php if ( ! $WHOOPS ) : ?>
+			<?php if ( ! $whoops ) : ?>
 			<input type="hidden" name="do_backup" id="do_backup" value="backup" /> 
 			<p class="submit">
 				<input type="submit" name="submit" onclick="document.getElementById('do_backup').value='fragments';" value="<?php _e('Backup now!','wp-db-backup'); ?>" />
@@ -1311,7 +1311,7 @@ class wpdbBackup {
 		$other_tables = get_option('wp_cron_backup_tables');
 		$recipient = get_option('wp_cron_backup_recipient');
 		$backup_file = $this->db_backup($core_tables, $other_tables);
-		if (FALSE !== $backup_file) 
+		if (false !== $backup_file) 
 			return $this->deliver_backup($backup_file, 'smtp', $recipient, 'main');
 		else return false;
 	}
