@@ -27,7 +27,7 @@ Released under the terms of the GNU GPL, version 2.
    For example:
    `$ cd /wordpress/`
    `$ chgrp www-data wp-content` (where "`www-data`" is the group your FTP client uses)
-   `$ chmod g+w backup`
+   `$ chmod g+w wp-content`
 
 == Frequently Asked Questions ==
 
