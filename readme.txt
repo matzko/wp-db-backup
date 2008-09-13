@@ -105,6 +105,7 @@ of your choice.
 
 == Translators ==
 Thanks to following people for providing translation files for WP-DB-Backup:
+* Gilles Wittezaele
 * İzzet Emre Erkan
 * Michele Spagnuolo
 * Rune Gulbrandsøy
