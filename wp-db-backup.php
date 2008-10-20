@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/
-Version: 2.2.1
+Version: 2.2.2-alpha
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -96,6 +96,7 @@ class wpdbBackup {
 		global $table_prefix, $wpdb;
 		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
 		add_action('init', array(&$this, 'init_textdomain'));
+		add_action('load-update.php', array(&$this, 'update_notice_action'));
 		add_action('wp_db_backup_cron', array(&$this, 'cron_backup'));
 		add_action('wp_cron_daily', array(&$this, 'wp_cron_daily'));
 		add_filter('cron_schedules', array(&$this, 'add_sched_options'));
@@ -203,6 +204,22 @@ class wpdbBackup {
 	function init_textdomain() {
 		load_plugin_textdomain('wp-db-backup', str_replace(ABSPATH, '', dirname(__FILE__)), dirname(plugin_basename(__FILE__)));
 	}
+
+	/*
+	 * Add a link to back up your database when doing a core upgrade 
+	 */
+	function update_notice_action() {
+		if ( 'upgrade-core' == $_REQUEST['action'] ) :
+			ob_start(array(&$this, 'update_notice'));
+			add_action('admin_footer', create_function('', 'ob_end_flush();'));
+		endif;
+	}
+		function update_notice($text = '') {
+			$pattern = '#(<p><a href\="' . __('http://codex.wordpress.org/Backing_Up_Your_Database') . '">.*?</p>)#';
+			$replace = '$1' . "\n<p>" . sprintf(__('Click <a href="%s">here</a> to back up your database using WordPress Database Backup.', 'wp-db-backup'), 'import.php?page=wp-db-backup') . "</p>\n"; 
+			$text = preg_replace($pattern, $replace, $text);
+			return $text;
+		}
 
 	function build_backup_script() {
 		global $table_prefix, $wpdb;
