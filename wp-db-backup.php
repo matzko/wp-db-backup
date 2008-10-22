@@ -216,7 +216,7 @@ class wpdbBackup {
 	}
 		function update_notice($text = '') {
 			$pattern = '#(<a href\="' . __('http://codex.wordpress.org/WordPress_Backups') . '">.*?</p>)#';
-			$replace = '$1' . "\n<p>" . sprintf(__('Click <a href="%s">here</a> to back up your database using the WordPress Database Backup plugin. <strong>Note:</strong> WordPress Database Backup does <em>not</em> back up your files, just your database.', 'wp-db-backup'), 'import.php?page=wp-db-backup') . "</p>\n"; 
+			$replace = '$1' . "\n<p>" . sprintf(__('Click <a href="%s" target="_blank">here</a> to back up your database using the WordPress Database Backup plugin. <strong>Note:</strong> WordPress Database Backup does <em>not</em> back up your files, just your database.', 'wp-db-backup'), 'import.php?page=wp-db-backup') . "</p>\n"; 
 			$text = preg_replace($pattern, $replace, $text);
 			return $text;
 		}
