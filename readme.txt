@@ -33,7 +33,7 @@ Released under the terms of the GNU GPL, version 2.
 
 = How do I restore my database from a backup? =
 
-Briefly, use phpMyAdmin, which is included with most hosting control panels. More details and links to further explanations are here: http://codex.wordpress.org/Restoring_Your_Database_From_Backup
+Briefly, use phpMyAdmin, which is included with most hosting control panels. More details and links to further explanations are [here](http://codex.wordpress.org/Restoring_Your_Database_From_Backup).
 
 = My backup stops or hangs without completing. =
 
