@@ -70,7 +70,7 @@ class wpdbBackup {
 	var $backup_complete = false;
 	var $backup_file = '';
 	var $backup_filename;
-	var $core_table_names;
+	var $core_table_names = array();
 	var $errors = array();
 	var $basename;
 	var $page_url;
@@ -107,22 +107,28 @@ class wpdbBackup {
 		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql";
 		if ($this->gzip()) $this->backup_filename .= '.gz';
 
-		$this->core_table_names = array(
-			$wpdb->categories,
-			$wpdb->comments,
-			$wpdb->link2cat,
-			$wpdb->linkcategories,
-			$wpdb->links,
-			$wpdb->options,
-			$wpdb->post2cat,
-			$wpdb->postmeta,
-			$wpdb->posts,
-			$wpdb->terms,
-			$wpdb->term_taxonomy,
-			$wpdb->term_relationships,
-			$wpdb->users,
-			$wpdb->usermeta,
+		$possible_names = array(
+			'categories',
+			'comments',
+			'link2cat',
+			'linkcategories',
+			'links',
+			'options',
+			'post2cat',
+			'postmeta',
+			'posts',
+			'terms',
+			'term_taxonomy',
+			'term_relationships',
+			'users',
+			'usermeta',
 		);
+
+		foreach( $possible_names as $name ) {
+			if ( isset( $wpdb->{$name} ) ) {
+				$this->core_table_names[] = $wpdb->{$name};
+			}
+		}
 	
 		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir', WP_BACKUP_DIR));
 		$this->basename = 'wp-db-backup';
@@ -1152,10 +1158,10 @@ class wpdbBackup {
 		$excs = (array) get_option('wp_db_backup_excs');
 		foreach ($wp_backup_default_tables as $table) {
 			if ( $table == $wpdb->comments ) {
-				$checked = ( is_array($excs['spam'] ) && in_array($table, $excs['spam']) ) ? ' checked=\'checked\'' : '';
+				$checked = ( isset($excs['spam']) && is_array($excs['spam'] ) && in_array($table, $excs['spam']) ) ? ' checked=\'checked\'' : '';
 				echo "<li><input type='hidden' name='core_tables[]' value='$table' /><code>$table</code> <span class='instructions'> <input type='checkbox' name='exclude-spam[]' value='$table' $checked /> " . __('Exclude spam comments', 'wp-db-backup') . '</span></li>';
 			} elseif ( function_exists('wp_get_post_revisions') && $table == $wpdb->posts ) {
-					$checked = ( is_array($excs['revisions'] ) && in_array($table, $excs['revisions']) ) ? ' checked=\'checked\'' : '';
+					$checked = ( isset($excs['revisions']) && is_array($excs['revisions'] ) && in_array($table, $excs['revisions']) ) ? ' checked=\'checked\'' : '';
 				echo "<li><input type='hidden' name='core_tables[]' value='$table' /><code>$table</code> <span class='instructions'> <input type='checkbox' name='exclude-revisions[]' value='$table' $checked /> " . __('Exclude post revisions', 'wp-db-backup') . '</span></li>';
 			} else {
 				echo "<li><input type='hidden' name='core_tables[]' value='$table' /><code>$table</code></li>";
