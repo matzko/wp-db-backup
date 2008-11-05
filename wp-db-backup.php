@@ -951,6 +951,8 @@ class wpdbBackup {
 			$phpmailer->FromName = apply_filters( 'wp_mail_from_name', $from_name );
 			$phpmailer->IsMail();
 			$phpmailer->Subject = $subject;
+
+			do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
 			
 			$result = @$phpmailer->Send();
 
