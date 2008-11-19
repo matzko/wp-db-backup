@@ -73,7 +73,6 @@ class wpdbBackup {
 	var $core_table_names = array();
 	var $errors = array();
 	var $basename;
-	var $_page_hook; // the page hook of the WP-DB-Backup admin page
 	var $page_url;
 	var $referer_check_key;
 	var $version = '2.1.5-alpha';
@@ -97,11 +96,10 @@ class wpdbBackup {
 		global $table_prefix, $wpdb;
 		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
 		add_action('init', array(&$this, 'init_textdomain'));
-		add_action('load-update.php', array(&$this, 'update_notice_action'));
+		add_action('load-update-core.php', array(&$this, 'update_notice_action'));
 		add_action('wp_db_backup_cron', array(&$this, 'cron_backup'));
 		add_action('wp_cron_daily', array(&$this, 'wp_cron_daily'));
 		add_filter('cron_schedules', array(&$this, 'add_sched_options'));
-		add_filter('contextual_help', array(&$this, 'help_menu'), 10, 3);
 		add_filter('wp_db_b_schedule_choices', array(&$this, 'schedule_choices'));
 		
 		$table_prefix = ( isset( $table_prefix ) ) ? $table_prefix : $wpdb->prefix;
@@ -592,8 +590,14 @@ class wpdbBackup {
 	}
 
 	function admin_menu() {
-		$this->_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
-		add_action('load-' . $this->_page_hook, array(&$this, 'admin_load'));
+		// $_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
+		$_page_hook = add_object_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
+		// add_object_page( $page_title, $menu_title, $access_level, $file, $function = ''
+		add_action('load-' . $_page_hook, array(&$this, 'admin_load'));
+		if ( function_exists('add_contextual_help') ) {
+			$text = $this->help_menu();
+			add_contextual_help($_page_hook, $text);
+		}
 	}
 
 	function fragment_menu() {
@@ -603,19 +607,11 @@ class wpdbBackup {
 
 	/** 
 	 * Add WP-DB-Backup-specific help options to the 2.7 =< WP contextual help menu
-	 * @param string $text The help menu text
-	 * @param string $screen The "screen" of the current page, which in 2.7 is 'import' for wp-db-backup
-	 * @param string $suffix The page-specific hook of the page.  Should be like 'tools_page_wp-db-backup', which is the same as the value for $page_hook in the admin_menu() method above.
 	 * return string The text of the help menu.
 	 */
-	function help_menu($text = '', $screen = '', $suffix = '') {
-		if ( ! empty( $this->_page_hook ) && $suffix == $this->_page_hook ) {
-			$text .= '<h5>' . __('Help for WordPress Database Backup', 'wp-db-backup') . '</h5>';
-			$text .= "\n<div class=\"metabox-prefs\">\n";
-			$text .= "\n<a href=\"http://wordpress.org/extend/plugins/wp-db-backup/faq/\" target=\"_blank\">" . __('FAQ', 'wp-db-backup') . '</a>';
-			$text .= "\n<br />\n<a href=\"http://www.ilfilosofo.com/forum/forum/2\" target=\"_blank\">" . __('WP-DB-Backup Support Forum', 'wp-db-backup') . '</a>';
-			$text .= "\n</div>";
-		}
+	function help_menu() {
+		$text = "\n<a href=\"http://wordpress.org/extend/plugins/wp-db-backup/faq/\" target=\"_blank\">" . __('FAQ', 'wp-db-backup') . '</a>';
+		$text .= "\n<br />\n<a href=\"http://www.ilfilosofo.com/forum/forum/2\" target=\"_blank\">" . __('WP-DB-Backup Support Forum', 'wp-db-backup') . '</a>';
 		return $text;
 	}
 
