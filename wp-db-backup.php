@@ -590,9 +590,7 @@ class wpdbBackup {
 	}
 
 	function admin_menu() {
-		// $_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
-		$_page_hook = add_object_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
-		// add_object_page( $page_title, $menu_title, $access_level, $file, $function = ''
+		$_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
 		add_action('load-' . $_page_hook, array(&$this, 'admin_load'));
 		if ( function_exists('add_contextual_help') ) {
 			$text = $this->help_menu();
@@ -852,7 +850,7 @@ class wpdbBackup {
 								$values[] = "'" . str_replace($search, $replace, $this->sql_addslashes($value)) . "'";
 							}
 						}
-						$this->stow(" \n" . $entries . implode(', ', $values) . ') ;');
+						$this->stow(" \n" . $entries . implode(', ', $values) . ');');
 					}
 					$row_start += $row_inc;
 				}
