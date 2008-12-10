@@ -1,0 +1,396 @@
+# WP-DB-Backup
+# Copyright (C) 2008 Austin Matzko
+# This file is distributed under the GPL 2 license.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-08-15 11:00-0500\n"
+"PO-Revision-Date: 2008-08-30 12:02+0100\n"
+"Last-Translator: RuneG <dev@bloggs.be>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: \n"
+
+#: wp-db-backup.php:181
+msgid "Backup Complete!"
+msgstr "Sikkerhetskopi ferdig!"
+
+#: wp-db-backup.php:211
+msgid "Progress"
+msgstr "Framdrift"
+
+#: wp-db-backup.php:213
+msgid "DO NOT DO THE FOLLOWING AS IT WILL CAUSE YOUR BACKUP TO FAIL:"
+msgstr "IKKE GJØR FØLGENDE DA DET VIL FØRE TIL AT SIKKERHETSKOPIEN DIN FEILER:"
+
+#: wp-db-backup.php:216
+msgid "Close this browser"
+msgstr "Lukke nettleseren"
+
+#: wp-db-backup.php:217
+msgid "Reload this page"
+msgstr "Laste siden på nytt"
+
+#: wp-db-backup.php:218
+msgid "Click the Stop or Back buttons in your browser"
+msgstr "Klikke på stopp eller tilbake knappen i nettleseren"
+
+#: wp-db-backup.php:220
+msgid "Progress:"
+msgstr "Framdrift:"
+
+#: wp-db-backup.php:229
+msgid "Navigating away from this page will cause your backup to fail."
+msgstr "Hvis du går vekk fra denne siden feiler sikkerhetskopien."
+
+#: wp-db-backup.php:266
+#, php-format
+msgid "Backup complete, preparing <a href=\\\"%s\\\">backup</a> for download..."
+msgstr "Sikkerhetskopi ferdig, forbereder <a href=\\\"%s\\\">sikkerhetskopi</a> for nedlasting..."
+
+#: wp-db-backup.php:273
+#, php-format
+msgid "Backup complete, sending <a href=\\\"%s\\\">backup</a> via email..."
+msgstr "Sikkerhetskopi ferdig, sender <a href=\\\"%s\\\">backup</a> via epost..."
+
+#: wp-db-backup.php:280
+#, php-format
+msgid "Backup complete, download <a href=\\\"%s\\\">here</a>."
+msgstr "Sikkerhetskopi ferdig, last den ned <a href=\\\"%s\\\">her</a>."
+
+#: wp-db-backup.php:340
+msgid "Creating backup file..."
+msgstr "Lager sikkerhetskopi..."
+
+#: wp-db-backup.php:343
+#, php-format
+msgid "Finished backing up table \\\"%s\\\"."
+msgstr "Ferdig med sikkerhetskopi av tabellen \\\"%s\\\"."
+
+#: wp-db-backup.php:345
+#, php-format
+msgid "Backing up table \\\"%s\\\"..."
+msgstr "Tar sikkerhetskopi av tabellen \\\"%s\\\"..."
+
+#: wp-db-backup.php:352
+#: wp-db-backup.php:835
+msgid "Could not open the backup file for writing!"
+msgstr "Kunne ikke åpne filen for sikkerhetskopi i skrivemodus!"
+
+#: wp-db-backup.php:353
+msgid "The backup file could not be saved.  Please check the permissions for writing to your backup directory and try again."
+msgstr "Sikkerhetskopifilen kunne ikke lagres. Sjekk skrive rettigheter på sikkerhetskopi mappen, og prøv igjen."
+
+#: wp-db-backup.php:358
+#: wp-db-backup.php:844
+msgid "WordPress MySQL database backup"
+msgstr "WordPress MySQL database sikkerhetskopi"
+
+#: wp-db-backup.php:360
+#: wp-db-backup.php:846
+#, php-format
+msgid "Generated: %s"
+msgstr "Laget: %s"
+
+#: wp-db-backup.php:361
+#: wp-db-backup.php:847
+#, php-format
+msgid "Hostname: %s"
+msgstr "Vertsnavn: %s"
+
+#: wp-db-backup.php:362
+#: wp-db-backup.php:848
+#, php-format
+msgid "Database: %s"
+msgstr "Database: %s"
+
+#: wp-db-backup.php:370
+#: wp-db-backup.php:861
+#, php-format
+msgid "Table: %s"
+msgstr "Tabell: %s"
+
+#: wp-db-backup.php:377
+msgid "The backup directory is not writeable!  Please check the permissions for writing to your backup directory and try again."
+msgstr "Mappen for sikkerhetskopi er ikke skrivbar! Sjekk skriverettighetene på mappen og prøv igjen."
+
+#: wp-db-backup.php:434
+msgid "Click and hold down <code>[SHIFT]</code> to toggle multiple checkboxes"
+msgstr "Klikk og hold nede <code>[SHIFT]</code> for å velge flere sjekkbokser"
+
+#: wp-db-backup.php:474
+msgid "Change"
+msgstr "Endre"
+
+#: wp-db-backup.php:483
+msgid "Save"
+msgstr "Lagre"
+
+#: wp-db-backup.php:566
+#: wp-db-backup.php:571
+#: wp-db-backup.php:1126
+msgid "Backup"
+msgstr "Ta sikkerhetskopi"
+
+#: wp-db-backup.php:646
+#: wp-db-backup.php:649
+msgid "There was an error writing a line to the backup script:"
+msgstr "Det var en feil ved skriven av en linje til skriptet for sikkerhetskopiering:"
+
+#: wp-db-backup.php:681
+msgid "Subsequent errors have been omitted from this log."
+msgstr "Følgende feilmeldinger er utelatt fra loggen."
+
+#: wp-db-backup.php:715
+msgid "Error getting table details"
+msgstr "Klarte ikke å få tabell detaljer"
+
+#: wp-db-backup.php:723
+#, php-format
+msgid "Delete any existing table %s"
+msgstr "Slett eksisternede tabell %s"
+
+#: wp-db-backup.php:732
+#, php-format
+msgid "Table structure of table %s"
+msgstr "Tabell strukturen til tabell %s"
+
+#: wp-db-backup.php:738
+#, php-format
+msgid "Error with SHOW CREATE TABLE for %s."
+msgstr "Feil med SHOW CREATE TABLE for %s"
+
+#: wp-db-backup.php:745
+#, php-format
+msgid "Error getting table structure of %s"
+msgstr "Feil ved innhenting av strukturen til tabellen %s"
+
+#: wp-db-backup.php:753
+#, php-format
+msgid "Data contents of table %s"
+msgstr "Data innhold for tabellen %s"
+
+#: wp-db-backup.php:823
+#, php-format
+msgid "End of data contents of table %s"
+msgstr "Slutt på data innhold i tabellen %s"
+
+#: wp-db-backup.php:839
+msgid "The backup directory is not writeable!"
+msgstr "Mappen for sikkerhetskopi er ikke skrivbar!"
+
+#: wp-db-backup.php:974
+#, php-format
+msgid "File not found:%s"
+msgstr "Filen ikke funnet: %s"
+
+#: wp-db-backup.php:974
+msgid "Return to Backup"
+msgstr "Tilbake til sikkerhetskopiering"
+
+#: wp-db-backup.php:983
+#, php-format
+msgid "File %s does not exist!"
+msgstr "Filen %s finnes ikke!"
+
+#: wp-db-backup.php:990
+#, php-format
+msgid ""
+"Attached to this email is\n"
+"   %1s\n"
+"   Size:%2s kilobytes\n"
+msgstr ""
+"Vedlagt til denne eposten er\n"
+"   %1s\n"
+"   Størrelse:%2s kilobytes\n"
+
+#: wp-db-backup.php:991
+msgid "Database Backup"
+msgstr "Database sikkerhetskopi"
+
+#: wp-db-backup.php:994
+#: wp-db-backup.php:1041
+msgid "The following errors were reported:"
+msgstr "Følgende feil ble rapportert:"
+
+#: wp-db-backup.php:999
+msgid "ERROR: The mail application has failed to deliver the backup."
+msgstr "FEIL: Epost apllikasjonen klarte ikke å levere sikkerhetskopien."
+
+#: wp-db-backup.php:1016
+msgid "Backup Successful"
+msgstr "Sikkerhetskopien var vellykket"
+
+#: wp-db-backup.php:1020
+#, php-format
+msgid "Your backup file: <a href=\"%1s\">%2s</a> should begin downloading shortly."
+msgstr "Sikkerhetskopi filen <a href=\"%1s\">%2s</a> starter snart å laste ned."
+
+#: wp-db-backup.php:1028
+#, php-format
+msgid "Your backup has been emailed to %s"
+msgstr "Din sikkerhetskopi er sendt på epost til %s"
+
+#: wp-db-backup.php:1031
+msgid "Your backup file has been saved on the server. If you would like to download it now, right click and select \"Save As\""
+msgstr "Din sikkerhetskopi er lagret på serveren. Du kan laste den ned nå. Høyre klikk og velg \"Lagre som\""
+
+#: wp-db-backup.php:1032
+#, php-format
+msgid "%s bytes"
+msgstr "%s bytes"
+
+#: wp-db-backup.php:1068
+msgid "Scheduled Backup Options Saved!"
+msgstr "Valg for planlagt sikkerhetskopi er lagret!"
+
+#: wp-db-backup.php:1095
+msgid "WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it."
+msgstr "ADVARSEL: Mappen for sikkerhetskopi finnes <strong>IKKE</strong>, og vi kan ikke lage den."
+
+#: wp-db-backup.php:1096
+#, php-format
+msgid "Using your FTP client, try to create the backup directory yourself: %s"
+msgstr "Ved hjelp av en FTP applikasjon, pørv å lage mappen for sikkerhetskopi selv: %s"
+
+#: wp-db-backup.php:1100
+#: wp-db-backup.php:1111
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files."
+msgstr "ADVARSEL: Mappen for sikkerhetskopi er <strong>IKKE</strong> skrivbar. Vi kan ikke lage sikkerhetskopifilene."
+
+#: wp-db-backup.php:1101
+#, php-format
+msgid "Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s"
+msgstr "Ved hejlp av en FTP applikasjon, pørv å sette rettighetene til mappen til %1$s eller %2$s:%3$s"
+
+#: wp-db-backup.php:1113
+msgid "This problem seems to be caused by your server&rsquo;s <code>safe_mode</code> file ownership restrictions, which limit what files web applications like WordPress can create."
+msgstr "Dette problemet ser ut til å være relatert til serverens <code>safe_mode</code> rettighets restriksjoner. Dette legger begrensninger på hvilke filer WEB applikasjoner som WordPress kan lage."
+
+#: wp-db-backup.php:1115
+#, php-format
+msgid "You can try to correct this problem by using your FTP client to delete and then re-create the backup directory: %s"
+msgstr "Du kan prøve å rette på den feilen ved å bruke en FTP applikasjon for å slette og så lage mappen for sikkerhetskopi på nytt: %s"
+
+#: wp-db-backup.php:1129
+msgid "Tables"
+msgstr "Tabeller"
+
+#: wp-db-backup.php:1131
+msgid "These core WordPress tables will always be backed up:"
+msgstr "De viktigste WordPress tabellen vil alltid bli sikkerhetskopiert:"
+
+#: wp-db-backup.php:1136
+msgid "Exclude spam comments"
+msgstr "Utelat søppel kommentarer"
+
+#: wp-db-backup.php:1139
+msgid "Exclude post revisions"
+msgstr "Utelat post revisjoner"
+
+#: wp-db-backup.php:1150
+msgid "You may choose to include any of the following tables:"
+msgstr "Du kan velge å inkludere følgende tabeller:"
+
+#: wp-db-backup.php:1164
+msgid "Backup Options"
+msgstr "Sikkerhetskopi instillinger"
+
+#: wp-db-backup.php:1165
+msgid "What to do with the backup file:"
+msgstr "Hva skal vi gjøre med sikkerhetskopien:"
+
+#: wp-db-backup.php:1169
+msgid "Save to server"
+msgstr "Lagre på serveren"
+
+#: wp-db-backup.php:1174
+msgid "Download to your computer"
+msgstr "Laste ned til datamaskinen"
+
+#: wp-db-backup.php:1178
+#: wp-db-backup.php:1235
+msgid "Email backup to:"
+msgstr "Sende på epost til:"
+
+#: wp-db-backup.php:1185
+msgid "Backup now!"
+msgstr "Ta sikkerhetskopi nå!"
+
+#: wp-db-backup.php:1188
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable!"
+msgstr "ADVARSEL: Mappen for sikkerhetskopiering er <strong>ikke</strong> skrivbar!"
+
+#: wp-db-backup.php:1199
+msgid "Scheduled Backup"
+msgstr "Planlagt sikkerhetskopi"
+
+#: wp-db-backup.php:1206
+#, php-format
+msgid "Next Backup: %s"
+msgstr "Neste sikkerhetskopi: %s"
+
+#: wp-db-backup.php:1211
+#, php-format
+msgid "Last WP-Cron Daily Execution: %s"
+msgstr "Siste WP-Cron daglig kjøring: %s"
+
+#: wp-db-backup.php:1212
+#, php-format
+msgid "Next WP-Cron Daily Execution: %s"
+msgstr "Neste WP-Cron daglig kjøring: %s"
+
+#: wp-db-backup.php:1217
+msgid "Schedule: "
+msgstr "Planlagt:"
+
+#: wp-db-backup.php:1220
+msgid "None"
+msgstr "Ingen"
+
+#: wp-db-backup.php:1220
+msgid "Daily"
+msgstr "Daglig"
+
+#: wp-db-backup.php:1243
+msgid "Tables to include in the scheduled backup:"
+msgstr "Tabeller som skal med i den planlagte sikkerhetskopien:"
+
+#: wp-db-backup.php:1253
+msgid "Schedule backup"
+msgstr "Planlagte sikkerhetskopier"
+
+#: wp-db-backup.php:1278
+msgid "Never"
+msgstr "Aldri"
+
+#: wp-db-backup.php:1283
+#, php-format
+msgid "%s seconds"
+msgstr "%s sekunder"
+
+#: wp-db-backup.php:1316
+msgid "Once Weekly"
+msgstr "Ukentlig"
+
+#: wp-db-backup.php:1329
+#, php-format
+msgid "Your WordPress version, %1s, lacks important security features without which it is unsafe to use the WP-DB-Backup plugin.  Hence, this plugin is automatically disabled.  Please consider <a href=\"%2s\">upgrading WordPress</a> to a more recent version."
+msgstr "Din WordPress versjon %1s, har alvorlige sikkerhetsfeil, noe som gjør bruken av WP-DB-Backup innstikket usikkert. På grunn av dette er innstikket automatisk deaktivert. Du bør virkelig vurdere å <a href=\"%2s\">oppgrader WordPress</a> til en nyere versjon!"
+
+#: wp-db-backup.php:1347
+msgid "You are not allowed to perform backups."
+msgstr "Du har ikke lov å ta sikkerhetskopi,"
+
+#: wp-db-backup.php:1362
+#, php-format
+msgid "There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted."
+msgstr "Det virker som om det har vært et uatorisert forsøk på å nå databasen din som er lokalisert her %1s. Forsøket ble stoppet."
+
+#: wp-db-backup.php:1373
+msgid "Cheatin' uh ?"
+msgstr "Jukser du?"
+
