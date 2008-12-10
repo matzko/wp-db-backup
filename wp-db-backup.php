@@ -2,7 +2,7 @@
 /*
 Plugin Name: WordPress Database Backup
 Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
-Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Manage &rarr; Backup</a> to get started.
+Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Tools &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/
 Version: 2.2.2
