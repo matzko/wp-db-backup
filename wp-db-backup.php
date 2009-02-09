@@ -15,7 +15,7 @@ in turn was derived from phpMyAdmin.
 Many thanks to Owen (http://asymptomatic.net/wp/) for his patch
    http://dev.wp-plugins.org/ticket/219
 
-Copyright 2008  Austin Matzko  (email : if.website at gmail.com)
+Copyright 2009  Austin Matzko  (email : if.website at gmail.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
