@@ -3,7 +3,7 @@ Contributors: filosofo, skippy, Firas, LaughingLizard, MtDewVirus, Podz, Ringmas
 Donate link: http://www.ilfilosofo.com/blog/wp-db-backup/
 Tags: mysql, database, backup, cron
 Requires at least: 2.0.3
-Tested up to: 2.7
+Tested up to: 2.8
 Stable tag: 2.2.2
 
 On-demand backup of your WordPress database.
@@ -34,6 +34,10 @@ Released under the terms of the GNU GPL, version 2.
 = How do I restore my database from a backup? =
 
 Briefly, use phpMyAdmin, which is included with most hosting control panels. More details and links to further explanations are [here](http://codex.wordpress.org/Restoring_Your_Database_From_Backup).
+
+= Why can't I schedule automatic backups to be saved to my server? =
+
+Although WP-DB-Backup provides the option of saving the backup file to the server, I strongly discourage anyone from leaving backed-up database files on the server. If the server is not perfectly configured, then someone could gain access to your data, and I do not want to make it easy for that to happen.
 
 = My backup stops or hangs without completing. =
 
