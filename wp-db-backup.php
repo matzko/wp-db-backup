@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Tools &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/
-Version: 2.2.2
+Version: 2.2.3
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -15,7 +15,7 @@ in turn was derived from phpMyAdmin.
 Many thanks to Owen (http://asymptomatic.net/wp/) for his patch
    http://dev.wp-plugins.org/ticket/219
 
-Copyright 2009  Austin Matzko  (email : if.website at gmail.com)
+Copyright 2009  Austin Matzko  ( email : austin@pressedcode.com )
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -83,8 +83,8 @@ class wpdbBackup {
 
 	function module_check() {
 		$mod_evasive = false;
-		if ( true === MOD_EVASIVE_OVERRIDE ) return true;
-		if ( false === MOD_EVASIVE_OVERRIDE ) return false;
+		if ( defined('MOD_EVASIVE_OVERRIDE') && true === MOD_EVASIVE_OVERRIDE ) return true;
+		if ( ! defined('MOD_EVASIVE_OVERRIDE') || false === MOD_EVASIVE_OVERRIDE ) return false;
 		if ( function_exists('apache_get_modules') ) 
 			foreach( (array) apache_get_modules() as $mod ) 
 				if ( false !== strpos($mod,'mod_evasive') || false !== strpos($mod,'mod_dosevasive') )
@@ -145,8 +145,8 @@ class wpdbBackup {
 			$this->can_user_backup('main');
 			// save exclude prefs
 
-			$exc_revisions = (array) $_POST['exclude-revisions'];
-			$exc_spam = (array) $_POST['exclude-spam'];
+			$exc_revisions = ( isset( $_POST['exclude-revisions'] ) ) ? (array) $_POST['exclude-revisions'] : array();
+			$exc_spam = ( isset( $_POST['exclude-spam'] ) ) ? (array) $_POST['exclude-spam'] : array();
 			update_option('wp_db_backup_excs', array('revisions' => $exc_revisions, 'spam' => $exc_spam));
 			switch($_POST['do_backup']) {
 			case 'backup':
