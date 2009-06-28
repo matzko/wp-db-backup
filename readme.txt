@@ -109,11 +109,34 @@ of your choice.
 
 == Translators ==
 Thanks to following people for providing translation files for WP-DB-Backup:
+* Abel Cheung
+* Alejandro Urrutia
+* Alexander Kanakaris
+* Angelo Andrea Iorio
+* Calle
+* Daniel Erb
+* Daniel Villoldo
+* Eilif Nordseth
+* Eric Lassauge
+* Friedlich
 * Gilles Wittezaele
+* Icemanpro
 * İzzet Emre Erkan
+* Jong-In Kim
+* Kaveh
+* Kessia Pinheiro
+* Kuratkoo
+* Majed Alotaibi
+* Michał Gołuński
 * Michele Spagnuolo
+* Paopao
+* Philippe Galliard
+* Robert Buj
+* Roger
 * Rune Gulbrandsøy
+* Serge Rauber
 * Sergey Biryukov
 * Tai
 * Timm Severin
+* Tzafrir Rehan
 * 吴曦
