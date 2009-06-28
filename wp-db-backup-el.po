@@ -1,0 +1,395 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: wp-db-backup-el 2.2.2 [a]\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-08-15 11:00-0500\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Πρόδρομος Τσαλικίδης <pr.tsalikidis@gmail.com>\n"
+"Language-Team:  <http://friedlich.wordpress.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Greek\n"
+"X-Poedit-Country: Greek\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: wp-db-backup.php:181
+msgid "Backup Complete!"
+msgstr "Η αντιγραφή ολοκληρώθηκε!"
+
+#: wp-db-backup.php:211
+msgid "Progress"
+msgstr "Πρόοδος"
+
+#: wp-db-backup.php:213
+msgid "DO NOT DO THE FOLLOWING AS IT WILL CAUSE YOUR BACKUP TO FAIL:"
+msgstr "ΜΗΝ ΚΑΝΕΤΕ ΚΑΤΙ ΑΠΟ ΤΑ ΠΑΡΑΚΑΤΩ ΓΙΑΤΙ ΘΑ ΠΡΟΚΑΛΕΣΕΙ ΑΠΟΤΥΧΙΑ ΣΤΗΝ ΑΝΤΙΓΡΑΦΗ:"
+
+#: wp-db-backup.php:216
+msgid "Close this browser"
+msgstr "Κλείσιμο του browser"
+
+#: wp-db-backup.php:217
+msgid "Reload this page"
+msgstr "Ανανέωση αυτής της σελίδας"
+
+#: wp-db-backup.php:218
+msgid "Click the Stop or Back buttons in your browser"
+msgstr "Κλικ στα πλήκτρα Διακοπή ή Πίσω του browser"
+
+#: wp-db-backup.php:220
+msgid "Progress:"
+msgstr "Πρόοδος:"
+
+#: wp-db-backup.php:229
+msgid "Navigating away from this page will cause your backup to fail."
+msgstr "Αν φύγετε από αυτή τη σελίδα, η αντιγραφή θα αποτύχει."
+
+#: wp-db-backup.php:266
+#, php-format
+msgid "Backup complete, preparing <a href=\\\"%s\\\">backup</a> for download..."
+msgstr "Η αντιγραφή ολοκληρώθηκε, <a href=\\\"%s\\\">το αντίγραφο</a> ετοιμάζεται  για μεταφόρτωση..."
+
+#: wp-db-backup.php:273
+#, php-format
+msgid "Backup complete, sending <a href=\\\"%s\\\">backup</a> via email..."
+msgstr "Η αντιγραφή ολοκληρώθηκε, <a href=\\\"%s\\\">το αντίγραφο</a> αποστέλλεται μέσω email..."
+
+#: wp-db-backup.php:280
+#, php-format
+msgid "Backup complete, download <a href=\\\"%s\\\">here</a>."
+msgstr "Η αντιγραφή ολοκληρώθηκε, κατεβάστε <a href=\\\"%s\\\">εδώ</a>."
+
+#: wp-db-backup.php:340
+msgid "Creating backup file..."
+msgstr "Δημιουργείται το αντίγραφο..."
+
+#: wp-db-backup.php:343
+#, php-format
+msgid "Finished backing up table \\\"%s\\\"."
+msgstr "Τελείωσε η αντιγραφή του πίνακα \\\"%s\\\"."
+
+#: wp-db-backup.php:345
+#, php-format
+msgid "Backing up table \\\"%s\\\"..."
+msgstr "Αντιγράφεται ο πίνακας \\\"%s\\\"..."
+
+#: wp-db-backup.php:352
+#: wp-db-backup.php:835
+msgid "Could not open the backup file for writing!"
+msgstr "Δεν ήταν δυνατό το άνοιγμα του αρχείου αντιγράφου για εγγραφή!"
+
+#: wp-db-backup.php:353
+msgid "The backup file could not be saved.  Please check the permissions for writing to your backup directory and try again."
+msgstr "Το αρχείο αντιγράφου δεν ήταν δυνατό να αποθηκευτεί. Παρακαλώ ελέγξτε τα δικαιώματα εγγραφής στο φάκελο αντιγράφων και δοκιμάστε ξανά."
+
+#: wp-db-backup.php:358
+#: wp-db-backup.php:844
+msgid "WordPress MySQL database backup"
+msgstr "Αντίγραφο ασφαλείας της βάσης δεδομένων WordPress MySQL"
+
+#: wp-db-backup.php:360
+#: wp-db-backup.php:846
+#, php-format
+msgid "Generated: %s"
+msgstr "Δημιουργήθηκε: %s"
+
+#: wp-db-backup.php:361
+#: wp-db-backup.php:847
+#, php-format
+msgid "Hostname: %s"
+msgstr "Hostname: %s"
+
+#: wp-db-backup.php:362
+#: wp-db-backup.php:848
+#, php-format
+msgid "Database: %s"
+msgstr "Βάση δεδομένων: %s"
+
+#: wp-db-backup.php:370
+#: wp-db-backup.php:861
+#, php-format
+msgid "Table: %s"
+msgstr "Πίνακας: %s"
+
+#: wp-db-backup.php:377
+msgid "The backup directory is not writeable!  Please check the permissions for writing to your backup directory and try again."
+msgstr "Ο φάκελος αντιγράφων ΔΕΝ είναι εγγράψιμος! Παρακαλώ ελέγξτε τα δικαιώματα εγγραφής στο φάκελο αντιγράφων και δοκιμάστε ξανά."
+
+#: wp-db-backup.php:434
+msgid "Click and hold down <code>[SHIFT]</code> to toggle multiple checkboxes"
+msgstr "Πατήστε και κρατήστε πατημένο το <code>[SHIFT]</code> για να επιλέξετε πολλαπλά κουτάκια "
+
+#: wp-db-backup.php:474
+msgid "Change"
+msgstr "Αλλαγή"
+
+#: wp-db-backup.php:483
+msgid "Save"
+msgstr "Αποθήκευση"
+
+#: wp-db-backup.php:566
+#: wp-db-backup.php:571
+#: wp-db-backup.php:1126
+msgid "Backup"
+msgstr "Αντίγραφα ασφαλείας"
+
+#: wp-db-backup.php:646
+#: wp-db-backup.php:649
+msgid "There was an error writing a line to the backup script:"
+msgstr "Υπήρξε σφάλμα κατά την εγγραφή μιας γραμμής στη δέσμη ενεργειών της αντιγραφής:"
+
+#: wp-db-backup.php:681
+msgid "Subsequent errors have been omitted from this log."
+msgstr "Τα διαδοχικά σφάλματα παραλήφθηκαν από αυτήν την καταγραφή."
+
+#: wp-db-backup.php:715
+msgid "Error getting table details"
+msgstr "Σφάλμα κατά τη λήψη λεπτομερειών πίνακα"
+
+#: wp-db-backup.php:723
+#, php-format
+msgid "Delete any existing table %s"
+msgstr "Διαγραφή όλων των υπαρχόντων πινάκων %s"
+
+#: wp-db-backup.php:732
+#, php-format
+msgid "Table structure of table %s"
+msgstr "Δομή του πίνακα %s"
+
+#: wp-db-backup.php:738
+#, php-format
+msgid "Error with SHOW CREATE TABLE for %s."
+msgstr "Σφάλμα με το SHOW CREATE TABLE για %s."
+
+#: wp-db-backup.php:745
+#, php-format
+msgid "Error getting table structure of %s"
+msgstr "Σφάλμα κατά τη λήψη της δομής του πίνακα %s"
+
+#: wp-db-backup.php:753
+#, php-format
+msgid "Data contents of table %s"
+msgstr "Δεδομένα του πίνακα %s"
+
+#: wp-db-backup.php:823
+#, php-format
+msgid "End of data contents of table %s"
+msgstr "Τέλος δεδομένων του πίνακα %s"
+
+#: wp-db-backup.php:839
+msgid "The backup directory is not writeable!"
+msgstr "Ο φάκελος αποθήκευσης των αντιγράφων ασφαλείας ΔΕΝ είναι εγγράψιμος!"
+
+#: wp-db-backup.php:974
+#, php-format
+msgid "File not found:%s"
+msgstr "Το αρχείο δεν βρέθηκε: %s"
+
+#: wp-db-backup.php:974
+msgid "Return to Backup"
+msgstr "Επιστροφή στην Αντιγραφή"
+
+#: wp-db-backup.php:983
+#, php-format
+msgid "File %s does not exist!"
+msgstr "Το αρχείο %s δεν υπάρχει!"
+
+#: wp-db-backup.php:990
+#, php-format
+msgid ""
+"Attached to this email is\n"
+"   %1s\n"
+"   Size:%2s kilobytes\n"
+msgstr ""
+"Στο παρόν e-mail επισυνάπτεται\n"
+"  %1s\n"
+"  Μέγεθος: %2s KB\n"
+
+#: wp-db-backup.php:991
+msgid "Database Backup"
+msgstr "Αντιγραφή βάσης δεδομένων"
+
+#: wp-db-backup.php:994
+#: wp-db-backup.php:1041
+msgid "The following errors were reported:"
+msgstr "Αναφέρθηκαν τα παρακάτω σφάλματα:"
+
+#: wp-db-backup.php:999
+msgid "ERROR: The mail application has failed to deliver the backup."
+msgstr "ΣΦΑΛΜΑ: Η εφαρμογή mail απέτυχε να διανείμει το αντίγραφο."
+
+#: wp-db-backup.php:1016
+msgid "Backup Successful"
+msgstr "Επιτυχής αντιγραφή "
+
+#: wp-db-backup.php:1020
+#, php-format
+msgid "Your backup file: <a href=\"%1s\">%2s</a> should begin downloading shortly."
+msgstr "Το αντίγραφο ασφαλείας σας <a href=\"%1s\">%2s</a> πρέπει να ξεκινήσει να κατεβαίνει σύντομα."
+
+#: wp-db-backup.php:1028
+#, php-format
+msgid "Your backup has been emailed to %s"
+msgstr "Το αντίγραφο ασφαλείας σας έχει αποσταλεί στο %s"
+
+#: wp-db-backup.php:1031
+msgid "Your backup file has been saved on the server. If you would like to download it now, right click and select \"Save As\""
+msgstr "Το αντίγραφο ασφαλείας σας έχει αποθηκευθεί στον server. Αν επιθυμείτε να το κατεβάσετε αμέσως, κάντε δεξί κλικ και επιλέξτε \"Αποθήκευσης ως\""
+
+#: wp-db-backup.php:1032
+#, php-format
+msgid "%s bytes"
+msgstr "%s bytes"
+
+#: wp-db-backup.php:1068
+msgid "Scheduled Backup Options Saved!"
+msgstr "Οι επιλογές προγραμματισμένης αντιγραφής αποθηκεύτηκαν!"
+
+#: wp-db-backup.php:1095
+msgid "WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it."
+msgstr "ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Ο φάκελος αποθήκευσης των αντιγράφων ασφαλείας σας ΔΕΝ υπάρχει και δεν μπορούμε να τον δημιουργήσουμε."
+
+#: wp-db-backup.php:1096
+#, php-format
+msgid "Using your FTP client, try to create the backup directory yourself: %s"
+msgstr "Χρησιμοποιώντας τον πελάτη FTP σας, προσπαθείστε να δημιουργήσετε τον φάκελο αντιγράφων ασφαλείας: %s"
+
+#: wp-db-backup.php:1100
+#: wp-db-backup.php:1111
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files."
+msgstr "ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Ο φάκελος αποθήκευσης των αντιγράφων ασφαλείας σας ΔΕΝ είναι εγγράψιμος! Δεν μπορούμε να δημιουργήσουμε αντίγραφα ασφαλείας."
+
+#: wp-db-backup.php:1101
+#, php-format
+msgid "Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s"
+msgstr "Χρησιμοποιώντας τον πελάτη FTP σας, προσπαθείστε να ορίσετε τα δικαιώματα εγγραφής στον φάκελο των αντιγράφων ασφαλείας σε %1$s ή %2$s: %3$s"
+
+#: wp-db-backup.php:1113
+msgid "This problem seems to be caused by your server&rsquo;s <code>safe_mode</code> file ownership restrictions, which limit what files web applications like WordPress can create."
+msgstr "Το πρόβλημα φαίνεται να προκαλείται από τους περιορισμούς του <code>safe_mode</code> στην κυριότητα αρχείων του server σας, που περιορίζουν τα είδη αρχείων που μπορούν να δημιουργήσουν οι εφαρμογές διαδικτύου όπως το WordPress."
+
+#: wp-db-backup.php:1115
+#, php-format
+msgid "You can try to correct this problem by using your FTP client to delete and then re-create the backup directory: %s"
+msgstr "Μπορείτε να προσπαθείσετε να διορθώσετε το πρόβλημα χρησιμοποιώντας τον πελάτη FTP σας για να διαγράψετε και έπειτα να ξαναδημιουργήσετε τον φάκελο αποθήκευσης των αντιγράφων ασφαλείας: %s"
+
+#: wp-db-backup.php:1129
+msgid "Tables"
+msgstr "Πίνακες"
+
+#: wp-db-backup.php:1131
+msgid "These core WordPress tables will always be backed up:"
+msgstr "Αυτοί οι βασικοί πίνακες του WordPress θα αντιγράφονται πάντοτε:"
+
+#: wp-db-backup.php:1136
+msgid "Exclude spam comments"
+msgstr "Εξαίρεση ανεπιθύμητων σχολίων"
+
+#: wp-db-backup.php:1139
+msgid "Exclude post revisions"
+msgstr "Εξαίρεση αναθεωρήσεων άρθρων"
+
+#: wp-db-backup.php:1150
+msgid "You may choose to include any of the following tables:"
+msgstr "Μπορείτε να διαλέξετε να συμπεριλάβετε οποιουσδήποτε από τους παρακάτω πίνακες:"
+
+#: wp-db-backup.php:1164
+msgid "Backup Options"
+msgstr "Επιλογές αντιγραφής"
+
+#: wp-db-backup.php:1165
+msgid "What to do with the backup file:"
+msgstr "Τι να γίνει με το αντίγραφο ασφαλείας:"
+
+#: wp-db-backup.php:1169
+msgid "Save to server"
+msgstr "Αποθήκευση στον server"
+
+#: wp-db-backup.php:1174
+msgid "Download to your computer"
+msgstr "Μεταφόρτωση στον υπολογιστή σας"
+
+#: wp-db-backup.php:1178
+#: wp-db-backup.php:1235
+msgid "Email backup to:"
+msgstr "Αποστολή μέσω e-mail στο:"
+
+#: wp-db-backup.php:1185
+msgid "Backup now!"
+msgstr "Αντιγραφή τώρα!"
+
+#: wp-db-backup.php:1188
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable!"
+msgstr "ΠΡΟΕΙΔΟΠΟΙΗΣΗ: Ο φάκελος αποθήκευσης των αντιγράφων ασφαλείας σας ΔΕΝ είναι εγγράψιμος!"
+
+#: wp-db-backup.php:1199
+msgid "Scheduled Backup"
+msgstr "Προγραμματιμένη αντιγραφή"
+
+#: wp-db-backup.php:1206
+#, php-format
+msgid "Next Backup: %s"
+msgstr "Επόμενη αντιγραφή: %s"
+
+#: wp-db-backup.php:1211
+#, php-format
+msgid "Last WP-Cron Daily Execution: %s"
+msgstr "Τελευταία ημερήσια εκτέλεση του WP-Cron: %s"
+
+#: wp-db-backup.php:1212
+#, php-format
+msgid "Next WP-Cron Daily Execution: %s"
+msgstr "Επόμενη ημερήσια εκτέλεση του WP-Cron: %s"
+
+#: wp-db-backup.php:1217
+msgid "Schedule: "
+msgstr "Προγραμματισμός"
+
+#: wp-db-backup.php:1220
+msgid "None"
+msgstr "Κανένας"
+
+#: wp-db-backup.php:1220
+msgid "Daily"
+msgstr "Ημερησίως"
+
+#: wp-db-backup.php:1243
+msgid "Tables to include in the scheduled backup:"
+msgstr "Πίνακες που θα συμπεριληφθούν στην προγραμματισμένη αντιγραφή:"
+
+#: wp-db-backup.php:1253
+msgid "Schedule backup"
+msgstr "Προγραμματισμός της αντιγραφής"
+
+#: wp-db-backup.php:1278
+msgid "Never"
+msgstr "Ποτέ"
+
+#: wp-db-backup.php:1283
+#, php-format
+msgid "%s seconds"
+msgstr "%s δευτερόλεπτα"
+
+#: wp-db-backup.php:1316
+msgid "Once Weekly"
+msgstr "Εβδομαδιαίως"
+
+#: wp-db-backup.php:1329
+#, php-format
+msgid "Your WordPress version, %1s, lacks important security features without which it is unsafe to use the WP-DB-Backup plugin.  Hence, this plugin is automatically disabled.  Please consider <a href=\"%2s\">upgrading WordPress</a> to a more recent version."
+msgstr "Από την έκδοση του WordPress σας, %1s, λείπουν κάποια σημαντικά χαρακτηριστικά ασφαλείας, χωρίς τα οποία είναι επισφαλές να χρησιμοποιήσετε το πρόσθετο WP-DB-Backup. Γι' αυτό το λόγο το πρόσθετο απενεργοποιήθηκε αυτόματα. Παρακαλώ εξετάστε την <a href=\"%2s\">αναβάθμιση του WordPress</a> σε μια πιο πρόσφατη έκδοση."
+
+#: wp-db-backup.php:1347
+msgid "You are not allowed to perform backups."
+msgstr "Δεν επιτρέπεται να εκτελέσετε αντιγραφές."
+
+#: wp-db-backup.php:1362
+#, php-format
+msgid "There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted."
+msgstr "Φαίνεται να υπάρχει μια προσπάθεια πρόσβασης χωρίς άδεια από αυτό το site στην βάση δεδομένων που βρίσκεται στο %1s. Η προσπάθεια αναχαιτίστηκε."
+
+#: wp-db-backup.php:1373
+msgid "Cheatin' uh ?"
+msgstr "Παίζουμε ε;"
+
