@@ -103,7 +103,7 @@ class wpdbBackup {
 		add_filter('wp_db_b_schedule_choices', array(&$this, 'schedule_choices'));
 		
 		$table_prefix = ( isset( $table_prefix ) ) ? $table_prefix : $wpdb->prefix;
-		$datum = date("Ymd_B");
+		$datum = gmdate("Ymd_B");
 		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql";
 		if ($this->gzip()) $this->backup_filename .= '.gz';
 
@@ -380,7 +380,7 @@ class wpdbBackup {
 					//Begin new backup of MySql
 					$this->stow("# " . __('WordPress MySQL database backup','wp-db-backup') . "\n");
 					$this->stow("#\n");
-					$this->stow("# " . sprintf(__('Generated: %s','wp-db-backup'),date("l j. F Y H:i T")) . "\n");
+					$this->stow("# " . sprintf(__('Generated: %s','wp-db-backup'),gmdate("l j. F Y H:i T")) . "\n");
 					$this->stow("# " . sprintf(__('Hostname: %s','wp-db-backup'),DB_HOST) . "\n");
 					$this->stow("# " . sprintf(__('Database: %s','wp-db-backup'),$this->backquote(DB_NAME)) . "\n");
 					$this->stow("# --------------------------------------------------------\n");
@@ -884,7 +884,7 @@ class wpdbBackup {
 		//Begin new backup of MySql
 		$this->stow("# " . __('WordPress MySQL database backup','wp-db-backup') . "\n");
 		$this->stow("#\n");
-		$this->stow("# " . sprintf(__('Generated: %s','wp-db-backup'),date("l j. F Y H:i T")) . "\n");
+		$this->stow("# " . sprintf(__('Generated: %s','wp-db-backup'),gmdate("l j. F Y H:i T")) . "\n");
 		$this->stow("# " . sprintf(__('Hostname: %s','wp-db-backup'),DB_HOST) . "\n");
 		$this->stow("# " . sprintf(__('Database: %s','wp-db-backup'),$this->backquote(DB_NAME)) . "\n");
 		$this->stow("# --------------------------------------------------------\n");
