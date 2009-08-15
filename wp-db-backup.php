@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Tools &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/
-Version: 2.2.3
+Version: 2.2.3-beta
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -215,7 +215,7 @@ class wpdbBackup {
 	 * Add a link to back up your database when doing a core upgrade 
 	 */
 	function update_notice_action() {
-		if ( 'upgrade-core' == $_REQUEST['action'] ) :
+		if ( empty( $_GET['action'] ) || 'upgrade-core' == $_GET['action'] ) :
 			ob_start(array(&$this, 'update_notice'));
 			add_action('admin_footer', create_function('', 'ob_end_flush();'));
 		endif;
@@ -241,7 +241,7 @@ class wpdbBackup {
 				<li>'.__('Click the Stop or Back buttons in your browser','wp-db-backup').'</li>
 			</ol>
 			<p><strong>' . __('Progress:','wp-db-backup') . '</strong></p>
-			<div id="meterbox" style="height:11px;width:80%;padding:3px;border:1px solid #659fff;"><div id="meter" style="height:11px;background-color:#659fff;width:0%;text-align:center;font-size:6pt;">&nbsp;</div></div>
+			<div id="meterbox" style="height:11px;width:80%;padding:3px;border:1px solid #659fff;"><div id="meter" style="height:11px;line-height:11px;background-color:#659fff;width:0%;text-align:center;font-size:6pt;">&nbsp;</div></div>
 			<div id="progress_message"></div>
 			<div id="errors"></div>
 			</fieldset>
@@ -672,7 +672,9 @@ class wpdbBackup {
 	}
 
 	function close($fp) {
-		if ($this->gzip()) gzclose($fp);
+		if ($this->gzip()) {
+			$result = gzclose($fp);
+		}
 		else fclose($fp);
 	}
 
@@ -714,10 +716,17 @@ class wpdbBackup {
 	 */
 	function error_display($loc = 'main', $echo = true) {
 		$errs = $this->errors;
+		$err_list = array();
 		unset( $this->errors );
 		if ( ! count($errs) ) return;
 		$msg = '';
-		$err_list = array_slice(array_merge( (array) $errs['fatal'], (array) $errs['warn']), 0, 10);
+		if ( isset($errs) && isset($errs['fatal']) ) {
+			$err_list = array_merge($err_list, (array) $errs['fatal']);
+		}
+		if ( isset($errs) && isset($errs['warn']) ) {
+			$err_list = array_merge($err_list, (array) $errs['warn']);
+		}
+		$err_list = array_slice($err_list, 0, 10);
 		if ( 10 == count( $err_list ) )
 			$err_list[9] = __('Subsequent errors have been omitted from this log.','wp-db-backup');
 		$wrap = ( 'frame' == $loc ) ? "<script type=\"text/javascript\">\n var msgList = ''; \n %1\$s \n if ( msgList ) alert(msgList); \n </script>" : '%1$s';
@@ -841,7 +850,7 @@ class wpdbBackup {
 					foreach ($table_data as $row) {
 						$values = array();
 						foreach ($row as $key => $value) {
-							if ($ints[strtolower($key)]) {
+							if ( isset($ints[strtolower($key)]) && $ints[strtolower($key)]) {
 								// make sure there are no blank spots in the insert syntax,
 								// yet try to avoid quotation marks around integers
 								$value = ( null === $value || '' === $value) ? $defs[strtolower($key)] : $value;
