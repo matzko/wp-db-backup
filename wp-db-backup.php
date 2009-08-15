@@ -1075,7 +1075,7 @@ class wpdbBackup {
 	}
 	
 	function backup_menu() {
-		global $table_prefix, $wpdb;
+		global $table_prefix, $wpdb, $wp_filesystem;
 		$feedback = '';
 		$whoops = false;
 		
@@ -1158,25 +1158,58 @@ class wpdbBackup {
 //		$dir_perms = $stat['mode'] & 0000777; // Get the permission bits.
 		$dir_perms = '0777';
 
+		// if filesystem ftp available and trying to do that
+		if ( function_exists( 'request_filesystem_credentials' ) && ! empty( $_POST['ftp-nonce'] ) ) :
+			if ( $this->can_user_backup() && wp_verify_nonce( $_POST['ftp-nonce'], 'ftp-change' ) ) :
+				ob_start();
+				// WP_Filesystem(@request_filesystem_credentials(), dirname($this->backup_dir));
+				WP_Filesystem(@request_filesystem_credentials(), false);
+				$ftp_backup_dir = trailingslashit($wp_filesystem->wp_content_dir()) . basename($this->backup_dir);
+				ob_end_clean();
+				if ( isset($wp_filesystem) ) :
+					if ( is_callable(array($wp_filesystem, 'mkdir')) ) :
+						if ( @$wp_filesystem->mkdir($ftp_backup_dir, 0777) && file_exists($this->backup_dir) ) :
+							?><div class="updated wp-db-backup-updated"><p><?php _e('WordPress has successfully created the backup directory.', 'wp-db-backup'); ?></p></div><?php 
+						else :
+							?><div class="updated wp-db-backup-updated error"><p><?php _e('WordPress has failed to create the backup directory.', 'wp-db-backup'); ?></p></div><?php 
+						endif; // mkdir returns true
+					endif; // wp_filesystem->mkdir is callable
+					
+					if ( is_callable(array($wp_filesystem, 'chmod')) && ! is_writable($this->backup_dir) && file_exists($this->backup_dir) && @$wp_filesystem->chmod($ftp_backup_dir, 0777) ) :
+						if ( is_writable($this->backup_dir) ) :
+							?><div class="updated wp-db-backup-updated"><p><?php _e('WordPress has successfully made the backup directory writable.', 'wp-db-backup'); ?></p></div><?php 
+						else :
+							?><div class="updated wp-db-backup-updated error"><p><?php _e('WordPress has failed to make the backup directory writable.', 'wp-db-backup'); ?></p></div><?php 
+						endif; // the backup directory now is writable
+					endif; // wp_filesystem->chmod is callable and the directory is not writable
+				endif;
+			else :	
+				?><div class="updated wp-db-backup-updated error"><p><?php _e('ERROR: Your attempt to create the backup directory has failed a permission check.', 'wp-db-backup'); ?></p></div><?php 
+			endif;
+		endif;
+
 		// the file doesn't exist and can't create it
 		if ( ! file_exists($this->backup_dir) && ! @mkdir($this->backup_dir) ) {
 			?><div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it.','wp-db-backup'); ?></p>
-			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . $this->backup_dir . '</code>'); ?></p></div><?php
+			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . $this->backup_dir . '</code>'); ?></p>
+			
+			<?php 
 
 			// if filesystem ftp available, let's suggest that:
-			if ( file_exists( ABSPATH . 'wp-admin/includes/file.php' ) ) :
-				include_once ABSPATH . 'wp-admin/includes/file.php';
-				if ( function_exists( 'request_filesystem_credentials' ) ) :
-					?><div class="updated wp-db-backup-updated error"><p><?php _e('Alternatively, put your FTP information in the form below and let WordPress attempt to create the backup directory for you.', 'wp-db-backup'); ?></p></div>
-					<?php 
-
-					@ob_start();
-					request_filesystem_credentials(add_query_arg(array('ftp-nonce' => wp_create_nonce('ftp-change'))));
-					$ftp_form = ob_get_clean();
-					$ftp_form = str_replace('h2', 'h3', $ftp_form);
-					$ftp_form = str_replace('class="wrap"', '', $ftp_form);
-				endif;
+			if ( function_exists( 'request_filesystem_credentials' ) ) :
+				?><p><?php _e('Or you can put your FTP information in the form below and let WordPress attempt to create the backup directory for you.', 'wp-db-backup'); ?></p>
+				<?php 
+				$nonce = function_exists('wp_nonce_field') ? 
+					wp_nonce_field($this->referer_check_key, '_wpnonce', true, false) . wp_nonce_field('ftp-change', 'ftp-nonce') :
+					'';
+				@ob_start();
+				request_filesystem_credentials('');
+				$ftp_form = ob_get_clean();
+				$ftp_form = str_replace('h2', 'h3', $ftp_form);
+				$ftp_form = str_replace('class="wrap"', '', $ftp_form);
+				$ftp_form = str_replace('</form>', "\n$nonce\n</form>", $ftp_form);
 			endif;
+			?></div><?php
 
 			$whoops = true;
 		// not writable due to write permissions
@@ -1272,7 +1305,7 @@ class wpdbBackup {
 				<input type="submit" name="submit" onclick="document.getElementById('do_backup').value='fragments';" value="<?php _e('Backup now!','wp-db-backup'); ?>" />
 			</p>
 			<?php else : ?>
-				<div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable!','wp-db-backup'); ?></p></div>
+				<p class="error"><?php _e('WARNING: Your backup directory is <strong>NOT</strong> writable!','wp-db-backup'); ?></p>
 			<?php endif; // ! whoops ?>
 		</fieldset>
 		<?php do_action('wp_db_b_backup_opts'); ?>
@@ -1322,7 +1355,11 @@ class wpdbBackup {
 			}
 			$cron_recipient_input = '<p><label for="cron_backup_recipient">' . __('Email backup to:','wp-db-backup') . ' <input type="text" name="cron_backup_recipient" id="cron_backup_recipient" size="20" value="' . $cron_recipient . '" /></label></p>';
 			echo apply_filters('wp_db_b_cron_recipient_input', $cron_recipient_input);
-			echo '<p class="submit"><input type="submit" name="submit" value="' . __('Schedule backup','wp-db-backup') . '" /></p>';
+			if ( ! $whoops ) {
+				echo '<p class="submit"><input type="submit" name="submit" value="' . __('Schedule backup','wp-db-backup') . '" /></p>';
+			} else {
+				echo '<p class="error">' . __('WARNING: Your backup directory is <strong>NOT</strong> writable!','wp-db-backup') . '</p>';
+			}
 			echo '</div>';
 			$cron_tables = get_option('wp_cron_backup_tables');
 			if (! is_array($cron_tables)) {
