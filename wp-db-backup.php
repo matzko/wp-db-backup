@@ -94,11 +94,13 @@ class wpdbBackup {
 
 	function wpdbBackup() {
 		global $table_prefix, $wpdb;
-		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
 		add_action('init', array(&$this, 'init_textdomain'));
 		add_action('load-update-core.php', array(&$this, 'update_notice_action'));
-		add_action('wp_db_backup_cron', array(&$this, 'cron_backup'));
+		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
 		add_action('wp_cron_daily', array(&$this, 'wp_cron_daily'));
+		add_action('wp_db_backup_cron', array(&$this, 'cron_backup'));
+
+		add_filter('plugin_action_links', array(&$this, 'filter_plugin_action_links'), 10, 2 );
 		add_filter('cron_schedules', array(&$this, 'add_sched_options'));
 		add_filter('wp_db_b_schedule_choices', array(&$this, 'schedule_choices'));
 		
@@ -432,6 +434,21 @@ class wpdbBackup {
 			// we do this to say we're done.
 			$this->backup_complete = true;
 		}
+	}
+
+	/**
+	 * Filter the plugin action links, which appear on the main admin plugin page.
+	 * @param array $links The links.
+	 * @param string $file The current plugin file.
+	 * @return array The array of links to show in the settings area
+	 */
+	function filter_plugin_action_links( $links = array(), $file = '')
+	{
+		if ( plugin_basename(__FILE__) == $file ) {
+			$link = '<a href="edit.php?page=' . $this->basename . '">' . __('Configure &amp; Backup', 'wp-db-backup') . '</a>';
+			array_unshift( $links, $link );
+		}
+		return $links;
 	}
 
 	function admin_header() {
@@ -1145,6 +1162,22 @@ class wpdbBackup {
 		if ( ! file_exists($this->backup_dir) && ! @mkdir($this->backup_dir) ) {
 			?><div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it.','wp-db-backup'); ?></p>
 			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . $this->backup_dir . '</code>'); ?></p></div><?php
+
+			// if filesystem ftp available, let's suggest that:
+			if ( file_exists( ABSPATH . 'wp-admin/includes/file.php' ) ) :
+				include_once ABSPATH . 'wp-admin/includes/file.php';
+				if ( function_exists( 'request_filesystem_credentials' ) ) :
+					?><div class="updated wp-db-backup-updated error"><p><?php _e('Alternatively, put your FTP information in the form below and let WordPress attempt to create the backup directory for you.', 'wp-db-backup'); ?></p></div>
+					<?php 
+
+					@ob_start();
+					request_filesystem_credentials(add_query_arg(array('ftp-nonce' => wp_create_nonce('ftp-change'))));
+					$ftp_form = ob_get_clean();
+					$ftp_form = str_replace('h2', 'h3', $ftp_form);
+					$ftp_form = str_replace('class="wrap"', '', $ftp_form);
+				endif;
+			endif;
+
 			$whoops = true;
 		// not writable due to write permissions
 		} elseif ( !is_writable($this->backup_dir) && ! @chmod($this->backup_dir, $dir_perms) ) {
@@ -1175,6 +1208,9 @@ class wpdbBackup {
 			@ touch($this->backup_dir . 'index.php');
 		?><div class='wrap'>
 		<h2><?php _e('Backup','wp-db-backup') ?></h2>
+		<?php if ( ! empty( $ftp_form ) ) :
+			echo $ftp_form;
+		endif; ?>
 		<form method="post" action="">
 		<?php if ( function_exists('wp_nonce_field') ) wp_nonce_field($this->referer_check_key); ?>
 		<fieldset class="options"><legend><?php _e('Tables','wp-db-backup') ?></legend>
