@@ -77,10 +77,6 @@ class wpdbBackup {
 	var $referer_check_key;
 	var $version = '2.1.5-alpha';
 
-	function gzip() {
-		return function_exists('gzopen');
-	}
-
 	function module_check() {
 		$mod_evasive = false;
 		if ( defined('MOD_EVASIVE_OVERRIDE') && true === MOD_EVASIVE_OVERRIDE ) return true;
@@ -107,7 +103,6 @@ class wpdbBackup {
 		$table_prefix = ( isset( $table_prefix ) ) ? $table_prefix : $wpdb->prefix;
 		$datum = gmdate("Ymd_B");
 		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql";
-		if ($this->gzip()) $this->backup_filename .= '.gz';
 
 		$possible_names = array(
 			'categories',
@@ -681,18 +676,12 @@ class wpdbBackup {
 
 	function open($filename = '', $mode = 'w') {
 		if ('' == $filename) return false;
-		if ($this->gzip()) 
-			$fp = @gzopen($filename, $mode);
-		else
-			$fp = @fopen($filename, $mode);
+		$fp = @fopen($filename, $mode);
 		return $fp;
 	}
 
 	function close($fp) {
-		if ($this->gzip()) {
-			$result = gzclose($fp);
-		}
-		else fclose($fp);
+		fclose($fp);
 	}
 
 	/**
@@ -701,13 +690,8 @@ class wpdbBackup {
 	 * @return null
 	 */
 	function stow($query_line) {
-		if ($this->gzip()) {
-			if(! @gzwrite($this->fp, $query_line))
-				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
-		} else {
-			if(false === @fwrite($this->fp, $query_line))
-				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
-		}
+		if(false === @fwrite($this->fp, $query_line))
+			$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
 	}
 	
 	/**
@@ -1034,9 +1018,35 @@ class wpdbBackup {
 	}
 
 	function deliver_backup($filename = '', $delivery = 'http', $recipient = '', $location = 'main') {
-		if ('' == $filename) { return false; }
+		if ( empty( $filename ) ) { 
+			return false; 
+		}
 		
 		$diskfile = $this->backup_dir . $filename;
+		/**
+		 * Try to compress to gzip, if available 
+		 */
+		if ( function_exists('gzencode') ) {
+			$gz_diskfile = "{$diskfile}.gz";
+			if ( function_exists('file_get_contents') ) {
+				$text = file_get_contents($diskfile);
+			} else {
+				$text = implode("", file($diskfile));
+			}
+			$gz_text = gzencode($text, 9);
+			$fp = fopen($gz_diskfile, "w");
+			fwrite($fp, $gz_text);
+			if ( fclose($fp) ) {
+				unlink($diskfile);
+				$diskfile = $gz_diskfile;
+				$filename = "{$filename}.gz";
+			}
+		}
+		/*
+		 * 
+		 */
+
+
 		if ('http' == $delivery) {
 			if (! file_exists($diskfile)) 
 				$this->error(array('kind' => 'fatal', 'msg' => sprintf(__('File not found:%s','wp-db-backup'), "&nbsp;<strong>$filename</strong><br />") . '<br /><a href="' . $this->page_url . '">' . __('Return to Backup','wp-db-backup') . '</a>'));
@@ -1162,7 +1172,6 @@ class wpdbBackup {
 		if ( function_exists( 'request_filesystem_credentials' ) && ! empty( $_POST['ftp-nonce'] ) ) :
 			if ( $this->can_user_backup() && wp_verify_nonce( $_POST['ftp-nonce'], 'ftp-change' ) ) :
 				ob_start();
-				// WP_Filesystem(@request_filesystem_credentials(), dirname($this->backup_dir));
 				WP_Filesystem(@request_filesystem_credentials(), false);
 				$ftp_backup_dir = trailingslashit($wp_filesystem->wp_content_dir()) . basename($this->backup_dir);
 				ob_end_clean();
@@ -1190,14 +1199,14 @@ class wpdbBackup {
 
 		// the file doesn't exist and can't create it
 		if ( ! file_exists($this->backup_dir) && ! @mkdir($this->backup_dir) ) {
-			?><div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it.','wp-db-backup'); ?></p>
+			?><div class="updated wp-db-backup-updated error"><p><?php _e('WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it automatically.','wp-db-backup'); ?></p>
 			<p><?php printf(__('Using your FTP client, try to create the backup directory yourself: %s', 'wp-db-backup'), '<code>' . $this->backup_dir . '</code>'); ?></p>
 			
 			<?php 
 
 			// if filesystem ftp available, let's suggest that:
 			if ( function_exists( 'request_filesystem_credentials' ) ) :
-				?><p><?php _e('Or you can put your FTP information in the form below and let WordPress attempt to create the backup directory for you.', 'wp-db-backup'); ?></p>
+				?><p><?php _e('Or you can put your FTP information for this site in the form below and let WordPress attempt to create the backup directory for you.', 'wp-db-backup'); ?></p>
 				<?php 
 				$nonce = function_exists('wp_nonce_field') ? 
 					wp_nonce_field($this->referer_check_key, '_wpnonce', true, false) . wp_nonce_field('ftp-change', 'ftp-nonce') :
