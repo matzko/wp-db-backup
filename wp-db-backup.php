@@ -462,12 +462,12 @@ class wpdbBackup {
 					var ul = d.getElementsByTagName('ul').item(0);
 					if ( ul ) {
 						var lis = ul.getElementsByTagName('li');
-						if ( 3 > lis.length )
-							return;
-						var text = document.createElement('p');
-						text.className = 'instructions';
-						text.innerHTML = '<?php _e('Click and hold down <code>[SHIFT]</code> to toggle multiple checkboxes', 'wp-db-backup'); ?>';
-						ul.parentNode.insertBefore(text, ul);
+						if ( 2 < lis.length ) {
+							var text = document.createElement('p');
+							text.className = 'instructions';
+							text.innerHTML = '<?php _e('Click and hold down <code>[SHIFT]</code> to toggle multiple checkboxes', 'wp-db-backup'); ?>';
+							ul.parentNode.insertBefore(text, ul);
+						}
 					}
 					t[k].p = d.getElementsByTagName("input");
 					for(var i=0; i < t[k].p.length; i++)
