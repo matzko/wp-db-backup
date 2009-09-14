@@ -610,8 +610,12 @@ class wpdbBackup {
 	}
 
 	function fragment_menu() {
-		$page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'build_backup_script'));
-		add_action('load-' . $page_hook, array(&$this, 'admin_load'));
+		$_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'build_backup_script'));
+		add_action('load-' . $_page_hook, array(&$this, 'admin_load'));
+		if ( function_exists('add_contextual_help') ) {
+			$text = $this->help_menu();
+			add_contextual_help($_page_hook, $text);
+		}
 	}
 
 	/** 
