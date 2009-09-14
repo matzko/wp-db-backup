@@ -134,8 +134,7 @@ class wpdbBackup {
 		$query_args = array( 'page' => $this->basename );
 		if ( function_exists('wp_create_nonce') )
 			$query_args = array_merge( $query_args, array('_wpnonce' => wp_create_nonce($this->referer_check_key)) );
-		$base = ( function_exists('site_url') ) ? site_url('', 'admin') : get_option('siteurl');
-		$this->page_url = add_query_arg( $query_args, $base . '/wp-admin/edit.php');
+		$this->page_url = add_query_arg( $query_args );
 		if (isset($_POST['do_backup'])) {
 			$this->wp_secure('fatal');
 			check_admin_referer($this->referer_check_key);
@@ -440,7 +439,7 @@ class wpdbBackup {
 	function filter_plugin_action_links( $links = array(), $file = '')
 	{
 		if ( plugin_basename(__FILE__) == $file ) {
-			$link = '<a href="edit.php?page=' . $this->basename . '">' . __('Configure &amp; Backup', 'wp-db-backup') . '</a>';
+			$link = '<a href="tools.php?page=' . $this->basename . '">' . __('Configure &amp; Backup', 'wp-db-backup') . '</a>';
 			array_unshift( $links, $link );
 		}
 		return $links;
