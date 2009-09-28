@@ -70,7 +70,7 @@ http://dev.wp-plugins.org/browser/wp-db-backup/i18n/
 Because it's a fairly safe bet that the core WordPress files will be successfully backed up.  Plugins vary wildly in the amount of data that they store.  For instance, it's not uncommon for some statistics plugins to have tens of megabytes worth of visitor statistics.  These are not exactly essential items to restore after a catastrophic failure.  Most poeple can reasonably live without this data in their backups.
 
 == Usage ==
-1. Click the Manage menu in your WordPress admin area.
+1. Click the Tools or Manage menu in your WordPress admin area.
 1. Click the Backup sub-menu.
 
 1. The plugin will look for other tables in the same database.  You may elect to include other tables in the backup.
