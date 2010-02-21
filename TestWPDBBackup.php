@@ -15,9 +15,11 @@ include 'wp-db-backup.php';
 class TestWPDBBackup extends PHPUnit_Framework_TestCase {
 
 	protected $_b;
+	static $_apache_modules;
 
 	public static function apache_get_modules()
 	{
+		return self::$_apache_modules;
 	}
 
 	protected function _setup_wpdb() 
@@ -75,6 +77,15 @@ class TestWPDBBackup extends PHPUnit_Framework_TestCase {
 		
 		$this->_b->mod_evasive_override = false;
 		$this->assertFalse($this->_b->_using_evasive_module());
+
+		self::$_apache_modules = array('whatever');
+		$this->assertFalse($this->_b->_using_evasive_module());
+		
+		self::$_apache_modules = array('whatever', 'mod_evasive');
+		$this->assertTrue($this->_b->_using_evasive_module());
+		
+		self::$_apache_modules = array('whatever', 'mod_dosevasive');
+		$this->assertTrue($this->_b->_using_evasive_module());
 	}
 
 }
