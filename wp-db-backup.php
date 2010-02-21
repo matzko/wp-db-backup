@@ -5,7 +5,7 @@ Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Tools &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://www.ilfilosofo.com/
-Version: 2.2.3-beta
+Version: 2.3-alpha
 
 Development continued from that done by Skippy (http://www.skippy.net/)
 
@@ -15,7 +15,7 @@ in turn was derived from phpMyAdmin.
 Many thanks to Owen (http://asymptomatic.net/wp/) for his patch
    http://dev.wp-plugins.org/ticket/219
 
-Copyright 2009  Austin Matzko  ( email : austin@pressedcode.com )
+Copyright 2010  Austin Matzko  ( email : austin@pressedcode.com )
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,64 +32,80 @@ Copyright 2009  Austin Matzko  ( email : austin@pressedcode.com )
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 */
 
-/**
- * Change WP_BACKUP_DIR if you want to
- * use a different backup location
- */
-
-$rand = substr( md5( md5( DB_PASSWORD ) ), -5 );
-global $wpdbb_content_dir, $wpdbb_content_url, $wpdbb_plugin_dir;
-$wpdbb_content_dir = ( defined('WP_CONTENT_DIR') ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
-$wpdbb_content_url = ( defined('WP_CONTENT_URL') ) ? WP_CONTENT_URL : get_option('siteurl') . '/wp-content';
-$wpdbb_plugin_dir = ( defined('WP_PLUGIN_DIR') ) ? WP_PLUGIN_DIR : $wpdbb_content_dir . '/plugins';
-
-if ( ! defined('WP_BACKUP_DIR') ) {
-	define('WP_BACKUP_DIR', $wpdbb_content_dir . '/backup-' . $rand . '/');
-}
-
-if ( ! defined('WP_BACKUP_URL') ) {
-	define('WP_BACKUP_URL', $wpdbb_content_url . '/backup-' . $rand . '/');
-}
-
-if ( ! defined('ROWS_PER_SEGMENT') ) {
-	define('ROWS_PER_SEGMENT', 100);
-}
-
-/** 
- * Set MOD_EVASIVE_OVERRIDE to true 
- * and increase MOD_EVASIVE_DELAY 
- * if the backup stops prematurely.
- */
-// define('MOD_EVASIVE_OVERRIDE', false);
-if ( ! defined('MOD_EVASIVE_DELAY') ) {
-	define('MOD_EVASIVE_DELAY', '500');
-}
-
-class wpdbBackup {
+class WP_DB_Backup {
 
 	var $backup_complete = false;
 	var $backup_file = '';
 	var $backup_filename;
-	var $core_table_names = array();
-	var $errors = array();
 	var $basename;
+	var $errors = array();
+	var $mod_evasive_override = false;
 	var $page_url;
 	var $referer_check_key;
 	var $version = '2.1.5-alpha';
 
-	function module_check() {
-		$mod_evasive = false;
-		if ( defined('MOD_EVASIVE_OVERRIDE') && true === MOD_EVASIVE_OVERRIDE ) return true;
-		if ( ! defined('MOD_EVASIVE_OVERRIDE') || false === MOD_EVASIVE_OVERRIDE ) return false;
-		if ( function_exists('apache_get_modules') ) 
-			foreach( (array) apache_get_modules() as $mod ) 
-				if ( false !== strpos($mod,'mod_evasive') || false !== strpos($mod,'mod_dosevasive') )
-					return true;
-		return false;
+	function WP_DB_Backup() 
+	{
+		return $this->__construct();
 	}
 
-	function wpdbBackup() {
+	function __construct()
+	{
 		global $table_prefix, $wpdb;
+		
+		/**
+		 * Change WP_BACKUP_DIR if you want to
+		 * use a different backup location
+		 */
+
+		$rand = substr( md5( md5( DB_PASSWORD ) ), -5 );
+		$wpdbb_content_dir = ( defined('WP_CONTENT_DIR') ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
+		$wpdbb_content_url = ( defined('WP_CONTENT_URL') ) ? WP_CONTENT_URL : get_option('siteurl') . '/wp-content';
+		$wpdbb_plugin_dir = ( defined('WP_PLUGIN_DIR') ) ? WP_PLUGIN_DIR : $wpdbb_content_dir . '/plugins';
+
+		if ( ! defined('WP_BACKUP_DIR') ) {
+			define('WP_BACKUP_DIR', $wpdbb_content_dir . '/backup-' . $rand . '/');
+		}
+
+		if ( ! defined('WP_BACKUP_URL') ) {
+			define('WP_BACKUP_URL', $wpdbb_content_url . '/backup-' . $rand . '/');
+		}
+
+		if ( ! defined('ROWS_PER_SEGMENT') ) {
+			define('ROWS_PER_SEGMENT', 100);
+		}
+
+		/** 
+		 * Someone can set MOD_EVASIVE_OVERRIDE to true 
+		 * and increase MOD_EVASIVE_DELAY 
+		 * if the backup stops prematurely.
+		 */
+		if ( defined('MOD_EVASIVE_OVERRIDE') ) {
+			$this->mod_evasive_override = (bool) MOD_EVASIVE_OVERRIDE;
+		}
+
+		if ( ! defined('MOD_EVASIVE_DELAY') ) {
+			define('MOD_EVASIVE_DELAY', '500');
+		}
+
+		$table_prefix = ( isset( $table_prefix ) ) ? $table_prefix : $wpdb->prefix;
+		$datum = gmdate("Ymd_B");
+		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql";
+
+		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir', WP_BACKUP_DIR));
+		$this->basename = 'wp-db-backup';
+	
+		$this->referer_check_key = $this->basename . '-download_' . DB_NAME;
+		$query_args = array( 'page' => $this->basename );
+		if ( function_exists('wp_create_nonce') )
+			$query_args = array_merge( $query_args, array('_wpnonce' => wp_create_nonce($this->referer_check_key)) );
+		$this->page_url = add_query_arg( $query_args );
+
+		$this->attach_event_listeners();
+	}
+
+	function attach_event_listeners()
+	{
 		add_action('init', array(&$this, 'init_textdomain'));
 		add_action('load-update-core.php', array(&$this, 'update_notice_action'));
 		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
@@ -100,41 +116,6 @@ class wpdbBackup {
 		add_filter('cron_schedules', array(&$this, 'add_sched_options'));
 		add_filter('wp_db_b_schedule_choices', array(&$this, 'schedule_choices'));
 		
-		$table_prefix = ( isset( $table_prefix ) ) ? $table_prefix : $wpdb->prefix;
-		$datum = gmdate("Ymd_B");
-		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql";
-
-		$possible_names = array(
-			'categories',
-			'comments',
-			'link2cat',
-			'linkcategories',
-			'links',
-			'options',
-			'post2cat',
-			'postmeta',
-			'posts',
-			'terms',
-			'term_taxonomy',
-			'term_relationships',
-			'users',
-			'usermeta',
-		);
-
-		foreach( $possible_names as $name ) {
-			if ( isset( $wpdb->{$name} ) ) {
-				$this->core_table_names[] = $wpdb->{$name};
-			}
-		}
-	
-		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir', WP_BACKUP_DIR));
-		$this->basename = 'wp-db-backup';
-	
-		$this->referer_check_key = $this->basename . '-download_' . DB_NAME;
-		$query_args = array( 'page' => $this->basename );
-		if ( function_exists('wp_create_nonce') )
-			$query_args = array_merge( $query_args, array('_wpnonce' => wp_create_nonce($this->referer_check_key)) );
-		$this->page_url = add_query_arg( $query_args );
 		if (isset($_POST['do_backup'])) {
 			$this->wp_secure('fatal');
 			check_admin_referer($this->referer_check_key);
@@ -161,6 +142,39 @@ class wpdbBackup {
 		} else {
 			add_action('admin_menu', array(&$this, 'admin_menu'));
 		}
+	}
+
+	function _get_core_table_names()
+	{
+		global $wpdb;
+
+		$core_table_names = array();
+
+		$possible_names = array(
+			'categories',
+			'commentmeta',
+			'comments',
+			'link2cat',
+			'linkcategories',
+			'links',
+			'options',
+			'post2cat',
+			'postmeta',
+			'posts',
+			'terms',
+			'term_taxonomy',
+			'term_relationships',
+			'users',
+			'usermeta',
+		);
+		
+		foreach( $possible_names as $name ) {
+			if ( isset( $wpdb->{$name} ) ) {
+				$core_table_names[] = $wpdb->{$name};
+			}
+		}
+
+		return $core_table_names;
 	}
 	
 	function init() {
@@ -222,6 +236,20 @@ class wpdbBackup {
 			$text = preg_replace($pattern, $replace, $text);
 			return $text;
 		}
+
+	function _using_evasive_module() {
+		if ( true === $this->mod_evasive_override ) 
+			return true;
+
+		if ( function_exists('apache_get_modules') ) {
+			foreach( (array) apache_get_modules() as $mod ) {
+				if ( false !== strpos($mod,'mod_evasive') || false !== strpos($mod,'mod_dosevasive') ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 
 	function build_backup_script() {
 		global $table_prefix, $wpdb;
@@ -322,7 +350,7 @@ class wpdbBackup {
 			$rec_count = $wpdb->get_var("SELECT count(*) FROM {$table}");
 			$rec_segments = ceil($rec_count / ROWS_PER_SEGMENT);
 			$table_count = 0;
-			if ( $this->module_check() ) {
+			if ( $this->_using_evasive_module() ) {
 				$delay = "setTimeout('";
 				$delay_time = "', " . (int) MOD_EVASIVE_DELAY . ")";
 			}
@@ -1156,7 +1184,7 @@ class wpdbBackup {
 		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
 		$all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
 		// Get list of WP tables that actually exist in this DB (for 1.6 compat!)
-		$wp_backup_default_tables = array_intersect($all_tables, $this->core_table_names);
+		$wp_backup_default_tables = array_intersect($all_tables, $this->_get_core_table_names());
 		// Get list of non-WP tables
 		$other_tables = array_diff($all_tables, $wp_backup_default_tables);
 		
@@ -1442,7 +1470,7 @@ class wpdbBackup {
 		global $table_prefix, $wpdb;
 		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
 		$all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
-		$core_tables = array_intersect($all_tables, $this->core_table_names);
+		$core_tables = array_intersect($all_tables, $this->_get_core_table_names());
 		$other_tables = get_option('wp_cron_backup_tables');
 		$recipient = get_option('wp_cron_backup_recipient');
 		$backup_file = $this->db_backup($core_tables, $other_tables);
@@ -1514,10 +1542,8 @@ class wpdbBackup {
 
 }
 
-function wpdbBackup_init() {
-	global $mywpdbbackup;
-	$mywpdbbackup = new wpdbBackup(); 	
+function wp_db_backup_init() {
+	new WP_DB_Backup; 	
 }
 
-add_action('plugins_loaded', 'wpdbBackup_init');
-?>
+add_action('plugins_loaded', 'wp_db_backup_init');
