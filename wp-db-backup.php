@@ -42,6 +42,7 @@ class WP_DB_Backup {
 	var $mod_evasive_override = false;
 	var $page_url;
 	var $referer_check_key;
+	var $_rows_per_segment = 100;
 	var $version = '2.1.5-alpha';
 
 	function WP_DB_Backup() 
@@ -71,8 +72,8 @@ class WP_DB_Backup {
 			define('WP_BACKUP_URL', $wpdbb_content_url . '/backup-' . $rand . '/');
 		}
 
-		if ( ! defined('ROWS_PER_SEGMENT') ) {
-			define('ROWS_PER_SEGMENT', 100);
+		if ( defined('ROWS_PER_SEGMENT') ) {
+			$this->_rows_per_segment = (int) ROWS_PER_SEGMENT;	
 		}
 
 		/** 
@@ -117,7 +118,7 @@ class WP_DB_Backup {
 		add_filter('wp_db_b_schedule_choices', array(&$this, 'schedule_choices'));
 		
 		if (isset($_POST['do_backup'])) {
-			$this->wp_secure('fatal');
+			$this->is_wp_secure_enough('fatal');
 			check_admin_referer($this->referer_check_key);
 			$this->can_user_backup('main');
 			// save exclude prefs
@@ -144,6 +145,13 @@ class WP_DB_Backup {
 		}
 	}
 
+	/**
+	 * Get the core WordPress table names.
+	 *
+	 * @access private
+	 *
+	 * @return array The array of core tables names.
+	 */
 	function _get_core_table_names()
 	{
 		global $wpdb;
@@ -189,7 +197,7 @@ class WP_DB_Backup {
 			case 'smtp':
 			case 'email':
 				$success = $this->deliver_backup($this->backup_file, 'smtp', $_GET['recipient'], 'frame');
-				$this->error_display( 'frame' );
+				$this->print_error_messages( 'frame' );
 				if ( $success ) {
 					echo '
 						<!-- ' . $via . ' -->
@@ -204,7 +212,7 @@ class WP_DB_Backup {
 				break;
 			default:
 				$this->deliver_backup($this->backup_file, $via);
-				$this->error_display( 'frame' );
+				$this->print_error_messages( 'frame' );
 			}
 			die();
 		}
@@ -237,6 +245,13 @@ class WP_DB_Backup {
 			return $text;
 		}
 
+	/**
+	 * Determine whether the server is using mod_evasive or the like.  Will also return true if MOD_EVASIVE_OVERRIDE is defined and true.
+	 *
+	 * @access private 
+	 *
+	 * @return bool Whether the server is using mod_evasive
+	 */
 	function _using_evasive_module() {
 		if ( true === $this->mod_evasive_override ) 
 			return true;
@@ -348,7 +363,7 @@ class WP_DB_Backup {
 		$step_count = 1;
 		foreach ($tables as $table) {
 			$rec_count = $wpdb->get_var("SELECT count(*) FROM {$table}");
-			$rec_segments = ceil($rec_count / ROWS_PER_SEGMENT);
+			$rec_segments = ceil($rec_count / $this->_rows_per_segment);
 			$table_count = 0;
 			if ( $this->_using_evasive_module() ) {
 				$delay = "setTimeout('";
@@ -396,8 +411,8 @@ class WP_DB_Backup {
 		if (is_writable($this->backup_dir)) {
 			$this->fp = $this->open($this->backup_dir . $filename, 'a');
 			if(!$this->fp) {
-				$this->error(__('Could not open the backup file for writing!','wp-db-backup'));
-				$this->error(array('loc' => 'frame', 'kind' => 'fatal', 'msg' =>  __('The backup file could not be saved.  Please check the permissions for writing to your backup directory and try again.','wp-db-backup')));
+				$this->log_error(__('Could not open the backup file for writing!','wp-db-backup'));
+				$this->log_error(array('loc' => 'frame', 'kind' => 'fatal', 'msg' =>  __('The backup file could not be saved.  Please check the permissions for writing to your backup directory and try again.','wp-db-backup')));
 			}
 			else {
 				if($table == '') {		
@@ -421,12 +436,12 @@ class WP_DB_Backup {
 				}
 			}
 		} else {
-			$this->error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __('The backup directory is not writeable!  Please check the permissions for writing to your backup directory and try again.','wp-db-backup')));
+			$this->log_error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __('The backup directory is not writeable!  Please check the permissions for writing to your backup directory and try again.','wp-db-backup')));
 		}
 
 		if($this->fp) $this->close($this->fp);
 		
-		$this->error_display('frame');
+		$this->print_error_messages('frame');
 
 		echo '<script type="text/javascript"><!--//
 		var msg = "' . $msg . '";
@@ -680,8 +695,10 @@ class WP_DB_Backup {
 	 * Taken from phpMyAdmin.
 	 */
 	function sql_addslashes($a_string = '', $is_like = false) {
-		if ($is_like) $a_string = str_replace('\\', '\\\\\\\\', $a_string);
-		else $a_string = str_replace('\\', '\\\\', $a_string);
+		if ( $is_like ) 
+			$a_string = str_replace('\\', '\\\\\\\\', $a_string);
+		else 
+			$a_string = str_replace('\\', '\\\\', $a_string);
 		return str_replace('\'', '\\\'', $a_string);
 	} 
 
@@ -722,7 +739,7 @@ class WP_DB_Backup {
 	 */
 	function stow($query_line) {
 		if(false === @fwrite($this->fp, $query_line))
-			$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
+			$this->log_error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
 	}
 	
 	/**
@@ -730,13 +747,13 @@ class WP_DB_Backup {
 	 * @param array $args
 	 * @return bool
 	 */
-	function error($args = array()) {
+	function log_error($args = array()) {
 		if ( is_string( $args ) ) 
 			$args = array('msg' => $args);
 		$args = array_merge( array('loc' => 'main', 'kind' => 'warn', 'msg' => ''), $args);
 		$this->errors[$args['kind']][] = $args['msg'];
 		if ( 'fatal' == $args['kind'] || 'frame' == $args['loc'])
-			$this->error_display($args['loc']);
+			$this->print_error_messages($args['loc']);
 		return true;
 	}
 
@@ -746,7 +763,7 @@ class WP_DB_Backup {
 	 * @param string $loc
 	 * @return string
 	 */
-	function error_display($loc = 'main', $echo = true) {
+	function print_error_messages($loc = 'main', $echo = true) {
 		$errs = $this->errors;
 		$err_list = array();
 		unset( $this->errors );
@@ -794,7 +811,7 @@ class WP_DB_Backup {
 
 		$table_structure = $wpdb->get_results("DESCRIBE $table");
 		if (! $table_structure) {
-			$this->error(__('Error getting table details','wp-db-backup') . ": $table");
+			$this->log_error(__('Error getting table details','wp-db-backup') . ": $table");
 			return false;
 		}
 	
@@ -818,14 +835,14 @@ class WP_DB_Backup {
 			$create_table = $wpdb->get_results("SHOW CREATE TABLE $table", ARRAY_N);
 			if (false === $create_table) {
 				$err_msg = sprintf(__('Error with SHOW CREATE TABLE for %s.','wp-db-backup'), $table);
-				$this->error($err_msg);
+				$this->log_error($err_msg);
 				$this->stow("#\n# $err_msg\n#\n");
 			}
 			$this->stow($create_table[0][1] . ' ;');
 			
 			if (false === $table_structure) {
 				$err_msg = sprintf(__('Error getting table structure of %s','wp-db-backup'), $table);
-				$this->error($err_msg);
+				$this->log_error($err_msg);
 				$this->stow("#\n# $err_msg\n#\n");
 			}
 		
@@ -855,10 +872,10 @@ class WP_DB_Backup {
 			
 			if($segment == 'none') {
 				$row_start = 0;
-				$row_inc = ROWS_PER_SEGMENT;
+				$row_inc = $this->_rows_per_segment;
 			} else {
-				$row_start = $segment * ROWS_PER_SEGMENT;
-				$row_inc = ROWS_PER_SEGMENT;
+				$row_start = $segment * $this->_rows_per_segment;
+				$row_inc = $this->_rows_per_segment;
 			}
 			
 			do {	
@@ -914,11 +931,11 @@ class WP_DB_Backup {
 		if (is_writable($this->backup_dir)) {
 			$this->fp = $this->open($this->backup_dir . $this->backup_filename);
 			if(!$this->fp) {
-				$this->error(__('Could not open the backup file for writing!','wp-db-backup'));
+				$this->log_error(__('Could not open the backup file for writing!','wp-db-backup'));
 				return false;
 			}
 		} else {
-			$this->error(__('The backup directory is not writeable!','wp-db-backup'));
+			$this->log_error(__('The backup directory is not writeable!','wp-db-backup'));
 			return false;
 		}
 		
@@ -1080,7 +1097,7 @@ class WP_DB_Backup {
 
 		if ('http' == $delivery) {
 			if (! file_exists($diskfile)) 
-				$this->error(array('kind' => 'fatal', 'msg' => sprintf(__('File not found:%s','wp-db-backup'), "&nbsp;<strong>$filename</strong><br />") . '<br /><a href="' . $this->page_url . '">' . __('Return to Backup','wp-db-backup') . '</a>'));
+				$this->log_error(array('kind' => 'fatal', 'msg' => sprintf(__('File not found:%s','wp-db-backup'), "&nbsp;<strong>$filename</strong><br />") . '<br /><a href="' . $this->page_url . '">' . __('Return to Backup','wp-db-backup') . '</a>'));
 			header('Content-Description: File Transfer');
 			header('Content-Type: application/octet-stream');
 			header('Content-Length: ' . filesize($diskfile));
@@ -1090,7 +1107,7 @@ class WP_DB_Backup {
 		} elseif ('smtp' == $delivery) {
 			if (! file_exists($diskfile)) {
 				$msg = sprintf(__('File %s does not exist!','wp-db-backup'), $diskfile);
-				$this->error($msg);
+				$this->log_error($msg);
 				return false;
 			}
 			if (! is_email($recipient)) {
@@ -1107,7 +1124,7 @@ class WP_DB_Backup {
 				} else {
 					$msg .= __('ERROR: The mail application has failed to deliver the backup.','wp-db-backup'); 
 				}
-				$this->error(array('kind' => 'fatal', 'loc' => $location, 'msg' => $msg));
+				$this->log_error(array('kind' => 'fatal', 'loc' => $location, 'msg' => $msg));
 			} else {
 				unlink($diskfile);
 			}
@@ -1144,11 +1161,11 @@ class WP_DB_Backup {
 		}
 	
 		// security check
-		$this->wp_secure();  
+		$this->is_wp_secure_enough();  
 
 		if (count($this->errors)) {
 			$feedback .= '<div class="updated wp-db-backup-updated error"><p><strong>' . __('The following errors were reported:','wp-db-backup') . '</strong></p>';
-			$feedback .= '<p>' . $this->error_display( 'main', false ) . '</p>';
+			$feedback .= '<p>' . $this->print_error_messages( 'main', false ) . '</p>';
 			$feedback .= "</p></div>";
 		}
 
@@ -1191,8 +1208,8 @@ class WP_DB_Backup {
 		if ('' != $feedback)
 			echo $feedback;
 
-		if ( ! $this->wp_secure() ) 	
-			return;
+		if ( ! $this->is_wp_secure_enough() ) 	
+			return false;
 
 		// Give the new dirs the same perms as wp-content.
 //		$stat = stat( ABSPATH . 'wp-content' );
@@ -1489,11 +1506,12 @@ class WP_DB_Backup {
 	 * @param string $kind
 	 * @return bool
 	 */
-	function wp_secure($kind = 'warn', $loc = 'main') {
+	function is_wp_secure_enough($kind = 'warn', $loc = 'main') {
 		global $wp_version;
-		if ( function_exists('wp_verify_nonce') ) return true;
+		if ( function_exists('wp_verify_nonce') )
+			return true;
 		else {
-			$this->error(array('kind' => $kind, 'loc' => $loc, 'msg' => sprintf(__('Your WordPress version, %1s, lacks important security features without which it is unsafe to use the WP-DB-Backup plugin.  Hence, this plugin is automatically disabled.  Please consider <a href="%2s">upgrading WordPress</a> to a more recent version.','wp-db-backup'),$wp_version,'http://wordpress.org/download/')));
+			$this->log_error(array('kind' => $kind, 'loc' => $loc, 'msg' => sprintf(__('Your WordPress version, %1s, lacks important security features without which it is unsafe to use the WP-DB-Backup plugin.  Hence, this plugin is automatically disabled.  Please consider <a href="%2s">upgrading WordPress</a> to a more recent version.','wp-db-backup'),$wp_version,'http://wordpress.org/download/')));
 			return false;
 		}
 	}
@@ -1508,10 +1526,10 @@ class WP_DB_Backup {
 		// make sure WPMU users are site admins, not ordinary admins
 		if ( function_exists('is_site_admin') && ! is_site_admin() )
 			return false;
-		if ( ( $this->wp_secure('fatal', $loc) ) && current_user_can('import') )
+		if ( ( $this->is_wp_secure_enough('fatal', $loc) ) && current_user_can('import') )
 			$can = $this->verify_nonce($_REQUEST['_wpnonce'], $this->referer_check_key, $loc);
 		if ( false == $can ) 
-			$this->error(array('loc' => $loc, 'kind' => 'fatal', 'msg' => __('You are not allowed to perform backups.','wp-db-backup')));
+			$this->log_error(array('loc' => $loc, 'kind' => 'fatal', 'msg' => __('You are not allowed to perform backups.','wp-db-backup')));
 		return $can;
 	}
 
@@ -1526,7 +1544,7 @@ class WP_DB_Backup {
 		if ( wp_verify_nonce($rec, $nonce) )
 			return true;
 		else 
-			$this->error(array('loc' => $loc, 'kind' => 'fatal', 'msg' => sprintf(__('There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted.','wp-db-backup'),get_option('home'))));
+			$this->log_error(array('loc' => $loc, 'kind' => 'fatal', 'msg' => sprintf(__('There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted.','wp-db-backup'),get_option('home'))));
 	}
 
 	/**
@@ -1537,7 +1555,7 @@ class WP_DB_Backup {
 	 */ 
 	function validate_file($file) {
 		if ( (false !== strpos($file, '..')) || (false !== strpos($file, './')) || (':' == substr($file, 1, 1)) )
-			$this->error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __("Cheatin' uh ?",'wp-db-backup')));
+			$this->log_error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __("Cheatin' uh ?",'wp-db-backup')));
 	}
 
 }
