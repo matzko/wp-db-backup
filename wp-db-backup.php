@@ -118,9 +118,14 @@ class WP_DB_Backup {
 		add_filter('wp_db_b_schedule_choices', array(&$this, 'schedule_choices'));
 		
 		if (isset($_POST['do_backup'])) {
-			$this->is_wp_secure_enough('fatal');
+			if ( ! $this->is_wp_secure_enough() )
+				return false;
 			check_admin_referer($this->referer_check_key);
-			$this->can_user_backup('main');
+			if ( ! $this->current_user_can_backup() ) {
+				$this->log_error(array('loc' => 'main', 'kind' => 'fatal', 'msg' => __('You are not allowed to perform backups.','wp-db-backup')));
+				return false;
+			}
+
 			// save exclude prefs
 
 			$exc_revisions = ( isset( $_POST['exclude-revisions'] ) ) ? (array) $_POST['exclude-revisions'] : array();
@@ -135,10 +140,18 @@ class WP_DB_Backup {
 				break;				
 			}
 		} elseif (isset($_GET['fragment'] )) {
-			$this->can_user_backup('frame');
+			check_admin_referer($this->referer_check_key);
+			if ( ! $this->current_user_can_backup() ) {
+				$this->log_error(array('loc' => 'frame', 'kind' => 'fatal', 'msg' => __('You are not allowed to perform backups.','wp-db-backup')));
+				return false;
+			}
 			add_action('init', array(&$this, 'init'));
 		} elseif (isset($_GET['backup'] )) {
-			$this->can_user_backup();
+			check_admin_referer($this->referer_check_key);
+			if ( ! $this->current_user_can_backup() ) {
+				$this->log_error(array('loc' => 'main', 'kind' => 'fatal', 'msg' => __('You are not allowed to perform backups.','wp-db-backup')));
+				return false;
+			}
 			add_action('init', array(&$this, 'init'));
 		} else {
 			add_action('admin_menu', array(&$this, 'admin_menu'));
@@ -186,8 +199,14 @@ class WP_DB_Backup {
 	}
 	
 	function init() {
-		$this->can_user_backup();
-		if (isset($_GET['backup'])) {
+		if ( ! $this->current_user_can_backup() ) {
+			$this->log_error(array('loc' => 'main', 'kind' => 'fatal', 'msg' => __('You are not allowed to perform backups.','wp-db-backup')));
+			return false;
+		}
+		if (
+			isset($_GET['backup']) && 
+			$this->verify_nonce($_GET['_wpnonce'], $this->referer_check_key, 'main')
+		) {
 			$via = isset($_GET['via']) ? $_GET['via'] : 'http';
 			
 			$this->backup_file = $_GET['backup'];
@@ -216,7 +235,10 @@ class WP_DB_Backup {
 			}
 			die();
 		}
-		if (isset($_GET['fragment'] )) {
+		if (
+			isset($_GET['fragment'] ) &&
+			$this->verify_nonce($_GET['_wpnonce'], $this->referer_check_key, 'main')
+		) {
 			list($table, $segment, $filename) = explode(':', $_GET['fragment']);
 			$this->validate_file($filename);
 			$this->backup_fragment($table, $segment, $filename);
@@ -672,7 +694,10 @@ class WP_DB_Backup {
 	}
 
 	function save_backup_time() {
-		if ( $this->can_user_backup() ) {
+		if ( 
+			$this->current_user_can_backup() &&
+			$this->verify_nonce($_POST['_wpnonce'], $this->referer_check_key, 'main')
+		) {
 			// try to get a time from the input string
 			$time = strtotime(strval($_POST['backup-time']));
 			if ( ! empty( $time ) && time() < $time ) {
@@ -1161,7 +1186,9 @@ class WP_DB_Backup {
 		}
 	
 		// security check
-		$this->is_wp_secure_enough();  
+		if ( ! $this->is_wp_secure_enough() ) {
+			$this->log_error(array('kind' => $kind, 'loc' => $loc, 'msg' => sprintf(__('Your WordPress version, %1s, lacks important security features without which it is unsafe to use the WP-DB-Backup plugin.  Hence, this plugin is automatically disabled.  Please consider <a href="%2s">upgrading WordPress</a> to a more recent version.','wp-db-backup'),$GLOBALS['wp_version'],'http://wordpress.org/download/')));
+		}
 
 		if (count($this->errors)) {
 			$feedback .= '<div class="updated wp-db-backup-updated error"><p><strong>' . __('The following errors were reported:','wp-db-backup') . '</strong></p>';
@@ -1218,7 +1245,7 @@ class WP_DB_Backup {
 
 		// if filesystem ftp available and trying to do that
 		if ( function_exists( 'request_filesystem_credentials' ) && ! empty( $_POST['ftp-nonce'] ) ) :
-			if ( $this->can_user_backup() && wp_verify_nonce( $_POST['ftp-nonce'], 'ftp-change' ) ) :
+			if ( $this->current_user_can_backup() && wp_verify_nonce( $_POST['ftp-nonce'], 'ftp-change' ) ) :
 				ob_start();
 				WP_Filesystem(@request_filesystem_credentials(), false);
 				$ftp_backup_dir = trailingslashit($wp_filesystem->wp_content_dir()) . basename($this->backup_dir);
@@ -1502,34 +1529,33 @@ class WP_DB_Backup {
 	}
 
 	/**
-	 * Checks that WordPress has sufficient security measures 
-	 * @param string $kind
-	 * @return bool
+	 * Check whether WordPress has sufficient security measures to use the plugin.
+	 * Generally, the problem is that without the nonce system introduced in 2.0.3, 
+	 * this plugin is more likely to be vulnerable to surreptitious attacks (XSS and the like).
+	 *
+	 * @return bool Whether WP has sufficient features to use this plugin securely.
 	 */
-	function is_wp_secure_enough($kind = 'warn', $loc = 'main') {
-		global $wp_version;
+	function is_wp_secure_enough($kind = 'warn', $loc = 'main') 
+	{
 		if ( function_exists('wp_verify_nonce') )
 			return true;
-		else {
-			$this->log_error(array('kind' => $kind, 'loc' => $loc, 'msg' => sprintf(__('Your WordPress version, %1s, lacks important security features without which it is unsafe to use the WP-DB-Backup plugin.  Hence, this plugin is automatically disabled.  Please consider <a href="%2s">upgrading WordPress</a> to a more recent version.','wp-db-backup'),$wp_version,'http://wordpress.org/download/')));
+		else
 			return false;
-		}
 	}
 
 	/**
 	 * Checks that the user has sufficient permission to backup
-	 * @param string $loc
-	 * @return bool
+	 *
+	 * @return bool Whether the current user has sufficient permission to backup.
 	 */
-	function can_user_backup($loc = 'main') {
+	function current_user_can_backup()
+	{
 		$can = false;
 		// make sure WPMU users are site admins, not ordinary admins
 		if ( function_exists('is_site_admin') && ! is_site_admin() )
 			return false;
-		if ( ( $this->is_wp_secure_enough('fatal', $loc) ) && current_user_can('import') )
-			$can = $this->verify_nonce($_REQUEST['_wpnonce'], $this->referer_check_key, $loc);
-		if ( false == $can ) 
-			$this->log_error(array('loc' => $loc, 'kind' => 'fatal', 'msg' => __('You are not allowed to perform backups.','wp-db-backup')));
+		if ( $this->is_wp_secure_enough() && current_user_can('import') )
+			$can = true;
 		return $can;
 	}
 
