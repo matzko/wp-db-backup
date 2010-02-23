@@ -1,5 +1,7 @@
 <?php
 
+@require_once 'vfsStream/vfsStream.php';
+
 /** WordPress-specific functions **/
 function __($a) {
 	return $a;
@@ -12,6 +14,7 @@ function current_user_can() {
 	$args = func_get_args();
 	return call_user_func_array(array('TestWPDBBackup', 'mock__current_user_can'), $args);
 }
+function get_bloginfo() {}
 function get_option()
 {
 	$args = func_get_args();
@@ -237,4 +240,86 @@ class TestWPDBBackup extends PHPUnit_Framework_TestCase {
 
 		$this->assertTrue($this->_b->is_wp_secure_enough());
 	}
+
+	/**
+	 * @dataProvider provider__perhaps_compress_file
+	 */
+	public function test__perhaps_compress_file($filename, $gzipped_filename, $file_exists, $gzipped_file_exists)
+	{
+		if (class_exists('vfsStream') === false) {
+			$this->markTestSkipped('vfsStream not installed.');
+		}
+		
+		vfsStreamWrapper::register();
+		$root = new vfsStreamDirectory('home');
+
+		$dir = dirname($filename);
+		if ( ! empty( $dir ) ) {
+			$root->addChild(new vfsStreamDirectory($dir));
+			$root->getChild($dir)->addChild(vfsStream::newFile(basename($filename))->withContent('Backup SQL text'));
+		}
+		vfsStreamWrapper::setRoot($root);
+
+
+		$new_filename = $this->_b->perhaps_compress_file(vfsStream::url($filename));
+
+		if ( function_exists('gzencode') ) {
+			
+			$this->assertEquals($gzipped_file_exists, vfsStreamWrapper::getRoot()->hasChild($gzipped_filename));
+			$this->assertEquals($file_exists, vfsStreamWrapper::getRoot()->hasChild($filename));
+		} else {
+			$this->assertFalse(vfsStreamWrapper::getRoot()->hasChild($gzipped_filename));
+			$this->assertTrue(vfsStreamWrapper::getRoot()->hasChild($filename));
+		}
+
+
+	}
+		public function provider__perhaps_compress_file()
+		{
+			return array(
+				array('path/file.sql', 'path/file.sql.gz', false, true),
+			);
+		}
+
+	/**
+	 * @dataProvider provider__send_mail
+	 */
+	public function test__send_mail($to, $subject, $message, $file, $send_count)
+	{
+		$mail_stub = $this->getMock('PHPMailer',
+			array(
+				'AddAddress',
+				'AddAttachment',
+				'ClearAddresses',
+				'ClearAllRecipients',
+				'ClearAttachments',
+				'ClearBCCs',
+				'ClearCCs',
+				'ClearCustomHeaders',
+				'ClearReplyTos',
+				'IsMail',
+				'Send',
+			)
+		);
+
+		$mail_stub->expects($this->exactly($send_count))
+			->method('Send')
+			->will($this->returnValue(true));
+
+		$this->_b->send_mail($mail_stub, $to, $subject, $message, $file);
+	}
+		public function provider__send_mail()
+		{
+			return array(
+				array(
+					'bob@example.com', 'backup email', 'some message', '/path/to/file.sql.gz', 1,
+				),
+				array(
+					'', 'backup email', 'some message', '/path/to/file.sql.gz', 0,
+				),
+				array(
+					'bob@example.com', 'backup email', 'some message', '', 0,
+				),
+			);
+		}
 }

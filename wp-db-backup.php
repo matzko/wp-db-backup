@@ -489,7 +489,7 @@ class WP_DB_Backup {
 		$this->backup_file = $this->do_db_backup($core_tables, $also_backup);
 		if (false !== $this->backup_file) {
 			if ('smtp' == $_POST['deliver']) {
-				$this->deliver_backup($this->backup_file, $_POST['deliver'], $_POST['backup_recipient'], 'main');
+				$this->deliver_backup($this->backup_file, 'smtp', $_POST['backup_recipient'], 'main');
 				wp_redirect($this->page_url);
 			} elseif ('http' == $_POST['deliver']) {
 				$download_uri = add_query_arg('backup',$this->backup_file,$this->page_url);
@@ -1006,31 +1006,65 @@ class WP_DB_Backup {
 	} // do_db_backup
 
 	/**
-	 * Sends the backed-up file via email
-	 * @param string $to
-	 * @param string $subject
-	 * @param string $message
+	 * Prepares and sends the backed-up file via email
+	 *
+	 * @param string $to The recipient of the email.
+	 * @param string $subject The subject of the email.
+	 * @param string $message The text message for the backup email.
 	 * @param string $diskfile The path to the backup file.
 	 * @return bool
 	 */
-	function send_mail( $to, $subject, $message, $diskfile) {
+	function prepare_mail( $to, $subject, $message, $diskfile)
+	{
 		global $phpmailer;
-
-		$filename = basename($diskfile);
 
 		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message' ) ) );
 
-		if ( !is_object( $phpmailer ) || ( strtolower(get_class( $phpmailer )) != 'phpmailer' ) ) {
+		// try to use phpmailer directly (WP 2.2+)
+		if ( 
+			! class_exists('PHPMailer') ||
+			! is_object( $phpmailer ) || 
+			! is_a( $phpmailer, 'PHPMailer' ) 
+		) {
 			if ( file_exists( ABSPATH . WPINC . '/class-phpmailer.php' ) )
 				require_once ABSPATH . WPINC . '/class-phpmailer.php';
 			if ( file_exists( ABSPATH . WPINC . '/class-smtp.php' ) )
 				require_once ABSPATH . WPINC . '/class-smtp.php';
-			if ( class_exists( 'PHPMailer') )
-				$phpmailer = new PHPMailer();
+			if ( class_exists( 'PHPMailer') ) {
+				$phpmailer = new PHPMailer;
+
+			}
 		}
 
-		// try to use phpmailer directly (WP 2.2+)
-		if ( is_object( $phpmailer ) && ( strtolower(get_class( $phpmailer )) == 'phpmailer' ) ) {
+		if ( is_a($phpmailer, 'PHPMailer') ) {
+			return $this->send_mail($phpmailer, $to, $subject, $message, $diskfile);
+		}
+
+		return false;
+	}
+
+	/**
+	 * Sends the backed-up file via email
+	 *
+	 * @param object $phpmailer The PHPMailer object.
+	 * @param string $to The recipient of the email.
+	 * @param string $subject The subject of the email.
+	 * @param string $message The text message for the backup email.
+	 * @param string $diskfile The path to the backup file.
+	 * @return bool
+	 */
+	function send_mail($phpmailer = null, $to = '', $subject = '', $message = '', $diskfile)
+	{
+		$result = false;
+
+		if ( 
+			empty( $diskfile ) ||
+			empty( $to )
+		) {
+			return false;
+		}
+	
+		if ( is_a($phpmailer, 'PHPMailer') ) {
 			
 			// Get the site domain and get rid of www.
 			$sitename = strtolower( $_SERVER['SERVER_NAME'] );
@@ -1050,7 +1084,7 @@ class WP_DB_Backup {
 			$phpmailer->ClearReplyTos();
 
 			$phpmailer->AddAddress( $to );
-			$phpmailer->AddAttachment($diskfile, $filename);
+			$phpmailer->AddAttachment($diskfile, basename($diskfile));
 			$phpmailer->Body = $message;
 			$phpmailer->CharSet = apply_filters( 'wp_mail_charset', get_bloginfo('charset') );
 			$phpmailer->From = apply_filters( 'wp_mail_from', $from_email );
@@ -1058,45 +1092,40 @@ class WP_DB_Backup {
 			$phpmailer->IsMail();
 			$phpmailer->Subject = $subject;
 
-			do_action_ref_array( 'phpmailer_init', array( &$phpmailer ) );
-			
 			$result = @$phpmailer->Send();
 
-		// old-style: build the headers directly
-		} else {
-			$randomish = md5(time());
-			$boundary = "==WPBACKUP-$randomish";
-			$fp = fopen($diskfile,"rb");
-			$file = fread($fp,filesize($diskfile)); 
-			$this->close($fp);
-			
-			$data = chunk_split(base64_encode($file));
-			
-			$headers .= "MIME-Version: 1.0\n";
-			$headers = 'From: wordpress@' . preg_replace('#^www\.#', '', strtolower($_SERVER['SERVER_NAME'])) . "\n";
-			$headers .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n";
-		
-			// Add a multipart boundary above the plain message
-			$message = "This is a multi-part message in MIME format.\n\n" .
-		        	"--{$boundary}\n" .
-				"Content-Type: text/plain; charset=\"" . get_bloginfo('charset') . "\"\n" .
-				"Content-Transfer-Encoding: 7bit\n\n" .
-				$message . "\n\n";
-
-			// Add file attachment to the message
-			$message .= "--{$boundary}\n" .
-				"Content-Type: application/octet-stream;\n" .
-				" name=\"{$filename}\"\n" .
-				"Content-Disposition: attachment;\n" .
-				" filename=\"{$filename}\"\n" .
-				"Content-Transfer-Encoding: base64\n\n" .
-				$data . "\n\n" .
-				"--{$boundary}--\n";
-			
-			$result = @wp_mail($to, $subject, $message, $headers);
 		}
 		return $result;
 
+	}
+
+	/**
+	 * Try to gzip the file
+	 *
+	 * @param string $filepath The path to the file which we're trying to compress
+	 * @return string The new filepath.
+	 */
+	function perhaps_compress_file( $filename = '' )
+	{
+		if ( ! empty($filename) && function_exists('gzencode') ) {
+			$gz_filename = "{$filename}.gz";
+			if ( function_exists('file_get_contents') ) {
+				$text = file_get_contents($filename);
+			} else {
+				$text = implode("", file($filename));
+			}
+			$gz_text = gzencode($text, 9);
+			$fp = fopen($gz_filename, "w");
+			if ( $fp ) {
+				fwrite($fp, $gz_text);
+				if ( fclose($fp) ) {
+					unlink($filename);
+					$filename = $gz_filename;
+				}
+			}
+		}
+
+		return $filename;
 	}
 
 	function deliver_backup($filename = '', $delivery = 'http', $recipient = '', $location = 'main') {
@@ -1104,30 +1133,9 @@ class WP_DB_Backup {
 			return false; 
 		}
 		
-		$diskfile = $this->backup_dir . $filename;
-		/**
-		 * Try to compress to gzip, if available 
-		 */
-		if ( function_exists('gzencode') ) {
-			$gz_diskfile = "{$diskfile}.gz";
-			if ( function_exists('file_get_contents') ) {
-				$text = file_get_contents($diskfile);
-			} else {
-				$text = implode("", file($diskfile));
-			}
-			$gz_text = gzencode($text, 9);
-			$fp = fopen($gz_diskfile, "w");
-			fwrite($fp, $gz_text);
-			if ( fclose($fp) ) {
-				unlink($diskfile);
-				$diskfile = $gz_diskfile;
-				$filename = "{$filename}.gz";
-			}
-		}
-		/*
-		 * 
-		 */
+		$diskfile = $this->perhaps_compress_file($this->backup_dir . $filename);
 
+		$filename = basename($diskfile);
 
 		if ('http' == $delivery) {
 			if (! file_exists($diskfile)) 
@@ -1148,7 +1156,7 @@ class WP_DB_Backup {
 				$recipient = get_option('admin_email');
 			}
 			$message = sprintf(__("Attached to this email is\n   %1s\n   Size:%2s kilobytes\n",'wp-db-backup'), $filename, round(filesize($diskfile)/1024));
-			$success = $this->send_mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $diskfile);
+			$success = $this->prepare_mail($recipient, get_bloginfo('name') . ' ' . __('Database Backup','wp-db-backup'), $message, $diskfile);
 
 			if ( false === $success ) {
 				$msg = __('The following errors were reported:','wp-db-backup') . "\n ";
