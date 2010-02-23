@@ -111,10 +111,10 @@ class WP_DB_Backup {
 		add_action('load-update-core.php', array(&$this, 'update_notice_action'));
 		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
 		add_action('wp_cron_daily', array(&$this, 'wp_cron_daily'));
-		add_action('wp_db_backup_cron', array(&$this, 'cron_backup'));
+		add_action('wp_db_backup_cron', array(&$this, 'do_cron_backup'));
 
 		add_filter('plugin_action_links', array(&$this, 'filter_plugin_action_links'), 10, 2 );
-		add_filter('cron_schedules', array(&$this, 'add_sched_options'));
+		add_filter('cron_schedules', array(&$this, 'add_cron_sched_options'));
 		add_filter('wp_db_b_schedule_choices', array(&$this, 'schedule_choices'));
 		
 		if (isset($_POST['do_backup'])) {
@@ -203,14 +203,17 @@ class WP_DB_Backup {
 			$this->log_error(array('loc' => 'main', 'kind' => 'fatal', 'msg' => __('You are not allowed to perform backups.','wp-db-backup')));
 			return false;
 		}
-		if (
-			isset($_GET['backup']) && 
-			$this->verify_nonce($_GET['_wpnonce'], $this->referer_check_key, 'main')
-		) {
+		if ( isset($_GET['backup']) ) {
+			if ( ! wp_verify_nonce($_GET['_wpnonce'], $this->referer_check_key) ) {
+				$this->log_error(array('loc' => 'main', 'kind' => 'fatal', 'msg' => sprintf(__('There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted.','wp-db-backup'),get_option('home'))));
+			}
 			$via = isset($_GET['via']) ? $_GET['via'] : 'http';
 			
 			$this->backup_file = $_GET['backup'];
-			$this->validate_file($this->backup_file);
+			if ( 0 < validate_file($this->backup_file) ) {
+				$this->log_error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __('Invalid file request.','wp-db-backup')));
+				return false;
+			}
 
 			switch($via) {
 			case 'smtp':
@@ -235,12 +238,15 @@ class WP_DB_Backup {
 			}
 			die();
 		}
-		if (
-			isset($_GET['fragment'] ) &&
-			$this->verify_nonce($_GET['_wpnonce'], $this->referer_check_key, 'main')
-		) {
+		if ( isset($_GET['fragment'] ) ) {
+			if ( ! wp_verify_nonce($_GET['_wpnonce'], $this->referer_check_key) ) {
+				$this->log_error(array('loc' => 'main', 'kind' => 'fatal', 'msg' => sprintf(__('There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted.','wp-db-backup'),get_option('home'))));
+			}
 			list($table, $segment, $filename) = explode(':', $_GET['fragment']);
-			$this->validate_file($filename);
+			if ( 0 < validate_file($filename) ) {
+				$this->log_error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __('Invalid file request.','wp-db-backup')));
+				exit;
+			}
 			$this->backup_fragment($table, $segment, $filename);
 		}
 
@@ -288,7 +294,7 @@ class WP_DB_Backup {
 		return false;
 	}
 
-	function build_backup_script() {
+	function print_backup_script() {
 		global $table_prefix, $wpdb;
 	
 		echo "<div class='wrap'>";
@@ -412,7 +418,7 @@ class WP_DB_Backup {
 			</script>
 	</div>
 		';
-		$this->backup_menu();
+		$this->print_backup_menu();
 	}
 
 	function backup_fragment($table, $segment, $filename) {
@@ -480,7 +486,7 @@ class WP_DB_Backup {
 		if (isset($_POST['other_tables']))
 			$also_backup = $_POST['other_tables'];
 		$core_tables = $_POST['core_tables'];
-		$this->backup_file = $this->db_backup($core_tables, $also_backup);
+		$this->backup_file = $this->do_db_backup($core_tables, $also_backup);
 		if (false !== $this->backup_file) {
 			if ('smtp' == $_POST['deliver']) {
 				$this->deliver_backup($this->backup_file, $_POST['deliver'], $_POST['backup_recipient'], 'main');
@@ -510,7 +516,7 @@ class WP_DB_Backup {
 		return $links;
 	}
 
-	function admin_header() {
+	function print_admin_header() {
 		?>
 		<script type="text/javascript">
 		//<![CDATA[
@@ -662,11 +668,11 @@ class WP_DB_Backup {
 	}
 
 	function admin_load() {
-		add_action('admin_head', array(&$this, 'admin_header'));
+		add_action('admin_head', array(&$this, 'print_admin_header'));
 	}
 
 	function admin_menu() {
-		$_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
+		$_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'print_backup_menu'));
 		add_action('load-' . $_page_hook, array(&$this, 'admin_load'));
 		if ( function_exists('add_contextual_help') ) {
 			$text = $this->help_menu();
@@ -675,7 +681,7 @@ class WP_DB_Backup {
 	}
 
 	function fragment_menu() {
-		$_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'build_backup_script'));
+		$_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'print_backup_script'));
 		add_action('load-' . $_page_hook, array(&$this, 'admin_load'));
 		if ( function_exists('add_contextual_help') ) {
 			$text = $this->help_menu();
@@ -694,10 +700,10 @@ class WP_DB_Backup {
 	}
 
 	function save_backup_time() {
-		if ( 
-			$this->current_user_can_backup() &&
-			$this->verify_nonce($_POST['_wpnonce'], $this->referer_check_key, 'main')
-		) {
+		if ( $this->current_user_can_backup() ) {
+			if ( ! wp_verify_nonce($_POST['_wpnonce'], $this->referer_check_key) ) {
+				$this->log_error(array('loc' => 'main', 'kind' => 'fatal', 'msg' => sprintf(__('There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted.','wp-db-backup'),get_option('home'))));
+			}
 			// try to get a time from the input string
 			$time = strtotime(strval($_POST['backup-time']));
 			if ( ! empty( $time ) && time() < $time ) {
@@ -950,7 +956,14 @@ class WP_DB_Backup {
 		}
 	} // end backup_table()
 	
-	function db_backup($core_tables, $other_tables) {
+	/**
+	 * Create the backup file.
+	 *
+	 * @param array $tables The database tables to backup.
+	 * @return mixed. String of database file path or false if failure.
+	 */
+	function do_db_backup($tables = array())
+	{
 		global $table_prefix, $wpdb;
 		
 		if (is_writable($this->backup_dir)) {
@@ -972,11 +985,6 @@ class WP_DB_Backup {
 		$this->stow("# " . sprintf(__('Database: %s','wp-db-backup'),$this->backquote(DB_NAME)) . "\n");
 		$this->stow("# --------------------------------------------------------\n");
 		
-			if ( (is_array($other_tables)) && (count($other_tables) > 0) )
-			$tables = array_merge($core_tables, $other_tables);
-		else
-			$tables = $core_tables;
-		
 		foreach ($tables as $table) {
 			// Increase script execution time-limit to 15 min for every table.
 			if ( !ini_get('safe_mode')) @set_time_limit(15*60);
@@ -995,13 +1003,14 @@ class WP_DB_Backup {
 			return $this->backup_filename;
 		}
 		
-	} //wp_db_backup
+	} // do_db_backup
 
 	/**
 	 * Sends the backed-up file via email
 	 * @param string $to
 	 * @param string $subject
 	 * @param string $message
+	 * @param string $diskfile The path to the backup file.
 	 * @return bool
 	 */
 	function send_mail( $to, $subject, $message, $diskfile) {
@@ -1157,7 +1166,7 @@ class WP_DB_Backup {
 		return $success;
 	}
 	
-	function backup_menu() {
+	function print_backup_menu() {
 		global $table_prefix, $wpdb, $wp_filesystem;
 		$feedback = '';
 		$whoops = false;
@@ -1467,7 +1476,7 @@ class WP_DB_Backup {
 		
 		echo '</div><!-- .wrap -->';
 		
-	} // end wp_backup_menu()
+	} // end print_backup_menu()
 
 	function get_sched() {
 		$options = array_keys( (array) wp_get_schedules() );
@@ -1502,28 +1511,27 @@ class WP_DB_Backup {
 		return $menu;
 	} // end schedule_choices()
 	
-	function wp_cron_daily() { // for legacy cron plugin
-		$schedule = intval(get_option('wp_cron_backup_schedule'));
-		// If scheduled backup is disabled
-		if (0 == $schedule)
-		        return;
-		else return $this->cron_backup();
-	} 
+	/**
+	 * Do a cron-spawned backup
+	 */
+	function do_cron_backup() {
+		global $wpdb;
 
-	function cron_backup() {
-		global $table_prefix, $wpdb;
-		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
-		$all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
+		$all_tables = (array) $wpdb->get_col('SHOW TABLES');
 		$core_tables = array_intersect($all_tables, $this->_get_core_table_names());
-		$other_tables = get_option('wp_cron_backup_tables');
+		$other_tables = (array) get_option('wp_cron_backup_tables');
 		$recipient = get_option('wp_cron_backup_recipient');
-		$backup_file = $this->db_backup($core_tables, $other_tables);
+		$tables = array_filter(array_intersect($all_tables, array_merge($core_tables, $other_tables)));
+
+		$backup_file = $this->do_db_backup($tables);
+
 		if (false !== $backup_file) 
 			return $this->deliver_backup($backup_file, 'smtp', $recipient, 'main');
-		else return false;
+		else 
+			return false;
 	}
 
-	function add_sched_options($sched) {
+	function add_cron_sched_options($sched = array()) {
 		$sched['weekly'] = array('interval' => 604800, 'display' => __('Once Weekly','wp-db-backup'));
 		return $sched;
 	}
@@ -1558,32 +1566,6 @@ class WP_DB_Backup {
 			$can = true;
 		return $can;
 	}
-
-	/**
-	 * Verify that the nonce is legitimate
-	 * @param string $rec 	the nonce received
-	 * @param string $nonce	what the nonce should be
-	 * @param string $loc 	the location of the check
-	 * @return bool
-	 */
-	function verify_nonce($rec = '', $nonce = 'X', $loc = 'main') {
-		if ( wp_verify_nonce($rec, $nonce) )
-			return true;
-		else 
-			$this->log_error(array('loc' => $loc, 'kind' => 'fatal', 'msg' => sprintf(__('There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted.','wp-db-backup'),get_option('home'))));
-	}
-
-	/**
-	 * Check whether a file to be downloaded is  
-	 * surreptitiously trying to download a non-backup file
-	 * @param string $file
-	 * @return null
-	 */ 
-	function validate_file($file) {
-		if ( (false !== strpos($file, '..')) || (false !== strpos($file, './')) || (':' == substr($file, 1, 1)) )
-			$this->log_error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __("Cheatin' uh ?",'wp-db-backup')));
-	}
-
 }
 
 function wp_db_backup_init() {
