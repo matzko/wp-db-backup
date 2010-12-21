@@ -29,6 +29,10 @@ Copyright 2010  Austin Matzko  (email : austin at pressedcode.com)
  * use a different backup location
  */
 
+if ( ! defined('ABSPATH') ) {
+	die('Please do not load this file directly.');
+}
+
 $rand = substr( md5( md5( DB_PASSWORD ) ), -5 );
 global $wpdbb_content_dir, $wpdbb_content_url, $wpdbb_plugin_dir;
 $wpdbb_content_dir = ( defined('WP_CONTENT_DIR') ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
@@ -278,7 +282,7 @@ class wpdbBackup {
 		switch($_POST['deliver']) {
 		case 'http':
 			echo '
-				setProgress("' . sprintf(__("Backup complete, preparing <a href=\\\"%s\\\">backup</a> for download...",'wp-db-backup'), $download_uri) . '");
+				setProgress("' . __('Backup Complete!','wp-db-backup') . '");
 				window.onbeforeunload = null; 
 				fram.src = "' . $download_uri . '";
 			';
@@ -288,14 +292,14 @@ class wpdbBackup {
 				update_option('wpdb_backup_recip', $_POST['backup_recipient'] );
 			}
 			echo '
-				setProgress("' . sprintf(__("Backup complete, sending <a href=\\\"%s\\\">backup</a> via email...",'wp-db-backup'), $download_uri) . '");
+				setProgress("' . sprintf(__('Your backup has been emailed to %s','wp-db-backup'), $_POST['backup_recipient']) . '");
 				window.onbeforeunload = null; 
 				fram.src = "' . $download_uri . '&via=email&recipient=' . $_POST['backup_recipient'] . '";
 			';
 			break;
 		default:
 			echo '
-				setProgress("' . sprintf(__("Backup complete, download <a href=\\\"%s\\\">here</a>.",'wp-db-backup'), $download_uri) . '");
+				setProgress("' . __('Backup Complete!','wp-db-backup') . '");
 				window.onbeforeunload = null; 
 			';
 		}
