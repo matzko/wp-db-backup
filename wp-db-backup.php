@@ -69,10 +69,6 @@ class wpdbBackup {
 	var $referer_check_key;
 	var $version = '2.1.5-alpha';
 
-	function gzip() {
-		return function_exists('gzopen');
-	}
-
 	function module_check() {
 		$mod_evasive = false;
 		if ( defined( 'MOD_EVASIVE_OVERRIDE' ) && true === MOD_EVASIVE_OVERRIDE ) return true;
@@ -98,7 +94,6 @@ class wpdbBackup {
 		$table_prefix = ( isset( $table_prefix ) ) ? $table_prefix : $wpdb->prefix;
 		$datum = date("Ymd_B");
 		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql";
-		if ($this->gzip()) $this->backup_filename .= '.gz';
 
 		$possible_names = array(
 			'categories',
@@ -668,16 +663,12 @@ class wpdbBackup {
 
 	function open($filename = '', $mode = 'w') {
 		if ('' == $filename) return false;
-		if ($this->gzip()) 
-			$fp = @gzopen($filename, $mode);
-		else
-			$fp = @fopen($filename, $mode);
+		$fp = @fopen($filename, $mode);
 		return $fp;
 	}
 
 	function close($fp) {
-		if ($this->gzip()) gzclose($fp);
-		else fclose($fp);
+		fclose($fp);
 	}
 
 	/**
@@ -686,13 +677,8 @@ class wpdbBackup {
 	 * @return null
 	 */
 	function stow($query_line) {
-		if ($this->gzip()) {
-			if(! @gzwrite($this->fp, $query_line))
-				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
-		} else {
-			if(false === @fwrite($this->fp, $query_line))
-				$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
-		}
+		if(false === @fwrite($this->fp, $query_line))
+			$this->error(__('There was an error writing a line to the backup script:','wp-db-backup') . '  ' . $query_line . '  ' . $php_errormsg);
 	}
 	
 	/**
@@ -1017,6 +1003,29 @@ class wpdbBackup {
 		if ('' == $filename) { return false; }
 		
 		$diskfile = $this->backup_dir . $filename;
+		/**
+		 * Try to compress to gzip, if available 
+		 */
+		if ( function_exists('gzencode') ) {
+			$gz_diskfile = "{$diskfile}.gz";
+			if ( function_exists('file_get_contents') ) {
+				$text = file_get_contents($diskfile);
+			} else {
+				$text = implode("", file($diskfile));
+			}
+			$gz_text = gzencode($text, 9);
+			$fp = fopen($gz_diskfile, "w");
+			fwrite($fp, $gz_text);
+			if ( fclose($fp) ) {
+				unlink($diskfile);
+				$diskfile = $gz_diskfile;
+				$filename = "{$filename}.gz";
+			}
+		}
+		/*
+		 * 
+		 */
+
 		if ('http' == $delivery) {
 			if (! file_exists($diskfile)) 
 				$this->error(array('kind' => 'fatal', 'msg' => sprintf(__('File not found:%s','wp-db-backup'), "&nbsp;<strong>$filename</strong><br />") . '<br /><a href="' . $this->page_url . '">' . __('Return to Backup','wp-db-backup') . '</a>'));
