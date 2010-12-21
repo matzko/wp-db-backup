@@ -1,21 +1,13 @@
 <?php
 /*
 Plugin Name: WordPress Database Backup
-Plugin URI: http://www.ilfilosofo.com/blog/wp-db-backup
+Plugin URI: http://austinmatzko.com/wordpress-plugins/wp-db-backup/
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Tools &rarr; Backup</a> to get started.
 Author: Austin Matzko 
-Author URI: http://www.ilfilosofo.com/
+Author URI: http://austinmatzko.com/
 Version: 2.2.3-beta
 
-Development continued from that done by Skippy (http://www.skippy.net/)
-
-Originally modified from Mark Ghosh's One Click Backup, which 
-in turn was derived from phpMyAdmin.
-
-Many thanks to Owen (http://asymptomatic.net/wp/) for his patch
-   http://dev.wp-plugins.org/ticket/219
-
-Copyright 2008  Austin Matzko  (email : if.website at gmail.com)
+Copyright 2010  Austin Matzko  (email : austin at pressedcode.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -83,8 +75,8 @@ class wpdbBackup {
 
 	function module_check() {
 		$mod_evasive = false;
-		if ( true === MOD_EVASIVE_OVERRIDE ) return true;
-		if ( false === MOD_EVASIVE_OVERRIDE ) return false;
+		if ( defined( 'MOD_EVASIVE_OVERRIDE' ) && true === MOD_EVASIVE_OVERRIDE ) return true;
+		if ( ! defined( 'MOD_EVASIVE_OVERRIDE' ) || false === MOD_EVASIVE_OVERRIDE ) return false;
 		if ( function_exists('apache_get_modules') ) 
 			foreach( (array) apache_get_modules() as $mod ) 
 				if ( false !== strpos($mod,'mod_evasive') || false !== strpos($mod,'mod_dosevasive') )
@@ -110,6 +102,7 @@ class wpdbBackup {
 
 		$possible_names = array(
 			'categories',
+			'commentmeta',
 			'comments',
 			'link2cat',
 			'linkcategories',
@@ -141,8 +134,8 @@ class wpdbBackup {
 			$this->can_user_backup('main');
 			// save exclude prefs
 
-			$exc_revisions = (array) $_POST['exclude-revisions'];
-			$exc_spam = (array) $_POST['exclude-spam'];
+			$exc_revisions = isset( $_POST['exclude-revisions'] ) ? (array) $_POST['exclude-revisions'] : array();
+			$exc_spam = isset( $_POST['exclude-spam'] ) ? (array) $_POST['exclude-spam'] : array();
 			update_option('wp_db_backup_excs', array('revisions' => $exc_revisions, 'spam' => $exc_spam));
 			switch($_POST['do_backup']) {
 			case 'backup':
@@ -245,7 +238,7 @@ class wpdbBackup {
 				<li>'.__('Click the Stop or Back buttons in your browser','wp-db-backup').'</li>
 			</ol>
 			<p><strong>' . __('Progress:','wp-db-backup') . '</strong></p>
-			<div id="meterbox" style="height:11px;width:80%;padding:3px;border:1px solid #659fff;"><div id="meter" style="height:11px;background-color:#659fff;width:0%;text-align:center;font-size:6pt;">&nbsp;</div></div>
+			<div id="meterbox" style="height:11px;width:80%;padding:3px;border:1px solid #659fff;"><div id="meter" style="height:11px;line-height:11px;background-color:#659fff;width:0%;text-align:center;font-size:6pt;">&nbsp;</div></div>
 			<div id="progress_message"></div>
 			<div id="errors"></div>
 			</fieldset>
@@ -296,6 +289,9 @@ class wpdbBackup {
 			';
 			break;
 		case 'smtp':
+			if ( get_option('wpdb_backup_recip') != $_POST['backup_recipient'] ) {
+				update_option('wpdb_backup_recip', $_POST['backup_recipient'] );
+			}
 			echo '
 				setProgress("' . sprintf(__("Backup complete, sending <a href=\\\"%s\\\">backup</a> via email...",'wp-db-backup'), $download_uri) . '");
 				window.onbeforeunload = null; 
@@ -427,6 +423,9 @@ class wpdbBackup {
 		if (false !== $this->backup_file) {
 			if ('smtp' == $_POST['deliver']) {
 				$this->deliver_backup($this->backup_file, $_POST['deliver'], $_POST['backup_recipient'], 'main');
+				if ( get_option('wpdb_backup_recip') != $_POST['backup_recipient'] ) {
+					update_option('wpdb_backup_recip', $_POST['backup_recipient'] );
+				}
 				wp_redirect($this->page_url);
 			} elseif ('http' == $_POST['deliver']) {
 				$download_uri = add_query_arg('backup',$this->backup_file,$this->page_url);
@@ -721,7 +720,9 @@ class wpdbBackup {
 		unset( $this->errors );
 		if ( ! count($errs) ) return;
 		$msg = '';
-		$err_list = array_slice(array_merge( (array) $errs['fatal'], (array) $errs['warn']), 0, 10);
+		$errs['fatal'] = isset( $errs['fatal'] ) ? (array) $errs['fatal'] : array();
+		$errs['warn'] = isset( $errs['warn'] ) ? (array) $errs['warn'] : array();
+		$err_list = array_slice( array_merge( $errs['fatal'], $errs['warn'] ), 0, 10);
 		if ( 10 == count( $err_list ) )
 			$err_list[9] = __('Subsequent errors have been omitted from this log.','wp-db-backup');
 		$wrap = ( 'frame' == $loc ) ? "<script type=\"text/javascript\">\n var msgList = ''; \n %1\$s \n if ( msgList ) alert(msgList); \n </script>" : '%1$s';
@@ -1107,7 +1108,7 @@ class wpdbBackup {
 			else {
 				update_option('wp_cron_backup_schedule', intval($_POST['cron_schedule']), false);
 			}
-			update_option('wp_cron_backup_tables', $_POST['wp_cron_backup_tables']);
+			update_option('wp_cron_backup_tables', isset( $_POST['wp_cron_backup_tables'] ) ? $_POST['wp_cron_backup_tables'] : array() );
 			if (is_email($_POST['cron_backup_recipient'])) {
 				update_option('wp_cron_backup_recipient', $_POST['cron_backup_recipient'], false);
 			}
@@ -1222,7 +1223,13 @@ class wpdbBackup {
 			<li><label for="do_email">
 				<input type="radio" name="deliver" id="do_email" value="smtp" style="border:none;" />
 				<?php _e('Email backup to:','wp-db-backup'); ?>
-				<input type="text" name="backup_recipient" size="20" value="<?php echo get_option('admin_email'); ?>" />
+				<input type="text" name="backup_recipient" size="20" value="<?php 
+					$backup_recip = get_option('wpdb_backup_recip');
+					if ( empty( $backup_recip ) ) {
+						$backup_recip = get_option('admin_email');
+					}
+
+					echo $backup_recip; ?>" />
 			</label></li>
 			</ul>
 			<?php if ( ! $whoops ) : ?>
