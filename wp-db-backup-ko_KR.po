@@ -1,0 +1,398 @@
+# WP-DB-Backup
+# Copyright (C) 2008 Austin Matzko
+# This file is distributed under the GPL 2 license.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Korean by Soul\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-08-15 11:00-0500\n"
+"PO-Revision-Date: 2009-02-19 03:41-0500\n"
+"Last-Translator: Jong-In Kim <soulofpure@hotmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language-Team: Jong-In Kim <soulofpure@hotmail.com>\n"
+"X-Poedit-Language: Korean\n"
+"X-Poedit-Country: KOREA, REPUBLIC OF\n"
+
+#: wp-db-backup.php:181
+msgid "Backup Complete!"
+msgstr "백업 완료!"
+
+#: wp-db-backup.php:211
+msgid "Progress"
+msgstr "진행"
+
+#: wp-db-backup.php:213
+msgid "DO NOT DO THE FOLLOWING AS IT WILL CAUSE YOUR BACKUP TO FAIL:"
+msgstr "다음과 같은 백업을 실패하게 하는 것을 하지마세요:"
+
+#: wp-db-backup.php:216
+msgid "Close this browser"
+msgstr "이 브라우저 닫음"
+
+#: wp-db-backup.php:217
+msgid "Reload this page"
+msgstr "이 페이지 새로고침"
+
+#: wp-db-backup.php:218
+msgid "Click the Stop or Back buttons in your browser"
+msgstr "브라우저의 멈춤 이나 뒤로 버튼을 클릭하세요"
+
+#: wp-db-backup.php:220
+msgid "Progress:"
+msgstr "진행:"
+
+#: wp-db-backup.php:229
+msgid "Navigating away from this page will cause your backup to fail."
+msgstr "이 페이지에서 벗어나는 것은 백업 실패와 연결될 수 있습니다."
+
+#: wp-db-backup.php:266
+#, php-format
+msgid "Backup complete, preparing <a href=\\\"%s\\\">backup</a> for download..."
+msgstr "백업 완료, 다운로드를 위한 <a href=\\\"%s\\\">백업</a> 준비중 ..."
+
+#: wp-db-backup.php:273
+#, php-format
+msgid "Backup complete, sending <a href=\\\"%s\\\">backup</a> via email..."
+msgstr "백업 완료, <a href=\\\"%s\\\">백업</a> 을 이메일로 보내는 중..."
+
+#: wp-db-backup.php:280
+#, php-format
+msgid "Backup complete, download <a href=\\\"%s\\\">here</a>."
+msgstr "백업 완료, 다운로드는 <a href=\\\"%s\\\">여기</a>."
+
+#: wp-db-backup.php:340
+msgid "Creating backup file..."
+msgstr "백업 파일 만드는 중..."
+
+#: wp-db-backup.php:343
+#, php-format
+msgid "Finished backing up table \\\"%s\\\"."
+msgstr "테이블 백업 완료 \\\"%s\\\"."
+
+#: wp-db-backup.php:345
+#, php-format
+msgid "Backing up table \\\"%s\\\"..."
+msgstr "테이블 백업 중 \\\"%s\\\"..."
+
+#: wp-db-backup.php:352
+#: wp-db-backup.php:835
+msgid "Could not open the backup file for writing!"
+msgstr "쓰기위해 백업 파일을 열 수 없습니다!"
+
+#: wp-db-backup.php:353
+msgid "The backup file could not be saved.  Please check the permissions for writing to your backup directory and try again."
+msgstr "백업 파일이 저장되지 않았습니다. 당신의 백업 디렉토리에 쓸 수 있는 권한이 있는지 확인하시고 재시도 해주세요."
+
+#: wp-db-backup.php:358
+#: wp-db-backup.php:844
+msgid "WordPress MySQL database backup"
+msgstr "워드프레스 MySQL 데이터베이스 백업"
+
+#: wp-db-backup.php:360
+#: wp-db-backup.php:846
+#, php-format
+msgid "Generated: %s"
+msgstr "생성됨: %s"
+
+#: wp-db-backup.php:361
+#: wp-db-backup.php:847
+#, php-format
+msgid "Hostname: %s"
+msgstr "호스트 이름: %s"
+
+#: wp-db-backup.php:362
+#: wp-db-backup.php:848
+#, php-format
+msgid "Database: %s"
+msgstr "데이터베이스: %s"
+
+#: wp-db-backup.php:370
+#: wp-db-backup.php:861
+#, php-format
+msgid "Table: %s"
+msgstr "테이블: %s"
+
+#: wp-db-backup.php:377
+msgid "The backup directory is not writeable!  Please check the permissions for writing to your backup directory and try again."
+msgstr "백업 디렉토리 쓰기 불가능! 당신의 백업 디렉토리에 쓸 수 있는 권한이 있는지 확인하시고 재시도 해주세요."
+
+#: wp-db-backup.php:434
+msgid "Click and hold down <code>[SHIFT]</code> to toggle multiple checkboxes"
+msgstr "여러 체크박스의 토글을 위해서 <code>[SHIFT]</code> 를 클릭하시고 유지하세요"
+
+#: wp-db-backup.php:474
+msgid "Change"
+msgstr "변경"
+
+#: wp-db-backup.php:483
+msgid "Save"
+msgstr "저장"
+
+#: wp-db-backup.php:566
+#: wp-db-backup.php:571
+#: wp-db-backup.php:1126
+msgid "Backup"
+msgstr "백업"
+
+#: wp-db-backup.php:646
+#: wp-db-backup.php:649
+msgid "There was an error writing a line to the backup script:"
+msgstr "백업 스크립트에 쓰는 도중 에러가 발생했습니다:"
+
+#: wp-db-backup.php:681
+msgid "Subsequent errors have been omitted from this log."
+msgstr "이 로그에서 후속 에러가 제외되었습니다."
+
+#: wp-db-backup.php:715
+msgid "Error getting table details"
+msgstr "테이블 내용을 가져오는 중 에러"
+
+#: wp-db-backup.php:723
+#, php-format
+msgid "Delete any existing table %s"
+msgstr "존재한 테이블 삭제 %s"
+
+#: wp-db-backup.php:732
+#, php-format
+msgid "Table structure of table %s"
+msgstr "테이블의 구조 테이블 %s"
+
+#: wp-db-backup.php:738
+#, php-format
+msgid "Error with SHOW CREATE TABLE for %s."
+msgstr "%s 를 위한 생성 테이블 보기 에러."
+
+#: wp-db-backup.php:745
+#, php-format
+msgid "Error getting table structure of %s"
+msgstr "%s 의 테이블 구조를 가져오는 중 에러"
+
+#: wp-db-backup.php:753
+#, php-format
+msgid "Data contents of table %s"
+msgstr "테이블의 데이터 컨텐츠 %s"
+
+#: wp-db-backup.php:823
+#, php-format
+msgid "End of data contents of table %s"
+msgstr "테이블의 데이터 컨텐츠 끝 %s"
+
+#: wp-db-backup.php:839
+msgid "The backup directory is not writeable!"
+msgstr "백업 디렉토리는 쓰기 불가능합니다!"
+
+#: wp-db-backup.php:974
+#, php-format
+msgid "File not found:%s"
+msgstr "파일이 없습니다: %s"
+
+#: wp-db-backup.php:974
+msgid "Return to Backup"
+msgstr "백업으로 돌아가기"
+
+#: wp-db-backup.php:983
+#, php-format
+msgid "File %s does not exist!"
+msgstr "%s 파일이 존재하지 않습니다!"
+
+#: wp-db-backup.php:990
+#, php-format
+msgid ""
+"Attached to this email is\n"
+"   %1s\n"
+"   Size:%2s kilobytes\n"
+msgstr ""
+"이 이메일에 첨부는\n"
+"   %1s\n"
+"   Size:%2s kilobytes\n"
+
+#: wp-db-backup.php:991
+msgid "Database Backup"
+msgstr "데이터베이스 백업"
+
+#: wp-db-backup.php:994
+#: wp-db-backup.php:1041
+msgid "The following errors were reported:"
+msgstr "다음과 같은 에러가 발견되었습니다:"
+
+#: wp-db-backup.php:999
+msgid "ERROR: The mail application has failed to deliver the backup."
+msgstr "에러: 메일로 백업 전송 실패."
+
+#: wp-db-backup.php:1016
+msgid "Backup Successful"
+msgstr "백업 성공"
+
+#: wp-db-backup.php:1020
+#, php-format
+msgid "Your backup file: <a href=\"%1s\">%2s</a> should begin downloading shortly."
+msgstr "당신의 백업 파일: <a href=\"%1s\">%2s</a> 은 금방 다운로드가 시작됩니다."
+
+#: wp-db-backup.php:1028
+#, php-format
+msgid "Your backup has been emailed to %s"
+msgstr "당신의 백업은 %s 로 이메일 전송 되었습니다."
+
+#: wp-db-backup.php:1031
+msgid "Your backup file has been saved on the server. If you would like to download it now, right click and select \"Save As\""
+msgstr "당신의 백업 파일은 서버에 저장되었습니다. 만약 지금 다운로드 하고싶다면, 우클릭 후 \"Save As\" 를 선택하세요."
+
+#: wp-db-backup.php:1032
+#, php-format
+msgid "%s bytes"
+msgstr "%s 바이트"
+
+#: wp-db-backup.php:1068
+msgid "Scheduled Backup Options Saved!"
+msgstr "예약된 백업 옵션 저장됨!"
+
+#: wp-db-backup.php:1095
+msgid "WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it."
+msgstr "경고: 당신의 백업 디렉토리가 <strong>존재하지 않아</strong> 생성할 수 없습니다."
+
+#: wp-db-backup.php:1096
+#, php-format
+msgid "Using your FTP client, try to create the backup directory yourself: %s"
+msgstr "당신의 FTP 를 사용하여, 백업 디렉토리를 직접 생성하세요: %s"
+
+#: wp-db-backup.php:1100
+#: wp-db-backup.php:1111
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files."
+msgstr "경고: 당신의 백업 디렉토리는 <strong>쓰기 불가능</strong> 입니다! 백업 파일을 생성할 수 없습니다."
+
+#: wp-db-backup.php:1101
+#, php-format
+msgid "Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s"
+msgstr "당신의 FTP 를 사용하여, 백업 디렉토리를 &rsquo;s 다음과 같은 권한으로 설정하세요. %1$s or %2$s: %3$s"
+
+#: wp-db-backup.php:1113
+msgid "This problem seems to be caused by your server&rsquo;s <code>safe_mode</code> file ownership restrictions, which limit what files web applications like WordPress can create."
+msgstr "이 문제는 당신의 서버로 인한 것 같습니다.&rsquo;s <code>안전 모드</code> 파일 소유권 제한으로 워드프레스같은 웹애플리케이션이 생성하는 파일에 제한이 있는 것 같습니다."
+
+#: wp-db-backup.php:1115
+#, php-format
+msgid "You can try to correct this problem by using your FTP client to delete and then re-create the backup directory: %s"
+msgstr "당신은 FTP 를 이용하여 백업 디렉토리를 삭제 후 재생성을 해서 이 문제를 고칠 수 있습니다: %s"
+
+#: wp-db-backup.php:1129
+msgid "Tables"
+msgstr "테이블"
+
+#: wp-db-backup.php:1131
+msgid "These core WordPress tables will always be backed up:"
+msgstr "이러한 핵심 워드프레스 테이블은 항상 백업합니다:"
+
+#: wp-db-backup.php:1136
+msgid "Exclude spam comments"
+msgstr "제외 스팸 댓글"
+
+#: wp-db-backup.php:1139
+msgid "Exclude post revisions"
+msgstr "제외 글 수정"
+
+#: wp-db-backup.php:1150
+msgid "You may choose to include any of the following tables:"
+msgstr "당신은 다음 테이블을 포함하도록 선택할 수 있습니다:"
+
+#: wp-db-backup.php:1164
+msgid "Backup Options"
+msgstr "백업 옵션"
+
+#: wp-db-backup.php:1165
+msgid "What to do with the backup file:"
+msgstr "백업 파일로 무엇을 할까요:"
+
+#: wp-db-backup.php:1169
+msgid "Save to server"
+msgstr "서버에 저장"
+
+#: wp-db-backup.php:1174
+msgid "Download to your computer"
+msgstr "당신의 컴퓨터로 다운로드"
+
+#: wp-db-backup.php:1178
+#: wp-db-backup.php:1235
+msgid "Email backup to:"
+msgstr "이메일 백업:"
+
+#: wp-db-backup.php:1185
+msgid "Backup now!"
+msgstr "지금 백업하세요!"
+
+#: wp-db-backup.php:1188
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable!"
+msgstr "경고: 당신의 백업 디렉토리는 <strong>쓰기 불가능</strong> 입니다!"
+
+#: wp-db-backup.php:1199
+msgid "Scheduled Backup"
+msgstr "예약된 백업"
+
+#: wp-db-backup.php:1206
+#, php-format
+msgid "Next Backup: %s"
+msgstr "다음 백업: %s"
+
+#: wp-db-backup.php:1211
+#, php-format
+msgid "Last WP-Cron Daily Execution: %s"
+msgstr "마지막 WP-Cron 매일 실행 : %s"
+
+#: wp-db-backup.php:1212
+#, php-format
+msgid "Next WP-Cron Daily Execution: %s"
+msgstr "다음 WP-Cron 매일 실행: %s"
+
+#: wp-db-backup.php:1217
+msgid "Schedule: "
+msgstr "예약:"
+
+#: wp-db-backup.php:1220
+msgid "None"
+msgstr "없음"
+
+#: wp-db-backup.php:1220
+msgid "Daily"
+msgstr "매일"
+
+#: wp-db-backup.php:1243
+msgid "Tables to include in the scheduled backup:"
+msgstr "예약된 백업 안에 추가할 테이블:"
+
+#: wp-db-backup.php:1253
+msgid "Schedule backup"
+msgstr "예약 백업"
+
+#: wp-db-backup.php:1278
+msgid "Never"
+msgstr "절대"
+
+#: wp-db-backup.php:1283
+#, php-format
+msgid "%s seconds"
+msgstr "%s 초"
+
+#: wp-db-backup.php:1316
+msgid "Once Weekly"
+msgstr "주마다 한번"
+
+#: wp-db-backup.php:1329
+#, php-format
+msgid "Your WordPress version, %1s, lacks important security features without which it is unsafe to use the WP-DB-Backup plugin.  Hence, this plugin is automatically disabled.  Please consider <a href=\"%2s\">upgrading WordPress</a> to a more recent version."
+msgstr "당신의 워드프레스 버전, %1s, 은 보안 기능이 미흡하여 WP-DB-Backup 플러그인을 쓰기에는 안전하지 않습니다. 따라서 이 플러그인을 자동으로 해제했습니다.  최신 버전으로 <a href=\"%2s\">워드프레스 업그레이드</a>를 고려하세요."
+
+#: wp-db-backup.php:1347
+msgid "You are not allowed to perform backups."
+msgstr "당신은 백업을 이용할 수 없습니다."
+
+#: wp-db-backup.php:1362
+#, php-format
+msgid "There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted."
+msgstr "이 사이트에서 무단으로 귀하의 데이터베이스 %1s에 액세스하려 시도되었습니다. 그 시도가 중단되었습니다."
+
+#: wp-db-backup.php:1373
+msgid "Cheatin' uh ?"
+msgstr "누굴 속이시려고?"
+
