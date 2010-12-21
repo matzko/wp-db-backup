@@ -5,7 +5,7 @@ Plugin URI: http://austinmatzko.com/wordpress-plugins/wp-db-backup/
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Tools &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://austinmatzko.com/
-Version: 2.2.3-beta
+Version: 2.2.3
 
 Copyright 2010  Austin Matzko  (email : austin at pressedcode.com)
 
