@@ -103,6 +103,14 @@ When having the database backup emailed or sent to your browser for immediate do
    if other people obtain your backup file.
    *** SECURITY WARNING ***
 
+== Changelog ==
+
+= 2.2.3 = 
+Nonce check fix for localized WP users from Sergey Biryukov
+Fix for gzipped files' incorrect size.
+Some styling improvements.
+Fix for JS multiple checkbox selection.
+
 == Advanced ==
 If you are using WordPress version 2.1 or newer, you can schedule automated backups to be sent to the email address 
 of your choice.
