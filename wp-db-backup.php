@@ -493,7 +493,9 @@ class wpdbBackup {
 				var initTimeChange = function() {
 					var timeWrap = document.getElementById('backup-time-wrap');
 					var backupTime = document.getElementById('next-backup-time');
-					if ( !! timeWrap && !! backupTime ) {
+					if ( !! timeWrap && !! backupTime && ( 1 == <?php
+						echo (int) ( 'en' == strtolower( substr( get_locale(), 0, 2 ) ) );	
+					?> ) ) {
 						var span = document.createElement('span');
 						span.className = 'submit';
 						span.id = 'change-wrap';
