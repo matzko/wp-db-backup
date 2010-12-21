@@ -106,16 +106,16 @@ When having the database backup emailed or sent to your browser for immediate do
 == Changelog ==
 
 = 2.2.3 = 
-Nonce check fix for localized WP users from Sergey Biryukov
-Fix for gzipped files' incorrect size.
-Some styling improvements.
-Fix for JS multiple checkbox selection.
+* Nonce check fix for localized WP users from Sergey Biryukov
+* Fix for gzipped files' incorrect size.
+* Some styling improvements.
+* Fix for JS multiple checkbox selection.
 
 == Upgrade Notice ==
 
 = 2.2.3 =
-Fixes problems users had when using localized WordPress installations.
-Fixes a bug that caused the size of gzipped backup files to be reported incorrectly.
+* Fixes problems users had when using localized WordPress installations.
+* Fixes a bug that caused the size of gzipped backup files to be reported incorrectly.
 
 == Advanced ==
 If you are using WordPress version 2.1 or newer, you can schedule automated backups to be sent to the email address 
