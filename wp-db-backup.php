@@ -237,7 +237,7 @@ class wpdbBackup {
 				<li>'.__('Click the Stop or Back buttons in your browser','wp-db-backup').'</li>
 			</ol>
 			<p><strong>' . __('Progress:','wp-db-backup') . '</strong></p>
-			<div id="meterbox" style="height:11px;width:80%;padding:3px;border:1px solid #659fff;"><div id="meter" style="height:11px;line-height:11px;background-color:#659fff;width:0%;text-align:center;font-size:6pt;">&nbsp;</div></div>
+			<div id="meterbox" style="height:11px;width:80%;padding:3px;border:1px solid #659fff;"><div id="meter" style="color:#fff;height:11px;line-height:11px;background-color:#659fff;width:0%;text-align:center;font-size:6pt;">&nbsp;</div></div>
 			<div id="progress_message"></div>
 			<div id="errors"></div>
 			</fieldset>
@@ -556,6 +556,13 @@ class wpdbBackup {
 				border: 1px solid;
 				margin-top: 1em;
 				padding: 1em;
+				-moz-border-radius: 8px;
+				-khtml-border-radius: 8px;
+				-webkit-border-top-left-radius: 8px;
+				-webkit-border-top-right-radius: 8px;
+				-webkit-border-bottom-left-radius: 8px;
+				-webkit-border-bottom-right-radius: 8px;
+				border-radius: 8px;
 			}
 				fieldset.options div.tables-list {
 					float: left;
