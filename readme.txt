@@ -130,6 +130,7 @@ Thanks to following people for providing translation files for WP-DB-Backup:
 * Calle
 * Daniel Erb
 * Daniel Villoldo
+* Diego Pierotto
 * Eilif Nordseth
 * Eric Lassauge
 * Friedlich
