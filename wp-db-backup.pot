@@ -1,0 +1,409 @@
+# WP-DB-Backup
+# Copyright (C) 2010 Austin Matzko
+# This file is distributed under the GPL 2 license.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-12-21 15:38-0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: Austin Matzko austin at pressedcode dot com\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: wp-db-backup.php:177 wp-db-backup.php:285 wp-db-backup.php:302
+msgid "Backup Complete!"
+msgstr ""
+
+#: wp-db-backup.php:220
+msgid "http://codex.wordpress.org/WordPress_Backups"
+msgstr ""
+
+#: wp-db-backup.php:221
+#, php-format
+msgid ""
+"Click <a href=\"%s\" target=\"_blank\">here</a> to back up your database "
+"using the WordPress Database Backup plugin. <strong>Note:</strong> WordPress "
+"Database Backup does <em>not</em> back up your files, just your database."
+msgstr ""
+
+#: wp-db-backup.php:230
+msgid "Progress"
+msgstr ""
+
+#: wp-db-backup.php:232
+msgid "DO NOT DO THE FOLLOWING AS IT WILL CAUSE YOUR BACKUP TO FAIL:"
+msgstr ""
+
+#: wp-db-backup.php:235
+msgid "Close this browser"
+msgstr ""
+
+#: wp-db-backup.php:236
+msgid "Reload this page"
+msgstr ""
+
+#: wp-db-backup.php:237
+msgid "Click the Stop or Back buttons in your browser"
+msgstr ""
+
+#: wp-db-backup.php:239
+msgid "Progress:"
+msgstr ""
+
+#: wp-db-backup.php:248
+msgid "Navigating away from this page will cause your backup to fail."
+msgstr ""
+
+#: wp-db-backup.php:295 wp-db-backup.php:1098
+#, php-format
+msgid "Your backup has been emailed to %s"
+msgstr ""
+
+#: wp-db-backup.php:362
+msgid "Creating backup file..."
+msgstr ""
+
+#: wp-db-backup.php:365
+#, php-format
+msgid "Finished backing up table \\\"%s\\\"."
+msgstr ""
+
+#: wp-db-backup.php:367
+#, php-format
+msgid "Backing up table \\\"%s\\\"..."
+msgstr ""
+
+#: wp-db-backup.php:374 wp-db-backup.php:881
+msgid "Could not open the backup file for writing!"
+msgstr ""
+
+#: wp-db-backup.php:375
+msgid ""
+"The backup file could not be saved.  Please check the permissions for "
+"writing to your backup directory and try again."
+msgstr ""
+
+#: wp-db-backup.php:380 wp-db-backup.php:890
+msgid "WordPress MySQL database backup"
+msgstr ""
+
+#: wp-db-backup.php:382 wp-db-backup.php:892
+#, php-format
+msgid "Generated: %s"
+msgstr ""
+
+#: wp-db-backup.php:383 wp-db-backup.php:893
+#, php-format
+msgid "Hostname: %s"
+msgstr ""
+
+#: wp-db-backup.php:384 wp-db-backup.php:894
+#, php-format
+msgid "Database: %s"
+msgstr ""
+
+#: wp-db-backup.php:392 wp-db-backup.php:907
+#, php-format
+msgid "Table: %s"
+msgstr ""
+
+#: wp-db-backup.php:399
+msgid ""
+"The backup directory is not writeable!  Please check the permissions for "
+"writing to your backup directory and try again."
+msgstr ""
+
+#: wp-db-backup.php:458
+msgid "Click and hold down <code>[SHIFT]</code> to toggle multiple checkboxes"
+msgstr ""
+
+#: wp-db-backup.php:502
+msgid "Change"
+msgstr ""
+
+#: wp-db-backup.php:511
+msgid "Save"
+msgstr ""
+
+#: wp-db-backup.php:605 wp-db-backup.php:614 wp-db-backup.php:1196
+msgid "Backup"
+msgstr ""
+
+#: wp-db-backup.php:623
+msgid "FAQ"
+msgstr ""
+
+#: wp-db-backup.php:624
+msgid "WP-DB-Backup Support Forum"
+msgstr ""
+
+#: wp-db-backup.php:694
+msgid "There was an error writing a line to the backup script:"
+msgstr ""
+
+#: wp-db-backup.php:727
+msgid "Subsequent errors have been omitted from this log."
+msgstr ""
+
+#: wp-db-backup.php:761
+msgid "Error getting table details"
+msgstr ""
+
+#: wp-db-backup.php:769
+#, php-format
+msgid "Delete any existing table %s"
+msgstr ""
+
+#: wp-db-backup.php:778
+#, php-format
+msgid "Table structure of table %s"
+msgstr ""
+
+#: wp-db-backup.php:784
+#, php-format
+msgid "Error with SHOW CREATE TABLE for %s."
+msgstr ""
+
+#: wp-db-backup.php:791
+#, php-format
+msgid "Error getting table structure of %s"
+msgstr ""
+
+#: wp-db-backup.php:799
+#, php-format
+msgid "Data contents of table %s"
+msgstr ""
+
+#: wp-db-backup.php:869
+#, php-format
+msgid "End of data contents of table %s"
+msgstr ""
+
+#: wp-db-backup.php:885
+msgid "The backup directory is not writeable!"
+msgstr ""
+
+#: wp-db-backup.php:1044
+#, php-format
+msgid "File not found:%s"
+msgstr ""
+
+#: wp-db-backup.php:1044
+msgid "Return to Backup"
+msgstr ""
+
+#: wp-db-backup.php:1053
+#, php-format
+msgid "File %s does not exist!"
+msgstr ""
+
+#: wp-db-backup.php:1060
+#, php-format
+msgid ""
+"Attached to this email is\n"
+"   %1s\n"
+"   Size:%2s kilobytes\n"
+msgstr ""
+
+#: wp-db-backup.php:1061
+msgid "Database Backup"
+msgstr ""
+
+#: wp-db-backup.php:1064 wp-db-backup.php:1111
+msgid "The following errors were reported:"
+msgstr ""
+
+#: wp-db-backup.php:1069
+msgid "ERROR: The mail application has failed to deliver the backup."
+msgstr ""
+
+#: wp-db-backup.php:1086
+msgid "Backup Successful"
+msgstr ""
+
+#: wp-db-backup.php:1090
+#, php-format
+msgid ""
+"Your backup file: <a href=\"%1s\">%2s</a> should begin downloading shortly."
+msgstr ""
+
+#: wp-db-backup.php:1101
+msgid ""
+"Your backup file has been saved on the server. If you would like to download "
+"it now, right click and select \"Save As\""
+msgstr ""
+
+#: wp-db-backup.php:1102
+#, php-format
+msgid "%s bytes"
+msgstr ""
+
+#: wp-db-backup.php:1138
+msgid "Scheduled Backup Options Saved!"
+msgstr ""
+
+#: wp-db-backup.php:1165
+msgid ""
+"WARNING: Your backup directory does <strong>NOT</strong> exist, and we "
+"cannot create it."
+msgstr ""
+
+#: wp-db-backup.php:1166
+#, php-format
+msgid "Using your FTP client, try to create the backup directory yourself: %s"
+msgstr ""
+
+#: wp-db-backup.php:1170 wp-db-backup.php:1181
+msgid ""
+"WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot "
+"create the backup files."
+msgstr ""
+
+#: wp-db-backup.php:1171
+#, php-format
+msgid ""
+"Using your FTP client, try to set the backup directory&rsquo;s write "
+"permission to %1$s or %2$s: %3$s"
+msgstr ""
+
+#: wp-db-backup.php:1183
+msgid ""
+"This problem seems to be caused by your server&rsquo;s <code>safe_mode</"
+"code> file ownership restrictions, which limit what files web applications "
+"like WordPress can create."
+msgstr ""
+
+#: wp-db-backup.php:1185
+#, php-format
+msgid ""
+"You can try to correct this problem by using your FTP client to delete and "
+"then re-create the backup directory: %s"
+msgstr ""
+
+#: wp-db-backup.php:1199
+msgid "Tables"
+msgstr ""
+
+#: wp-db-backup.php:1201
+msgid "These core WordPress tables will always be backed up:"
+msgstr ""
+
+#: wp-db-backup.php:1206
+msgid "Exclude spam comments"
+msgstr ""
+
+#: wp-db-backup.php:1209
+msgid "Exclude post revisions"
+msgstr ""
+
+#: wp-db-backup.php:1220
+msgid "You may choose to include any of the following tables:"
+msgstr ""
+
+#: wp-db-backup.php:1234
+msgid "Backup Options"
+msgstr ""
+
+#: wp-db-backup.php:1235
+msgid "What to do with the backup file:"
+msgstr ""
+
+#: wp-db-backup.php:1239
+msgid "Save to server"
+msgstr ""
+
+#: wp-db-backup.php:1244
+msgid "Download to your computer"
+msgstr ""
+
+#: wp-db-backup.php:1248 wp-db-backup.php:1312
+msgid "Email backup to:"
+msgstr ""
+
+#: wp-db-backup.php:1261
+msgid "Backup now!"
+msgstr ""
+
+#: wp-db-backup.php:1264
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable!"
+msgstr ""
+
+#: wp-db-backup.php:1275
+msgid "Scheduled Backup"
+msgstr ""
+
+#: wp-db-backup.php:1282
+#, php-format
+msgid "Next Backup: %s"
+msgstr ""
+
+#: wp-db-backup.php:1287
+#, php-format
+msgid "Last WP-Cron Daily Execution: %s"
+msgstr ""
+
+#: wp-db-backup.php:1288
+#, php-format
+msgid "Next WP-Cron Daily Execution: %s"
+msgstr ""
+
+#: wp-db-backup.php:1293
+msgid "Schedule: "
+msgstr ""
+
+#: wp-db-backup.php:1297
+msgid "None"
+msgstr ""
+
+#: wp-db-backup.php:1297
+msgid "Daily"
+msgstr ""
+
+#: wp-db-backup.php:1314
+msgid "Schedule backup"
+msgstr ""
+
+#: wp-db-backup.php:1322
+msgid "Tables to include in the scheduled backup:"
+msgstr ""
+
+#: wp-db-backup.php:1357
+msgid "Never"
+msgstr ""
+
+#: wp-db-backup.php:1362
+#, php-format
+msgid "%s seconds"
+msgstr ""
+
+#: wp-db-backup.php:1395
+msgid "Once Weekly"
+msgstr ""
+
+#: wp-db-backup.php:1408
+#, php-format
+msgid ""
+"Your WordPress version, %1s, lacks important security features without which "
+"it is unsafe to use the WP-DB-Backup plugin.  Hence, this plugin is "
+"automatically disabled.  Please consider <a href=\"%2s\">upgrading "
+"WordPress</a> to a more recent version."
+msgstr ""
+
+#: wp-db-backup.php:1426
+msgid "You are not allowed to perform backups."
+msgstr ""
+
+#: wp-db-backup.php:1441
+#, php-format
+msgid ""
+"There appears to be an unauthorized attempt from this site to access your "
+"database located at %1s.  The attempt has been halted."
+msgstr ""
+
+#: wp-db-backup.php:1452
+msgid "Cheatin' uh ?"
+msgstr ""

@@ -1,0 +1,394 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: www.rjlalmtr.com\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-08-15 11:00-0500\n"
+"PO-Revision-Date: 2008-11-07 11:41+0300\n"
+"Last-Translator: \n"
+"Language-Team: www.rjlalmtr.com <info@rjlalmtr.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Arabic\n"
+"X-Poedit-Country: SAUDI ARABIA\n"
+
+#: wp-db-backup.php:181
+msgid "Backup Complete!"
+msgstr "النسخه الاحتياطيه اكتملت !"
+
+#: wp-db-backup.php:211
+msgid "Progress"
+msgstr "معالجه .."
+
+#: wp-db-backup.php:213
+msgid "DO NOT DO THE FOLLOWING AS IT WILL CAUSE YOUR BACKUP TO FAIL:"
+msgstr "لاتقم بفعل مايلي لانه سيتلف عملية النسخ الاحتياطي الخاصه بك :"
+
+#: wp-db-backup.php:216
+msgid "Close this browser"
+msgstr "إغلاق المتصفح"
+
+#: wp-db-backup.php:217
+msgid "Reload this page"
+msgstr "تحديث الصفحه"
+
+#: wp-db-backup.php:218
+msgid "Click the Stop or Back buttons in your browser"
+msgstr "الضغط على زر الإيقاف او الرجوع للخلف في متصفحك "
+
+#: wp-db-backup.php:220
+msgid "Progress:"
+msgstr "معالجه ..."
+
+#: wp-db-backup.php:229
+msgid "Navigating away from this page will cause your backup to fail."
+msgstr "الانتقال من هذه الصفحه سيؤدي الى فشل عملية النسخ الاحتياطي"
+
+#: wp-db-backup.php:266
+#, php-format
+msgid "Backup complete, preparing <a href=\\\"%s\\\">backup</a> for download..."
+msgstr "النسخ الاحتياطي اكتمل <a href=\\\"%s\\\">النسخه الاحتياطيه</a> للتحميل..."
+
+#: wp-db-backup.php:273
+#, php-format
+msgid "Backup complete, sending <a href=\\\"%s\\\">backup</a> via email..."
+msgstr "النسخه الاحتياطيه اكتملت ,, إرسال <a href=\\\"%s\\\">النسخه الاحتياطيه</a> الى الايميل..."
+
+#: wp-db-backup.php:280
+#, php-format
+msgid "Backup complete, download <a href=\\\"%s\\\">here</a>."
+msgstr "النسخ الاحتياطي اكتمل , للتحميل <a href=\\\"%s\\\">من هنا</a>."
+
+#: wp-db-backup.php:340
+msgid "Creating backup file..."
+msgstr "انشاء النسخه الاحتياطيه"
+
+#: wp-db-backup.php:343
+#, php-format
+msgid "Finished backing up table \\\"%s\\\"."
+msgstr "تم الانتهاء من نسخ الجدول \\\"%s\\\"."
+
+#: wp-db-backup.php:345
+#, php-format
+msgid "Backing up table \\\"%s\\\"..."
+msgstr "نسخ الجدول \\\"%s\\\"..."
+
+#: wp-db-backup.php:352
+#: wp-db-backup.php:835
+msgid "Could not open the backup file for writing!"
+msgstr "تعذر فتح ملف النسخة الاحتياطية للكتابة!"
+
+#: wp-db-backup.php:353
+msgid "The backup file could not be saved.  Please check the permissions for writing to your backup directory and try again."
+msgstr "ملف النسخة الاحتياطية لا يمكن حفظه. يرجى التحقق من اذونات التصريح إلى مجلد النسخه الاحتياطية الخاصة بك وحاول مرة أخرى."
+
+#: wp-db-backup.php:358
+#: wp-db-backup.php:844
+msgid "WordPress MySQL database backup"
+msgstr "النسخ الاحتياطي لقاعدة بيانات ووردبريس"
+
+#: wp-db-backup.php:360
+#: wp-db-backup.php:846
+#, php-format
+msgid "Generated: %s"
+msgstr "تم النسخ في: %s"
+
+#: wp-db-backup.php:361
+#: wp-db-backup.php:847
+#, php-format
+msgid "Hostname: %s"
+msgstr "اسم الموقع: %s"
+
+#: wp-db-backup.php:362
+#: wp-db-backup.php:848
+#, php-format
+msgid "Database: %s"
+msgstr "اسم القاعده: %s"
+
+#: wp-db-backup.php:370
+#: wp-db-backup.php:861
+#, php-format
+msgid "Table: %s"
+msgstr "الجدول: %s"
+
+#: wp-db-backup.php:377
+msgid "The backup directory is not writeable!  Please check the permissions for writing to your backup directory and try again."
+msgstr "مجلد النسخ الاحتياطي غير قابل للكتابه. يرجى التحقق من اذونات التصريح إلى مجلد النسخه الاحتياطية الخاصة بك وحاول مرة أخرى."
+
+#: wp-db-backup.php:434
+msgid "Click and hold down <code>[SHIFT]</code> to toggle multiple checkboxes"
+msgstr "اضغط باستمرار نزول <code>[SHIFT]</code>للانتقال لحانات متعدده"
+
+#: wp-db-backup.php:474
+msgid "Change"
+msgstr "تغيير"
+
+#: wp-db-backup.php:483
+msgid "Save"
+msgstr "حفظ"
+
+#: wp-db-backup.php:566
+#: wp-db-backup.php:571
+#: wp-db-backup.php:1126
+msgid "Backup"
+msgstr "النسخ الاحتياطي"
+
+#: wp-db-backup.php:646
+#: wp-db-backup.php:649
+msgid "There was an error writing a line to the backup script:"
+msgstr "هناك خطأ في طتابة السطر البرمجي لسكربت النسخ الاحتياطي"
+
+#: wp-db-backup.php:681
+msgid "Subsequent errors have been omitted from this log."
+msgstr "الأخطاء اللاحقة قد حذفت من هذا السجل."
+
+#: wp-db-backup.php:715
+msgid "Error getting table details"
+msgstr "حدث خطأ أثناء الحصول على تفاصيل الجدول"
+
+#: wp-db-backup.php:723
+#, php-format
+msgid "Delete any existing table %s"
+msgstr "حذف اي جدول من القائمه %s"
+
+#: wp-db-backup.php:732
+#, php-format
+msgid "Table structure of table %s"
+msgstr "جداول هيكلة الجدول %s"
+
+#: wp-db-backup.php:738
+#, php-format
+msgid "Error with SHOW CREATE TABLE for %s."
+msgstr "خطأ مع عرض وانشاء الجدول لـ %s"
+
+#: wp-db-backup.php:745
+#, php-format
+msgid "Error getting table structure of %s"
+msgstr "حدث خطا اثناء الحصول على هيكل الجدول %s"
+
+#: wp-db-backup.php:753
+#, php-format
+msgid "Data contents of table %s"
+msgstr "محتوى بيانات الجدول %s"
+
+#: wp-db-backup.php:823
+#, php-format
+msgid "End of data contents of table %s"
+msgstr "نهاية محتوى بيانات الجدول %s"
+
+#: wp-db-backup.php:839
+msgid "The backup directory is not writeable!"
+msgstr "مجلد النسخ الاحتياطي غير قابل للكتابه"
+
+#: wp-db-backup.php:974
+#, php-format
+msgid "File not found:%s"
+msgstr "لم يعثر على الملف :%s"
+
+#: wp-db-backup.php:974
+msgid "Return to Backup"
+msgstr "عوده الى الخلف"
+
+#: wp-db-backup.php:983
+#, php-format
+msgid "File %s does not exist!"
+msgstr "الملف %s  لا وجود له !"
+
+#: wp-db-backup.php:990
+#, php-format
+msgid ""
+"Attached to this email is\n"
+"   %1s\n"
+"   Size:%2s kilobytes\n"
+msgstr ""
+"مرفقات الرساله هي\n"
+"   %1s\n"
+"   الحجم:%2s كيلوبايت\n"
+
+#: wp-db-backup.php:991
+msgid "Database Backup"
+msgstr "نسخ قاعدة البيانات"
+
+#: wp-db-backup.php:994
+#: wp-db-backup.php:1041
+msgid "The following errors were reported:"
+msgstr "تم الابلاغ عن الاخطاء التاليه :"
+
+#: wp-db-backup.php:999
+msgid "ERROR: The mail application has failed to deliver the backup."
+msgstr "خطأ : تطبيق البريد فشل في تقديم النسخه الاحتياطيه ."
+
+#: wp-db-backup.php:1016
+msgid "Backup Successful"
+msgstr "اكتمال النسخ الاحتياطي "
+
+#: wp-db-backup.php:1020
+#, php-format
+msgid "Your backup file: <a href=\"%1s\">%2s</a> should begin downloading shortly."
+msgstr "النسخه الاحتياطيه الخاصه بك: <a href=\"%1s\">%2s</a> ينبغي ان تبداء بتحميلها قريبا."
+
+#: wp-db-backup.php:1028
+#, php-format
+msgid "Your backup has been emailed to %s"
+msgstr "النسخه الاحتياطيه الحاصه بك تم ارسالها بالبريد الالكتروني للايميل %s"
+
+#: wp-db-backup.php:1031
+msgid "Your backup file has been saved on the server. If you would like to download it now, right click and select \"Save As\""
+msgstr "النسخه الاحتياطيه الخاص بك تم حفظها على السيرفر لتحميلها اضغط بالزر الايمن واختر \"حفظ باسم\""
+
+#: wp-db-backup.php:1032
+#, php-format
+msgid "%s bytes"
+msgstr "%s بايت"
+
+#: wp-db-backup.php:1068
+msgid "Scheduled Backup Options Saved!"
+msgstr "خيارات النسخ الدوري تم حفظها !"
+
+#: wp-db-backup.php:1095
+msgid "WARNING: Your backup directory does <strong>NOT</strong> exist, and we cannot create it."
+msgstr "تحذير : مجلد النسخ الاحتياطيه <strong>لم يتم</strong> العثور عليه . كما انه لم يتم انشائه . "
+
+#: wp-db-backup.php:1096
+#, php-format
+msgid "Using your FTP client, try to create the backup directory yourself: %s"
+msgstr "استخدم برنامج الاف تي بي FTP  وقم بإنشاء المجلد على هذا المسار : %s"
+
+#: wp-db-backup.php:1100
+#: wp-db-backup.php:1111
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable! We cannot create the backup files."
+msgstr "تحذير : المجلد الخاص بالنسخ الاحتياطي <strong>غير قابل</strong> للكتابه! لذلك لايمكن انشاء النسخ الاحتياطي ."
+
+#: wp-db-backup.php:1101
+#, php-format
+msgid "Using your FTP client, try to set the backup directory&rsquo;s write permission to %1$s or %2$s: %3$s"
+msgstr "استخدم برنامج الاف تي بي الخاص بك . واعط مجلد النسخ الاحتياطي&rsquo;s التصاريح %1$s or %2$s: %3$s"
+
+#: wp-db-backup.php:1113
+msgid "This problem seems to be caused by your server&rsquo;s <code>safe_mode</code> file ownership restrictions, which limit what files web applications like WordPress can create."
+msgstr ""
+
+#: wp-db-backup.php:1115
+#, php-format
+msgid "You can try to correct this problem by using your FTP client to delete and then re-create the backup directory: %s"
+msgstr "يمكنك تصحيح هذه المشكله باستخدام برنامج الاف تي بي ومن ثم حذف مجلد النسخ الاحتياطي واعادة انشائه مرخ اخرى %s"
+
+#: wp-db-backup.php:1129
+msgid "Tables"
+msgstr "الجدوال"
+
+#: wp-db-backup.php:1131
+msgid "These core WordPress tables will always be backed up:"
+msgstr "هذه الجدوال الاساسيه للووردبريس سيتم نسخها دائما :"
+
+#: wp-db-backup.php:1136
+msgid "Exclude spam comments"
+msgstr "استبعاد التعليقات المزعجه ( سبام ) "
+
+#: wp-db-backup.php:1139
+msgid "Exclude post revisions"
+msgstr "استثناء تنقيحات المواضيع"
+
+#: wp-db-backup.php:1150
+msgid "You may choose to include any of the following tables:"
+msgstr "يمكنك اختيار اي من الجداول التاليه ليشملها النسخ :"
+
+#: wp-db-backup.php:1164
+msgid "Backup Options"
+msgstr "خيارات النسخ الدوري"
+
+#: wp-db-backup.php:1165
+msgid "What to do with the backup file:"
+msgstr "ماذا تريد ان تفعل بملف النسخه الاحتياطيه :"
+
+#: wp-db-backup.php:1169
+msgid "Save to server"
+msgstr "حفظ على السيرفر"
+
+#: wp-db-backup.php:1174
+msgid "Download to your computer"
+msgstr "حفظ على الكمبيوتر "
+
+#: wp-db-backup.php:1178
+#: wp-db-backup.php:1235
+msgid "Email backup to:"
+msgstr "ارسالها الى الايميل "
+
+#: wp-db-backup.php:1185
+msgid "Backup now!"
+msgstr "النسخ الان !"
+
+#: wp-db-backup.php:1188
+msgid "WARNING: Your backup directory is <strong>NOT</strong> writable!"
+msgstr "تحذير : دليل النسخ الاحتياطيه الخاص بك <strong>غير قابل</strong>للكتابه !"
+
+#: wp-db-backup.php:1199
+msgid "Scheduled Backup"
+msgstr "النسخ الاحتياطي الدوري"
+
+#: wp-db-backup.php:1206
+#, php-format
+msgid "Next Backup: %s"
+msgstr "النسخ الاحتياطي التالي: %s"
+
+#: wp-db-backup.php:1211
+#, php-format
+msgid "Last WP-Cron Daily Execution: %s"
+msgstr "Last WP-Cron Daily Execution: %s"
+
+#: wp-db-backup.php:1212
+#, php-format
+msgid "Next WP-Cron Daily Execution: %s"
+msgstr ""
+
+#: wp-db-backup.php:1217
+msgid "Schedule: "
+msgstr "النسخ الدوري :"
+
+#: wp-db-backup.php:1220
+msgid "None"
+msgstr "بدون"
+
+#: wp-db-backup.php:1220
+msgid "Daily"
+msgstr "يومي"
+
+#: wp-db-backup.php:1243
+msgid "Tables to include in the scheduled backup:"
+msgstr "الجداول التي يشملها النسخ الاحتياطي الدوري :"
+
+#: wp-db-backup.php:1253
+msgid "Schedule backup"
+msgstr "النسخ الاحتياطي الدوري"
+
+#: wp-db-backup.php:1278
+msgid "Never"
+msgstr "ابدا"
+
+#: wp-db-backup.php:1283
+#, php-format
+msgid "%s seconds"
+msgstr ""
+
+#: wp-db-backup.php:1316
+msgid "Once Weekly"
+msgstr "مره كل اسبوع"
+
+#: wp-db-backup.php:1329
+#, php-format
+msgid "Your WordPress version, %1s, lacks important security features without which it is unsafe to use the WP-DB-Backup plugin.  Hence, this plugin is automatically disabled.  Please consider <a href=\"%2s\">upgrading WordPress</a> to a more recent version."
+msgstr ""
+
+#: wp-db-backup.php:1347
+msgid "You are not allowed to perform backups."
+msgstr "لم تسمح بالنسخ الاحتياطي ."
+
+#: wp-db-backup.php:1362
+#, php-format
+msgid "There appears to be an unauthorized attempt from this site to access your database located at %1s.  The attempt has been halted."
+msgstr ""
+
+#: wp-db-backup.php:1373
+msgid "Cheatin' uh ?"
+msgstr ""
+
