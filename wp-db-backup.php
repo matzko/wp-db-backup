@@ -182,9 +182,9 @@ class wpdbBackup {
 				break;
 			default:
 				$this->deliver_backup($this->backup_file, $via);
-				$this->error_display( 'frame' );
+				echo $this->error_display( 'frame', false );
 			}
-			die();
+			exit;
 		}
 		if (isset($_GET['fragment'] )) {
 			list($table, $segment, $filename) = explode(':', $_GET['fragment']);
@@ -244,6 +244,15 @@ class wpdbBackup {
 			<iframe id="backuploader" src="about:blank" style="visibility:hidden;border:none;height:1em;width:1px;"></iframe>
 			<script type="text/javascript">
 			//<![CDATA[
+			var wpDBBackupWaiting;
+			function markSuccess() {
+				if ( wpDBBackupWaiting ) {
+					try {
+						clearTimeout( wpDBBackupWaiting );
+					} catch ( err ) {}
+				}
+			}
+
 			window.onbeforeunload = function() {
 				return "' . __('Navigating away from this page will cause your backup to fail.', 'wp-db-backup') . '";
 			}
@@ -285,6 +294,9 @@ class wpdbBackup {
 				setProgress("' . __('Backup Complete!','wp-db-backup') . '");
 				window.onbeforeunload = null; 
 				fram.src = "' . $download_uri . '";
+				setInterval( function() {
+					fram.src = "' . $download_uri . '&download-retry=1";
+				}, 30000 );
 			';
 			break;
 		case 'smtp':
@@ -1016,38 +1028,64 @@ class wpdbBackup {
 		if ('' == $filename) { return false; }
 		
 		$diskfile = $this->backup_dir . $filename;
+		$gz_diskfile = "{$diskfile}.gz";
+
 		/**
-		 * Try to compress to gzip, if available 
+		 * Try upping the memory limit before gzipping
 		 */
-		if ( function_exists('gzencode') ) {
-			$gz_diskfile = "{$diskfile}.gz";
-			if ( function_exists('file_get_contents') ) {
-				$text = file_get_contents($diskfile);
-			} else {
-				$text = implode("", file($diskfile));
+		if ( function_exists('memory_get_usage') && ( (int) @ini_get('memory_limit') < 64 ) ) {
+			@ini_set('memory_limit', '64M' );
+		}
+
+		if ( file_exists( $diskfile ) && empty( $_GET['download-retry'] ) ) {
+			/**
+			 * Try gzipping with an external application
+			 */
+			if ( file_exists( $diskfile ) && ! file_exists( $gz_diskfile ) ) {
+				@exec( "gzip $diskfile" );
 			}
-			$gz_text = gzencode($text, 9);
-			$fp = fopen($gz_diskfile, "w");
-			fwrite($fp, $gz_text);
-			if ( fclose($fp) ) {
+
+			if ( file_exists( $gz_diskfile ) ) {
 				unlink($diskfile);
 				$diskfile = $gz_diskfile;
 				$filename = "{$filename}.gz";
+			
+			/**
+			 * Try to compress to gzip, if available 
+			 */
+			} else {
+				if ( function_exists('gzencode') ) {
+					if ( function_exists('file_get_contents') ) {
+						$text = file_get_contents($diskfile);
+					} else {
+						$text = implode("", file($diskfile));
+					}
+					$gz_text = gzencode($text, 9);
+					$fp = fopen($gz_diskfile, "w");
+					fwrite($fp, $gz_text);
+					if ( fclose($fp) ) {
+						unlink($diskfile);
+						$diskfile = $gz_diskfile;
+						$filename = "{$filename}.gz";
+					}
+				}
 			}
+			/*
+			 * 
+			 */
 		}
-		/*
-		 * 
-		 */
 
 		if ('http' == $delivery) {
-			if (! file_exists($diskfile)) 
+			if ( ! file_exists($diskfile) && empty( $_GET['download-retry'] ) ) { 
 				$this->error(array('kind' => 'fatal', 'msg' => sprintf(__('File not found:%s','wp-db-backup'), "&nbsp;<strong>$filename</strong><br />") . '<br /><a href="' . $this->page_url . '">' . __('Return to Backup','wp-db-backup') . '</a>'));
-			header('Content-Description: File Transfer');
-			header('Content-Type: application/octet-stream');
-			header('Content-Length: ' . filesize($diskfile));
-			header("Content-Disposition: attachment; filename=$filename");
-			$success = readfile($diskfile);
-			unlink($diskfile);
+			} elseif ( file_exists( $diskfile ) ) {
+				header('Content-Description: File Transfer');
+				header('Content-Type: application/octet-stream');
+				header('Content-Length: ' . filesize($diskfile));
+				header("Content-Disposition: attachment; filename=$filename");
+				$success = readfile($diskfile);
+				unlink($diskfile);
+			}
 		} elseif ('smtp' == $delivery) {
 			if (! file_exists($diskfile)) {
 				$msg = sprintf(__('File %s does not exist!','wp-db-backup'), $diskfile);
