@@ -181,8 +181,16 @@ class wpdbBackup {
 				}
 				break;
 			default:
-				$this->deliver_backup($this->backup_file, $via);
+				$success = $this->deliver_backup($this->backup_file, $via);
 				echo $this->error_display( 'frame', false );
+				
+				if ( $success ) {
+					echo '
+					<script type="text/javascript">
+						window.parent.setProgress("' . __('Backup Complete!','wp-db-backup') . '");
+					</script>
+					';
+				}
 			}
 			exit;
 		}
@@ -244,15 +252,6 @@ class wpdbBackup {
 			<iframe id="backuploader" src="about:blank" style="visibility:hidden;border:none;height:1em;width:1px;"></iframe>
 			<script type="text/javascript">
 			//<![CDATA[
-			var wpDBBackupWaiting;
-			function markSuccess() {
-				if ( wpDBBackupWaiting ) {
-					try {
-						clearTimeout( wpDBBackupWaiting );
-					} catch ( err ) {}
-				}
-			}
-
 			window.onbeforeunload = function() {
 				return "' . __('Navigating away from this page will cause your backup to fail.', 'wp-db-backup') . '";
 			}
@@ -291,11 +290,14 @@ class wpdbBackup {
 		switch($_POST['deliver']) {
 		case 'http':
 			echo '
-				setProgress("' . __('Backup Complete!','wp-db-backup') . '");
+				setProgress("' . __('Preparing download.','wp-db-backup') . '");
 				window.onbeforeunload = null; 
 				fram.src = "' . $download_uri . '";
-				setInterval( function() {
-					fram.src = "' . $download_uri . '&download-retry=1";
+				
+				setTimeout( function() {
+					var secondFrame = document.createElement("iframe");				
+					fram.parentNode.insertBefore(secondFrame, fram);
+					secondFrame.src = "' . $download_uri . '&download-retry=1";
 				}, 30000 );
 			';
 			break;
@@ -1046,7 +1048,9 @@ class wpdbBackup {
 			}
 
 			if ( file_exists( $gz_diskfile ) ) {
-				unlink($diskfile);
+				if ( file_exists( $diskfile ) ) {
+					unlink($diskfile);
+				}
 				$diskfile = $gz_diskfile;
 				$filename = "{$filename}.gz";
 			
@@ -1073,18 +1077,27 @@ class wpdbBackup {
 			/*
 			 * 
 			 */
+		} elseif ( file_exists( $gz_diskfile ) && empty( $_GET['download-retry'] ) ) {
+			$diskfile = $gz_diskfile;
+			$filename = "{$filename}.gz";
 		}
 
 		if ('http' == $delivery) {
-			if ( ! file_exists($diskfile) && empty( $_GET['download-retry'] ) ) { 
-				$this->error(array('kind' => 'fatal', 'msg' => sprintf(__('File not found:%s','wp-db-backup'), "&nbsp;<strong>$filename</strong><br />") . '<br /><a href="' . $this->page_url . '">' . __('Return to Backup','wp-db-backup') . '</a>'));
+			if ( ! file_exists( $diskfile ) ) {
+				if ( empty( $_GET['download-retry'] ) ) { 
+					$this->error(array('kind' => 'fatal', 'msg' => sprintf(__('File not found:%s','wp-db-backup'), "&nbsp;<strong>$filename</strong><br />") . '<br /><a href="' . $this->page_url . '">' . __('Return to Backup','wp-db-backup') . '</a>'));
+				} else {
+					return true;
+				}
 			} elseif ( file_exists( $diskfile ) ) {
 				header('Content-Description: File Transfer');
 				header('Content-Type: application/octet-stream');
 				header('Content-Length: ' . filesize($diskfile));
 				header("Content-Disposition: attachment; filename=$filename");
 				$success = readfile($diskfile);
-				unlink($diskfile);
+				if ( $success ) {
+					unlink($diskfile);
+				}
 			}
 		} elseif ('smtp' == $delivery) {
 			if (! file_exists($diskfile)) {
@@ -1108,7 +1121,9 @@ class wpdbBackup {
 				}
 				$this->error(array('kind' => 'fatal', 'loc' => $location, 'msg' => $msg));
 			} else {
-				unlink($diskfile);
+				if ( file_exists( $diskfile ) ) {
+					unlink($diskfile);
+				}
 			}
 		}
 		return $success;
