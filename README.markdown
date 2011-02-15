@@ -92,9 +92,9 @@ Usage
   This may prevent you from emailing the backup file because it's too big.
 
 1. Select how you'd like the backup to be delivered:
-  * Save to server : this will create a file in /wp-content/backup-*/ for you to retreive later
-  * Download to your computer : this will send the backup file to your browser to be downloaded
-  * Email : this will email the backup file to the address you specify
+ * Save to server : this will create a file in /wp-content/backup-*/ for you to retreive later
+ * Download to your computer : this will send the backup file to your browser to be downloaded
+ * Email : this will email the backup file to the address you specify
 
 1. Click "Backup!" and your database backup will be delivered to you.
 
