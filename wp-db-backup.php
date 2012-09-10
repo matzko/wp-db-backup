@@ -219,7 +219,7 @@ class wpdbBackup {
 	 * Add a link to back up your database when doing a core upgrade 
 	 */
 	function update_notice_action() {
-		if ( 'upgrade-core' == $_REQUEST['action'] ) :
+		if ( isset( $_REQUEST['action'] ) || 'upgrade-core' == $_REQUEST['action'] ) :
 			ob_start(array(&$this, 'update_notice'));
 			add_action('admin_footer', create_function('', 'ob_end_flush();'));
 		endif;
@@ -616,12 +616,30 @@ class wpdbBackup {
 	}
 
 	function admin_menu() {
+		global $_page_hook;
 		$_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
 		add_action('load-' . $_page_hook, array(&$this, 'admin_load'));
-		if ( function_exists('add_contextual_help') ) {
+		add_action( 'load-' . $_page_hook, array( &$this, 'add_help_tab' ) );
+	}
+	
+	function add_help_tab() {
+		global $_page_hook;
+		$screen = get_current_screen();
+		
+		if ( $screen->id != $_page_hook )
+			return;
+		
+		if ( function_exists( 'add_contextual_help' ) && ! method_exists( $screen, 'add_help_tab' ) ) {
 			$text = $this->help_menu();
-			add_contextual_help($_page_hook, $text);
+			add_contextual_help( $_page_hook, $text );
 		}
+		
+		// @todo Check if $screen->id is current page
+		$screen->add_help_tab( array(
+			'id'      => 'wp_db_backup_help_tab',
+			'title'   => __( 'Overview' ),
+			'content' => '<p>' . $this->help_menu() . '</p>'
+		) );
 	}
 
 	function fragment_menu() {
