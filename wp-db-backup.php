@@ -219,7 +219,7 @@ class wpdbBackup {
 	 * Add a link to back up your database when doing a core upgrade 
 	 */
 	function update_notice_action() {
-		if ( 'upgrade-core' == $_REQUEST['action'] ) :
+		if ( isset( $_REQUEST['action'] ) || 'upgrade-core' == $_REQUEST['action'] ) :
 			ob_start(array(&$this, 'update_notice'));
 			add_action('admin_footer', create_function('', 'ob_end_flush();'));
 		endif;
