@@ -91,7 +91,7 @@ class WP_DB_Backup {
 
 		$table_prefix = ( isset( $table_prefix ) ) ? $table_prefix : $wpdb->prefix;
 		$datum = gmdate("Ymd_B");
-		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql";
+		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql".($this->has_gz() ? '.gz' : '');
 
 		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir', WP_BACKUP_DIR));
 		$this->basename = 'wp-db-backup';
@@ -755,12 +755,24 @@ class WP_DB_Backup {
 
 	function open($filename = '', $mode = 'w') {
 		if ('' == $filename) return false;
-		$fp = @fopen($filename, $mode);
+		if ($this->has_gz()) {
+			$fp = @gzopen($filename, $mode);
+		} else {
+			$fp = @fopen($filename, $mode);
+		}
 		return $fp;
 	}
 
 	function close($fp) {
-		fclose($fp);
+		if ($this->has_gz()) {
+			gzclose($fp);
+		} else {
+			fclose($fp);
+		}
+	}
+
+	function has_gz() {
+		return function_exists('gzencode');
 	}
 
 	/**
@@ -1099,43 +1111,12 @@ class WP_DB_Backup {
 
 	}
 
-	/**
-	 * Try to gzip the file
-	 *
-	 * @param string $filepath The path to the file which we're trying to compress
-	 * @return string The new filepath.
-	 */
-	function perhaps_compress_file( $filename = '' )
-	{
-		if ( ! empty($filename) && function_exists('gzencode') ) {
-			$gz_filename = "{$filename}.gz";
-			if ( function_exists('file_get_contents') ) {
-				$text = file_get_contents($filename);
-			} else {
-				$text = implode("", file($filename));
-			}
-			$gz_text = gzencode($text, 9);
-			$fp = fopen($gz_filename, "w");
-			if ( $fp ) {
-				fwrite($fp, $gz_text);
-				if ( fclose($fp) ) {
-					unlink($filename);
-					$filename = $gz_filename;
-				}
-			}
-		}
-
-		return $filename;
-	}
-
 	function deliver_backup($filename = '', $delivery = 'http', $recipient = '', $location = 'main') {
 		if ( empty( $filename ) ) { 
 			return false; 
 		}
-		
-		$diskfile = $this->perhaps_compress_file($this->backup_dir . $filename);
 
-		$filename = basename($diskfile);
+		$diskfile = $this->backup_dir . $filename;
 
 		if ('http' == $delivery) {
 			if (! file_exists($diskfile)) 
