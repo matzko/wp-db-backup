@@ -1,5 +1,9 @@
 <?php
 
+define('DB_PASSWORD', 'test');
+define('DB_NAME', 'test');
+define('ABSPATH', 'test');
+$_SERVER['SERVER_NAME'] = 'test';
 
 /** WordPress-specific functions **/
 function __($a) {
