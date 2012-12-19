@@ -1,6 +1,5 @@
 <?php
 
-@require_once 'vfsStream/vfsStream.php';
 
 /** WordPress-specific functions **/
 function __($a) {
@@ -240,46 +239,6 @@ class TestWPDBBackup extends PHPUnit_Framework_TestCase {
 
 		$this->assertTrue($this->_b->is_wp_secure_enough());
 	}
-
-	/**
-	 * @dataProvider provider__perhaps_compress_file
-	 */
-	public function test__perhaps_compress_file($filename, $gzipped_filename, $file_exists, $gzipped_file_exists)
-	{
-		if (class_exists('vfsStream') === false) {
-			$this->markTestSkipped('vfsStream not installed.');
-		}
-		
-		vfsStreamWrapper::register();
-		$root = new vfsStreamDirectory('home');
-
-		$dir = dirname($filename);
-		if ( ! empty( $dir ) ) {
-			$root->addChild(new vfsStreamDirectory($dir));
-			$root->getChild($dir)->addChild(vfsStream::newFile(basename($filename))->withContent('Backup SQL text'));
-		}
-		vfsStreamWrapper::setRoot($root);
-
-
-		$new_filename = $this->_b->perhaps_compress_file(vfsStream::url($filename));
-
-		if ( function_exists('gzencode') ) {
-			
-			$this->assertEquals($gzipped_file_exists, vfsStreamWrapper::getRoot()->hasChild($gzipped_filename));
-			$this->assertEquals($file_exists, vfsStreamWrapper::getRoot()->hasChild($filename));
-		} else {
-			$this->assertFalse(vfsStreamWrapper::getRoot()->hasChild($gzipped_filename));
-			$this->assertTrue(vfsStreamWrapper::getRoot()->hasChild($filename));
-		}
-
-
-	}
-		public function provider__perhaps_compress_file()
-		{
-			return array(
-				array('path/file.sql', 'path/file.sql.gz', false, true),
-			);
-		}
 
 	/**
 	 * @dataProvider provider__send_mail
