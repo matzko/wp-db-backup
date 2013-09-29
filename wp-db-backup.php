@@ -618,7 +618,16 @@ class wpdbBackup {
 	function admin_menu() {
 		$_page_hook = add_management_page(__('Backup','wp-db-backup'), __('Backup','wp-db-backup'), 'import', $this->basename, array(&$this, 'backup_menu'));
 		add_action('load-' . $_page_hook, array(&$this, 'admin_load'));
-		if ( function_exists('add_contextual_help') ) {
+		if (function_exists('get_current_screen')) {
+			$screen = convert_to_screen($_page_hook);
+			if (method_exists($screen,'add_help_tab')) {
+				$screen->add_help_tab(array(
+					'title' => __('Backup','wp-db-backup'),
+					'id' => $_page_hook,
+					'content' => $this->help_menu(),
+				));
+			}
+		} elseif ( function_exists('add_contextual_help') ) {
 			$text = $this->help_menu();
 			add_contextual_help($_page_hook, $text);
 		}
@@ -631,11 +640,10 @@ class wpdbBackup {
 
 	/** 
 	 * Add WP-DB-Backup-specific help options to the 2.7 =< WP contextual help menu
-	 * return string The text of the help menu.
+	 * @return string The text of the help menu.
 	 */
 	function help_menu() {
 		$text = "\n<a href=\"http://wordpress.org/extend/plugins/wp-db-backup/faq/\" target=\"_blank\">" . __('FAQ', 'wp-db-backup') . '</a>';
-		$text .= "\n<br />\n<a href=\"http://www.ilfilosofo.com/forum/forum/2\" target=\"_blank\">" . __('WP-DB-Backup Support Forum', 'wp-db-backup') . '</a>';
 		return $text;
 	}
 
