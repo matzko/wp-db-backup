@@ -19,6 +19,8 @@ Released under the terms of the GNU GPL, version 2.
 
 	Copyright (c) 2013 Austin Matzko
 
+[Source Code on GitHub](https://github.com/matzko/wp-db-backup)
+
 == Installation ==
 1. Extract the wp-db-backup/ folder file to /wp-content/plugins/
 1. Activate the plugin at your blog's Admin -> Plugins screen
@@ -104,6 +106,10 @@ When having the database backup emailed or sent to your browser for immediate do
    *** SECURITY WARNING ***
 
 == Changelog ==
+
+= 2.2.4 =
+* Remove deprecated functionality
+* Do not attempt to delete non-existent files
 
 = 2.2.3 = 
 * Nonce check fix for localized WP users from Sergey Biryukov
