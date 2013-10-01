@@ -89,7 +89,7 @@ class wpdbBackup {
 		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
 		add_action('init', array(&$this, 'init_textdomain'));
 		add_action('init', array(&$this, 'set_page_url'));
-		add_action('load-update-core.php', array(&$this, 'update_notice_action'));
+		add_action('admin_init', array(&$this, 'update_notice_action'));
 		add_action('wp_db_backup_cron', array(&$this, 'cron_backup'));
 		add_action('wp_cron_daily', array(&$this, 'wp_cron_daily'));
 		add_filter('cron_schedules', array(&$this, 'add_sched_options'));
@@ -216,20 +216,30 @@ class wpdbBackup {
 	}
 
 	/*
-	 * Add a link to back up your database when doing a core upgrade 
+	 * Add a link to back up your database when doing a core upgrade.
 	 */
 	function update_notice_action() {
-		if ( 'upgrade-core' == $_REQUEST['action'] ) :
+		global $pagenow;
+		if ( 
+			(
+				isset($_REQUEST['action'])
+				&& ('upgrade-core' == $_REQUEST['action'])
+			)
+			|| (
+				!empty($pagenow) && ('update-core.php' == $pagenow)
+			)
+		) :
 			ob_start(array(&$this, 'update_notice'));
 			add_action('admin_footer', create_function('', 'ob_end_flush();'));
 		endif;
 	}
-		function update_notice($text = '') {
-			$pattern = '#(<a href\="' . __('http://codex.wordpress.org/WordPress_Backups') . '">.*?</p>)#';
-			$replace = '$1' . "\n<p>" . sprintf(__('Click <a href="%s" target="_blank">here</a> to back up your database using the WordPress Database Backup plugin. <strong>Note:</strong> WordPress Database Backup does <em>not</em> back up your files, just your database.', 'wp-db-backup'), 'tools.php?page=wp-db-backup') . "</p>\n"; 
-			$text = preg_replace($pattern, $replace, $text);
-			return $text;
-		}
+	
+	function update_notice($text = '') {
+		$pattern = '#(<a href\="' . __('http://codex.wordpress.org/WordPress_Backups') . '">.*?</p>)#';
+		$replace = '$1' . "\n<p>" . sprintf(__('Click <a href="%s" target="_blank">here</a> to back up your database using the WordPress Database Backup plugin. <strong>Note:</strong> WordPress Database Backup does <em>not</em> back up your files, just your database.', 'wp-db-backup'), 'tools.php?page=wp-db-backup') . "</p>\n"; 
+		$text = preg_replace($pattern, $replace, $text);
+		return $text;
+	}
 
 	function build_backup_script() {
 		global $table_prefix, $wpdb;
