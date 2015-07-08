@@ -3,8 +3,8 @@ Contributors: filosofo
 Donate link: http://austinmatzko.com/wordpress-plugins/wp-db-backup/
 Tags: mysql, database, backup, cron
 Requires at least: 2.0.3
-Tested up to: 3.6.1
-Stable tag: 2.2.4
+Tested up to: 4.2.2
+Stable tag: 2.3.0
 
 On-demand backup of your WordPress database.
 
@@ -17,7 +17,7 @@ Released under the terms of the GNU GPL, version 2.
 
               NO WARRANTY.
 
-	Copyright (c) 2013 Austin Matzko
+	Copyright (c) 2015 Austin Matzko
 
 [Source Code on GitHub](https://github.com/matzko/wp-db-backup)
 
@@ -36,10 +36,6 @@ Released under the terms of the GNU GPL, version 2.
 = How do I restore my database from a backup? =
 
 Briefly, use phpMyAdmin, which is included with most hosting control panels. More details and links to further explanations are [here](http://codex.wordpress.org/Restoring_Your_Database_From_Backup).
-
-= Why can't I schedule automatic backups to be saved to my server? =
-
-Although WP-DB-Backup provides the option of saving the backup file to the server, I strongly discourage anyone from leaving backed-up database files on the server. If the server is not perfectly configured, then someone could gain access to your data, and I do not want to make it easy for that to happen.
 
 = My backup stops or hangs without completing. =
 
@@ -81,7 +77,6 @@ Because it's a fairly safe bet that the core WordPress files will be successfull
   This may prevent you from emailing the backup file because it's too big.
 
 1. Select how you'd like the backup to be delivered:
-* Save to server : this will create a file in /wp-content/backup-*/ for you to retreive later
 * Download to your computer : this will send the backup file to your browser to be downloaded
 * Email : this will email the backup file to the address you specify
 
@@ -95,17 +90,12 @@ date = CCYYmmdd_B format:  20050711_039
        the "B" is the internet "Swatch" time.  
        See the PHP date() function for details.
 
-When having the database backup emailed or sent to your browser for immediate download, the backup file will be _deleted_ from the server when the transfer is finished.  Only if you select delivery method "Save to server" will the backup file remain on your server.
-
-   *** SECURITY WARNING ***
-   Your database backup contains sensitive information,
-   and should not be left on the server for any extended
-   period of time.  The "Save to server" delivery method is provided
-   as a convenience only.  I will not accept any responsibility
-   if other people obtain your backup file.
-   *** SECURITY WARNING ***
+When having the database backup emailed or sent to your browser for immediate download, the backup file will be _deleted_ from the server when the transfer is finished.
 
 == Changelog ==
+
+= 2.3.0 =
+* Remove backup directory use
 
 = 2.2.4 =
 * Remove deprecated functionality
