@@ -1,13 +1,13 @@
 <?php
 /*
 Plugin Name: WordPress Database Backup
-Plugin URI: http://austinmatzko.com/wordpress-plugins/wp-db-backup/
+Plugin URI: https://github.com/matzko/wp-db-backup
 Description: On-demand backup of your WordPress database. Navigate to <a href="edit.php?page=wp-db-backup">Tools &rarr; Backup</a> to get started.
 Author: Austin Matzko 
 Author URI: http://austinmatzko.com/
-Version: 2.2.4
+Version: 2.3.0
 
-Copyright 2013  Austin Matzko  (email : austin at pressedcode.com)
+Copyright 2015  Austin Matzko  (email : austin at pressedcode.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,28 +24,14 @@ Copyright 2013  Austin Matzko  (email : austin at pressedcode.com)
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110, USA
 */
 
-/**
- * Change WP_BACKUP_DIR if you want to
- * use a different backup location
- */
-
 if ( ! defined('ABSPATH') ) {
 	die('Please do not load this file directly.');
 }
 
 $rand = substr( md5( md5( DB_PASSWORD ) ), -5 );
-global $wpdbb_content_dir, $wpdbb_content_url, $wpdbb_plugin_dir;
+global $wpdbb_content_dir, $wpdbb_content_url;
 $wpdbb_content_dir = ( defined('WP_CONTENT_DIR') ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
 $wpdbb_content_url = ( defined('WP_CONTENT_URL') ) ? WP_CONTENT_URL : get_option('siteurl') . '/wp-content';
-$wpdbb_plugin_dir = ( defined('WP_PLUGIN_DIR') ) ? WP_PLUGIN_DIR : $wpdbb_content_dir . '/plugins';
-
-if ( ! defined('WP_BACKUP_DIR') ) {
-	define('WP_BACKUP_DIR', $wpdbb_content_dir . '/backup-' . $rand . '/');
-}
-
-if ( ! defined('WP_BACKUP_URL') ) {
-	define('WP_BACKUP_URL', $wpdbb_content_url . '/backup-' . $rand . '/');
-}
 
 if ( ! defined('ROWS_PER_SEGMENT') ) {
 	define('ROWS_PER_SEGMENT', 100);
@@ -123,7 +109,7 @@ class wpdbBackup {
 			}
 		}
 	
-		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir', WP_BACKUP_DIR));
+		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir', (isset($_GET['wp_db_temp_dir']) && is_writable($_GET['wp_db_temp_dir'])) ? $_GET['wp_db_temp_dir'] : get_temp_dir()));
 		$this->basename = 'wp-db-backup';
 	
 		$this->referer_check_key = $this->basename . '-download_' . DB_NAME;
@@ -281,7 +267,7 @@ class wpdbBackup {
 
 			function backup(table, segment) {
 				var fram = document.getElementById("backuploader");
-				fram.src = "' . $this->page_url . '&fragment=" + table + ":" + segment + ":' . $this->backup_filename . ':";
+				fram.src = "' . $this->page_url . '&fragment=" + table + ":" + segment + ":' . $this->backup_filename . ':&wp_db_temp_dir=' . $this->backup_dir . '";
 			}
 			
 			var curStep = 0;
@@ -1158,7 +1144,7 @@ class wpdbBackup {
 			$file = $this->backup_file;
 			switch($_POST['deliver']) {
 			case 'http':
-				$feedback .= '<br />' . sprintf(__('Your backup file: <a href="%1s">%2s</a> should begin downloading shortly.','wp-db-backup'), WP_BACKUP_URL . "{$this->backup_file}", $this->backup_file);
+				$feedback .= '<br />' . sprintf(__('Your backup file: %2s should begin downloading shortly.','wp-db-backup'), "{$this->backup_file}", $this->backup_file);
 				break;
 			case 'smtp':
 				if (! is_email($_POST['backup_recipient'])) {
@@ -1168,9 +1154,6 @@ class wpdbBackup {
 				}
 				$feedback = '<br />' . sprintf(__('Your backup has been emailed to %s','wp-db-backup'), $feedback);
 				break;
-			case 'none':
-				$feedback .= '<br />' . __('Your backup file has been saved on the server. If you would like to download it now, right click and select "Save As"','wp-db-backup');
-				$feedback .= ':<br /> <a href="' . WP_BACKUP_URL . "$file\">$file</a> : " . sprintf(__('%s bytes','wp-db-backup'), filesize($this->backup_dir . $file));
 			}
 			$feedback .= '</p></div>';
 		}
@@ -1305,11 +1288,6 @@ class wpdbBackup {
 			<legend><?php _e('Backup Options','wp-db-backup'); ?></legend>
 			<p><?php  _e('What to do with the backup file:','wp-db-backup'); ?></p>
 			<ul>
-			<li><label for="do_save">
-				<input type="radio" id="do_save" name="deliver" value="none" style="border:none;" />
-				<?php _e('Save to server','wp-db-backup'); 
-				echo " (<code>" . $this->backup_dir . "</code>)"; ?>
-			</label></li>
 			<li><label for="do_download">
 				<input type="radio" checked="checked" id="do_download" name="deliver" value="http" style="border:none;" />
 				<?php _e('Download to your computer','wp-db-backup'); ?>
