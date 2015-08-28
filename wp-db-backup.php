@@ -1047,7 +1047,7 @@ class wpdbBackup {
 			/**
 			 * Try gzipping with an external application
 			 */
-			if ( file_exists( $diskfile ) && ! file_exists( $gz_diskfile ) ) {
+			if (function_exists('exec') && file_exists( $diskfile ) && ! file_exists( $gz_diskfile ) ) {
 				@exec( "gzip $diskfile" );
 			}
 
