@@ -864,7 +864,7 @@ class wpdbBackup {
 					foreach ($table_data as $row) {
 						$values = array();
 						foreach ($row as $key => $value) {
-							if ($ints[strtolower($key)]) {
+							if ( !empty($ints[strtolower($key)]) ) {
 								// make sure there are no blank spots in the insert syntax,
 								// yet try to avoid quotation marks around integers
 								$value = ( null === $value || '' === $value) ? $defs[strtolower($key)] : $value;
