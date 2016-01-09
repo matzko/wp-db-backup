@@ -964,10 +964,7 @@ class wpdbBackup {
 		if ( is_object( $phpmailer ) && ( strtolower(get_class( $phpmailer )) == 'phpmailer' ) ) {
 			
 			// Get the site domain and get rid of www.
-			$sitename = strtolower( $_SERVER['SERVER_NAME'] );
-			if ( substr( $sitename, 0, 4 ) == 'www.' ) {
-				$sitename = substr( $sitename, 4 );
-			}
+			$sitename = $this->get_sitename();
 			$from_email = 'wordpress@' . $sitename;
 			$from_name = 'WordPress';
 
@@ -1500,7 +1497,38 @@ class wpdbBackup {
 		if ( (false !== strpos($file, '..')) || (false !== strpos($file, './')) || (':' == substr($file, 1, 1)) )
 			$this->error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __("Cheatin' uh ?",'wp-db-backup')));
 	}
-
+	/**
+	 * Get the sitename by query $_SERVER['SERVER_NAME']. 
+	 * If it is not set, then use site_url() instead
+	 * @return string
+	 */
+	function get_sitename() {
+		$sitename='';
+		if ( isset($_SERVER['SERVER_NAME']) ) {
+			$sitename = strtolower( $_SERVER['SERVER_NAME'] );
+		} else {
+			if ( function_exists('site_url') ) {
+				// site_url() was added since 3.0.0
+				// force http scheme so we can easily get rid of leading http://
+				$sitename = strtolower( site_url( '', 'http' ) );
+				$sitename = substr( $sitename, 7 );
+			} else {
+				// try to be compatible with versions < 3.0.0
+				$sitename = strtolower( get_option( 'siteurl' ) );
+				if ( substr( $sitename, 0, 7 ) == 'http://' ) {
+					$sitename = substr( $sitename, 7 );
+				} elseif ( substr( $sitename, 0, 8 ) == 'https://' ) {
+					$sitename = substr( $sitename, 8 );
+				}
+			}
+		}
+		// get rid of www
+		if ( substr( $sitename, 0, 4 ) == 'www.' ) {
+			$sitename = substr( $sitename, 4 );
+		}
+		return $sitename;
+	}
+	
 }
 
 function wpdbBackup_init() {
