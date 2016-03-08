@@ -2,9 +2,9 @@
 Contributors: filosofo
 Donate link: http://austinmatzko.com/wordpress-plugins/wp-db-backup/
 Tags: mysql, database, backup, cron
-Requires at least: 2.0.3
-Tested up to: 4.2.2
-Stable tag: 2.3.0
+Requires at least: 3.6.0
+Tested up to: 4.4.2
+Stable tag: 2.3.1
 
 On-demand backup of your WordPress database.
 
@@ -17,7 +17,7 @@ Released under the terms of the GNU GPL, version 2.
 
               NO WARRANTY.
 
-	Copyright (c) 2015 Austin Matzko
+	Copyright (c) 2016 Austin Matzko
 
 [Source Code on GitHub](https://github.com/matzko/wp-db-backup)
 
