@@ -7,7 +7,7 @@ Author: Austin Matzko
 Author URI: http://austinmatzko.com/
 Version: 2.3.0
 
-Copyright 2015  Austin Matzko  (email : austin at pressedcode.com)
+Copyright 2016  Austin Matzko  (email : austin at pressedcode.com)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
