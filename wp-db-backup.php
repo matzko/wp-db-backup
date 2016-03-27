@@ -47,7 +47,7 @@ if ( ! defined('MOD_EVASIVE_DELAY') ) {
 	define('MOD_EVASIVE_DELAY', '500');
 }
 
-class wpdbBackup {
+class dbBackup {
 
 	var $backup_complete = false;
 	var $backup_file = '';
@@ -1508,7 +1508,7 @@ class wpdbBackup {
 
 function wpdbBackup_init() {
 	global $mywpdbbackup;
-	$mywpdbbackup = new wpdbBackup(); 	
+	$mywpdbbackup = new dbBackup(); 	
 }
 
 add_action('plugins_loaded', 'wpdbBackup_init');
