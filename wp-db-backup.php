@@ -70,7 +70,7 @@ class wpdbBackup {
 		return false;
 	}
 
-	function wpdbBackup() {
+	function __construct() {
 		global $table_prefix, $wpdb;
 		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
 		add_action('init', array(&$this, 'init_textdomain'));
