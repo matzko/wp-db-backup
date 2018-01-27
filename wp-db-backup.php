@@ -117,11 +117,12 @@ class wpdbBackup {
 			$this->wp_secure('fatal');
 			check_admin_referer($this->referer_check_key);
 			$this->can_user_backup('main');
-			// save exclude prefs
 
-			$exc_revisions = isset( $_POST['exclude-revisions'] ) ? (array) $_POST['exclude-revisions'] : array();
-			$exc_spam = isset( $_POST['exclude-spam'] ) ? (array) $_POST['exclude-spam'] : array();
-			update_option('wp_db_backup_excs', array('revisions' => $exc_revisions, 'spam' => $exc_spam));
+			// save exclude prefs
+			update_option('wp_db_backup_excs', array(
+				'revisions' => $this->get_revisions_to_exclude(),
+				'spam' => $this->get_spam_to_exclude()
+			));
 			switch($_POST['do_backup']) {
 			case 'backup':
 				add_action('init', array(&$this, 'perform_backup'));
@@ -1504,6 +1505,46 @@ class wpdbBackup {
 			$this->error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __("Cheatin' uh ?",'wp-db-backup')));
 	}
 
+	/**
+	 * Sanitize an array of content.
+	 *
+	 * @param array $array_of_data
+	 *
+	 * @return array
+	 */
+	function sanitize_array($array_to_sanitize) {
+		$sanitized = array();
+		foreach ( $array_to_sanitize as $key => $value ) {
+			$sanitized[$key] = sanitize_text_field($value);
+		}
+		return $sanitized;
+	}
+
+	/**
+	 * Get the revisions to exclude.
+	 *
+	 * @return array
+	 */
+	function get_revisions_to_exclude() {
+		$revisions = array();
+		if (isset( $_POST['exclude-revisions'] ))
+			$revisions = (array) $_POST['exclude-revisions']
+		}
+		return $this->sanitize_array($revisions);
+	}
+
+	/**
+	 * Get the spam to exclude.
+	 *
+	 * @return array
+	 */
+	function get_spam_to_exclude() {
+		$spams = array();
+		if (isset( $_POST['exclude-spam'] ))
+			$spams = (array) $_POST['exclude-spam']
+		}
+		return $this->sanitize_array($spams);
+	}
 }
 
 function wpdbBackup_init() {
