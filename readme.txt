@@ -3,8 +3,8 @@ Contributors: filosofo
 Donate link: http://austinmatzko.com/wordpress-plugins/wp-db-backup/
 Tags: mysql, database, backup, cron
 Requires at least: 3.6.0
-Tested up to: 4.4.2
-Stable tag: 2.3.1
+Tested up to: 4.9.2
+Stable tag: 2.3.3
 
 On-demand backup of your WordPress database.
 
@@ -17,7 +17,7 @@ Released under the terms of the GNU GPL, version 2.
 
               NO WARRANTY.
 
-	Copyright (c) 2016 Austin Matzko
+	Copyright (c) 2018 Austin Matzko
 
 [Source Code on GitHub](https://github.com/matzko/wp-db-backup)
 
@@ -25,7 +25,7 @@ Released under the terms of the GNU GPL, version 2.
 1. Extract the wp-db-backup/ folder file to /wp-content/plugins/
 1. Activate the plugin at your blog's Admin -> Plugins screen
 1. The plugin will attempt to create a directory /wp-content/backup-*/ inside your WordPress directory.
-1. You may need to make /wp-content writable (at least temporarily) for it to create this directory. 
+1. You may need to make /wp-content writable (at least temporarily) for it to create this directory.
    For example:
    `$ cd /wordpress/`
    `$ chgrp www-data wp-content` (where "`www-data`" is the group your FTP client uses)
@@ -87,7 +87,7 @@ The filename of the backup file will be of the form
 DB = the name of your WordPress database, as defined in wp-config.php
 prefix = the table prefix for this WordPress blog, as defined in wp-config.php
 date = CCYYmmdd_B format:  20050711_039
-       the "B" is the internet "Swatch" time.  
+       the "B" is the internet "Swatch" time.
        See the PHP date() function for details.
 
 When having the database backup emailed or sent to your browser for immediate download, the backup file will be _deleted_ from the server when the transfer is finished.
@@ -101,7 +101,7 @@ When having the database backup emailed or sent to your browser for immediate do
 * Remove deprecated functionality
 * Do not attempt to delete non-existent files
 
-= 2.2.3 = 
+= 2.2.3 =
 * Nonce check fix for localized WP users from Sergey Biryukov
 * Fix for gzipped files' incorrect size.
 * Some styling improvements.
@@ -113,8 +113,11 @@ When having the database backup emailed or sent to your browser for immediate do
 * Fixes problems users had when using localized WordPress installations.
 * Fixes a bug that caused the size of gzipped backup files to be reported incorrectly.
 
+= 2.3.3 =
+* Sanitize user-supplied data
+
 == Advanced ==
-If you are using WordPress version 2.1 or newer, you can schedule automated backups to be sent to the email address 
+If you are using WordPress version 2.1 or newer, you can schedule automated backups to be sent to the email address
 of your choice.
 
 == Translators ==

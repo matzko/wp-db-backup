@@ -5,12 +5,12 @@ Contributors: filosofo
 Donate link: http://austinmatzko.com/wordpress-plugins/wp-db-backup/
 Tags: mysql, database, backup, cron
 Requires at least: 3.6.0
-Tested up to: 4.4.2
-Stable tag: 2.3.1
+Tested up to: 4.9.2
+Stable tag: 2.3.3
 
 On-demand backup of your WordPress database.
 
-Description 
+Description
 -----------
 
 WP-DB-Backup allows you easily to backup your core WordPress database tables.  You may also backup other tables in the same database.
@@ -20,11 +20,11 @@ Released under the terms of the GNU GPL, version 2.
 
               NO WARRANTY.
 
-	Copyright (c) 2015 Austin Matzko
+	Copyright (c) 2018 Austin Matzko
 
 [Source Code on GitHub](https://github.com/matzko/wp-db-backup)
 
-Installation 
+Installation
 ------------
 
 1. Extract the wp-db-backup/ folder file to /wp-content/plugins/
@@ -104,7 +104,7 @@ date = CCYYmmdd_B format:  20050711_039
 
 When having the database backup emailed or sent to your browser for immediate download, the backup file will be _deleted_ from the server when the transfer is finished.
 
-Changelog 
+Changelog
 ---------
 
 2.3.0
@@ -116,27 +116,31 @@ Changelog
 * Remove deprecated functionality
 * Do not attempt to delete non-existent files
 
-2.2.3  
+2.2.3
 -----
 * Nonce check fix for localized WP users from Sergey Biryukov
 * Fix for gzipped files' incorrect size.
 * Some styling improvements.
 * Fix for JS multiple checkbox selection.
 
-Upgrade Notice 
+2.3.3
+-----
+* Sanitize user-supplied data
+
+Upgrade Notice
 --------------
 
-2.2.3 
+2.2.3
 -----
 * Fixes problems users had when using localized WordPress installations.
 * Fixes a bug that caused the size of gzipped backup files to be reported incorrectly.
 
-Advanced 
+Advanced
 --------
 If you are using WordPress version 2.1 or newer, you can schedule automated backups to be sent to the email address 
 of your choice.
 
-Translators 
+Translators
 -----------
 Thanks to following people for providing translation files for WP-DB-Backup:
 
@@ -173,6 +177,6 @@ Thanks to following people for providing translation files for WP-DB-Backup:
 * Tzafrir Rehan
 * 吴曦
 
-Past Contributors 
+Past Contributors
 -----------------
 skippy, Firas, LaughingLizard, MtDewVirus, Podz, Ringmaster
