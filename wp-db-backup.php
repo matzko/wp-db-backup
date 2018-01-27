@@ -118,11 +118,12 @@ class wpdbBackup {
 			$this->wp_secure('fatal');
 			check_admin_referer($this->referer_check_key);
 			$this->can_user_backup('main');
-			// save exclude prefs
 
-			$exc_revisions = isset( $_POST['exclude-revisions'] ) ? (array) $_POST['exclude-revisions'] : array();
-			$exc_spam = isset( $_POST['exclude-spam'] ) ? (array) $_POST['exclude-spam'] : array();
-			update_option('wp_db_backup_excs', array('revisions' => $exc_revisions, 'spam' => $exc_spam));
+			// save exclude prefs
+			update_option('wp_db_backup_excs', array(
+				'revisions' => $this->get_revisions_to_exclude(),
+				'spam' => $this->get_spam_to_exclude()
+			));
 			switch($_POST['do_backup']) {
 			case 'backup':
 				add_action('init', array(&$this, 'perform_backup'));
@@ -145,15 +146,15 @@ class wpdbBackup {
 	function init() {
 		$this->can_user_backup();
 		if (isset($_GET['backup'])) {
-			$via = isset($_GET['via']) ? $_GET['via'] : 'http';
+			$via = isset($_GET['via']) ? sanitize_text_field($_GET['via']) : 'http';
 
-			$this->backup_file = $_GET['backup'];
+			$this->backup_file = sanitize_text_field($_GET['backup']);
 			$this->validate_file($this->backup_file);
 
 			switch($via) {
 			case 'smtp':
 			case 'email':
-				$success = $this->deliver_backup($this->backup_file, 'smtp', $_GET['recipient'], 'frame');
+				$success = $this->deliver_backup($this->backup_file, 'smtp', sanitize_text_field($_GET['recipient']), 'frame');
 				$this->error_display( 'frame' );
 				if ( $success ) {
 					echo '
@@ -182,7 +183,7 @@ class wpdbBackup {
 			exit;
 		}
 		if (isset($_GET['fragment'] )) {
-			list($table, $segment, $filename) = explode(':', $_GET['fragment']);
+			list($table, $segment, $filename) = explode(':', sanitize_text_field($_GET['fragment']));
 			$this->validate_file($filename);
 			$this->backup_fragment($table, $segment, $filename);
 		}
@@ -324,13 +325,8 @@ class wpdbBackup {
 				case 0: backup("", 0); break;
 		';
 
-		$also_backup = array();
-		if (isset($_POST['other_tables'])) {
-			$also_backup = $_POST['other_tables'];
-		} else {
-			$also_backup = array();
-		}
-		$core_tables = $_POST['core_tables'];
+		$also_backup = $this->get_post_data_array('other_tables');
+		$core_tables = $this->get_post_data_array('core_tables');
 		$tables = array_merge($core_tables, $also_backup);
 		$step_count = 1;
 		foreach ($tables as $table) {
@@ -428,13 +424,13 @@ class wpdbBackup {
 		// are we backing up any other tables?
 		$also_backup = array();
 		if (isset($_POST['other_tables']))
-			$also_backup = $_POST['other_tables'];
-		$core_tables = $_POST['core_tables'];
+			$also_backup = sanitize_text_field($_POST['other_tables']);
+		$core_tables = sanitize_text_field($_POST['core_tables']);
 		$this->backup_file = $this->db_backup($core_tables, $also_backup);
 		if (false !== $this->backup_file) {
 			if ('smtp' == $_POST['deliver']) {
 				$email = sanitize_text_field(wp_unslash($_POST['backup_recipient']));
-				$this->deliver_backup($this->backup_file, $_POST['deliver'], $email, 'main');
+				$this->deliver_backup($this->backup_file, sanitize_text_field($_POST['deliver']), $email, 'main');
 				if ( get_option('wpdb_backup_recip') != $email ) {
 					update_option('wpdb_backup_recip', $email );
 				}
@@ -967,7 +963,7 @@ class wpdbBackup {
 		if ( is_object( $phpmailer ) && ( strtolower(get_class( $phpmailer )) == 'phpmailer' ) ) {
 
 			// Get the site domain and get rid of www.
-			$sitename = strtolower( $_SERVER['SERVER_NAME'] );
+			$sitename = sanitize_text_field( strtolower( $_SERVER['SERVER_NAME'] ) );
 			if ( substr( $sitename, 0, 4 ) == 'www.' ) {
 				$sitename = substr( $sitename, 4 );
 			}
@@ -1007,7 +1003,7 @@ class wpdbBackup {
 			$data = chunk_split(base64_encode($file));
 
 			$headers .= "MIME-Version: 1.0\n";
-			$headers = 'From: wordpress@' . preg_replace('#^www\.#', '', strtolower($_SERVER['SERVER_NAME'])) . "\n";
+			$headers = 'From: wordpress@' . preg_replace('#^www\.#', '', sanitize_text_field(strtolower($_SERVER['SERVER_NAME']))) . "\n";
 			$headers .= "Content-Type: multipart/mixed; boundary=\"$boundary\"\n";
 
 			// Add a multipart boundary above the plain message
@@ -1178,7 +1174,7 @@ class wpdbBackup {
 			if ( function_exists('wp_schedule_event') ) {
 				wp_clear_scheduled_hook( 'wp_db_backup_cron' ); // unschedule previous
 				$scheds = (array) wp_get_schedules();
-				$name = strval($_POST['wp_cron_schedule']);
+				$name = sanitize_text_field(strval($_POST['wp_cron_schedule']));
 				$interval = ( isset($scheds[$name]['interval']) ) ?
 					(int) $scheds[$name]['interval'] : 0;
 				update_option('wp_cron_backup_schedule', $name, false);
@@ -1189,9 +1185,9 @@ class wpdbBackup {
 			else {
 				update_option('wp_cron_backup_schedule', intval($_POST['cron_schedule']), false);
 			}
-			update_option('wp_cron_backup_tables', isset( $_POST['wp_cron_backup_tables'] ) ? $_POST['wp_cron_backup_tables'] : array() );
+			update_option('wp_cron_backup_tables', $this->get_submitted_tables_to_backup_in_cron());
 			if (is_email($_POST['cron_backup_recipient'])) {
-				update_option('wp_cron_backup_recipient', $_POST['cron_backup_recipient'], false);
+				update_option('wp_cron_backup_recipient', sanitize_text_field($_POST['cron_backup_recipient']), false);
 			}
 			$feedback .= '<div class="updated wp-db-backup-updated"><p>' . __('Scheduled Backup Options Saved!','wp-db-backup') . '</p></div>';
 		endif;
@@ -1505,6 +1501,62 @@ class wpdbBackup {
 			$this->error(array('kind' => 'fatal', 'loc' => 'frame', 'msg' => __("Cheatin' uh ?",'wp-db-backup')));
 	}
 
+	/**
+	 * Sanitize an array of content.
+	 *
+	 * @param array $array_of_data
+	 *
+	 * @return array
+	 */
+	function sanitize_array($array_to_sanitize) {
+		$sanitized = array();
+		foreach ( $array_to_sanitize as $key => $value ) {
+			$sanitized[$key] = sanitize_text_field($value);
+		}
+		return $sanitized;
+	}
+
+	/**
+	 * Get a sanitized array of submitted $_POST values
+	 *
+	 * @param string $post_key The key of the $_POST array.
+	 *
+	 * @return array
+	 */
+	function get_post_data_array($post_key) {
+		$sanitized_data = array();
+		if (isset( $_POST[$post_key] )) {
+			$sanitized_data = (array) $_POST[$post_key];
+		}
+		return $this->sanitize_array($sanitized_data);
+	}
+
+	/**
+	 * Get the revisions to exclude.
+	 *
+	 * @return array
+	 */
+	function get_revisions_to_exclude() {
+		return $this->get_post_data_array('exclude-revisions');
+	}
+
+	/**
+	 * Get the spam to exclude.
+	 *
+	 * @return array
+	 */
+	function get_spam_to_exclude() {
+		return $this->get_post_data_array('exclude-spam');
+	}
+
+	/**
+	 * Get the submitted tables to backup.
+	 *
+	 * @return array
+	 */
+	function get_submitted_tables_to_backup_in_cron() {
+		return $this->get_post_data_array('wp_cron_backup_tables');
+	}
 }
 
 function wpdbBackup_init() {
