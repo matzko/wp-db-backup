@@ -1138,7 +1138,7 @@ class wpdbBackup {
 		// did we just do a backup?  If so, let's report the status
 		if ( $this->backup_complete ) {
 			$feedback = '<div class="updated wp-db-backup-updated"><p>' . __('Backup Successful','wp-db-backup') . '!';
-			$file = $this->backup_file;
+
 			switch($_POST['deliver']) {
 			case 'http':
 				$feedback .= '<br />' . sprintf(__('Your backup file: %2s should begin downloading shortly.','wp-db-backup'), "{$this->backup_file}", $this->backup_file);
@@ -1189,9 +1189,6 @@ class wpdbBackup {
 			}
 			$feedback .= '<div class="updated wp-db-backup-updated"><p>' . __('Scheduled Backup Options Saved!','wp-db-backup') . '</p></div>';
 		endif;
-
-		$other_tables = array();
-		$also_backup = array();
 
 		// Get complete db table list
 		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
