@@ -25,16 +25,16 @@ Copyright 2018  Austin Matzko  (email : austin at pressedcode.com)
 */
 
 if ( ! defined('ABSPATH') ) {
-	die('Please do not load this file directly.');
+    die('Please do not load this file directly.');
 }
 
 $rand = substr( md5( md5( DB_PASSWORD ) ), -5 );
 global $wpdbb_content_dir, $wpdbb_content_url;
-$wpdbb_content_dir = ( defined('WP_CONTENT_DIR') ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
-$wpdbb_content_url = ( defined('WP_CONTENT_URL') ) ? WP_CONTENT_URL : get_option('siteurl') . '/wp-content';
+$wpdbb_content_dir = ( defined('WP_CONTENT_DIR' ) ) ? WP_CONTENT_DIR : ABSPATH . 'wp-content';
+$wpdbb_content_url = ( defined('WP_CONTENT_URL' ) ) ? WP_CONTENT_URL : get_option( 'siteurl' ) . '/wp-content';
 
-if ( ! defined('ROWS_PER_SEGMENT') ) {
-	define('ROWS_PER_SEGMENT', 100);
+if ( ! defined('ROWS_PER_SEGMENT' ) ) {
+    define('ROWS_PER_SEGMENT', 100);
 }
 
 /**
@@ -43,7 +43,7 @@ if ( ! defined('ROWS_PER_SEGMENT') ) {
  * if the backup stops prematurely.
  */
 // define('MOD_EVASIVE_OVERRIDE', false);
-if ( ! defined('MOD_EVASIVE_DELAY') ) {
+if ( ! defined('MOD_EVASIVE_DELAY' ) ) {
 	define('MOD_EVASIVE_DELAY', '500');
 }
 
@@ -60,29 +60,28 @@ class wpdbBackup {
 	var $version = '2.3.3';
 
 	function module_check() {
-		$mod_evasive = false;
 		if ( defined( 'MOD_EVASIVE_OVERRIDE' ) && true === MOD_EVASIVE_OVERRIDE ) return true;
 		if ( ! defined( 'MOD_EVASIVE_OVERRIDE' ) || false === MOD_EVASIVE_OVERRIDE ) return false;
-		if ( function_exists('apache_get_modules') )
-			foreach( (array) apache_get_modules() as $mod )
-				if ( false !== strpos($mod,'mod_evasive') || false !== strpos($mod,'mod_dosevasive') )
+		if ( function_exists('apache_get_modules' ) )
+			foreach( (array)apache_get_modules() as $mod )
+				if ( false !== strpos( $mod,'mod_evasive' ) || false !== strpos( $mod,'mod_dosevasive' ) )
 					return true;
 		return false;
 	}
 
 	function __construct() {
 		global $table_prefix, $wpdb;
-		add_action('wp_ajax_save_backup_time', array(&$this, 'save_backup_time'));
-		add_action('init', array(&$this, 'init_textdomain'));
-		add_action('init', array(&$this, 'set_page_url'));
-		add_action('admin_init', array(&$this, 'update_notice_action'));
-		add_action('wp_db_backup_cron', array(&$this, 'cron_backup'));
-		add_action('wp_cron_daily', array(&$this, 'wp_cron_daily'));
-		add_filter('cron_schedules', array(&$this, 'add_sched_options'));
-		add_filter('wp_db_b_schedule_choices', array(&$this, 'schedule_choices'));
+		add_action( 'wp_ajax_save_backup_time', array(&$this, 'save_backup_time') );
+		add_action( 'init', array(&$this, 'init_textdomain') );
+		add_action( 'init', array(&$this, 'set_page_url') );
+		add_action( 'admin_init', array(&$this, 'update_notice_action') );
+		add_action( 'wp_db_backup_cron', array(&$this, 'cron_backup') );
+		add_action( 'wp_cron_daily', array(&$this, 'wp_cron_daily') );
+		add_filter( 'cron_schedules', array(&$this, 'add_sched_options') );
+		add_filter( 'wp_db_b_schedule_choices', array(&$this, 'schedule_choices') );
 
 		$table_prefix = ( isset( $table_prefix ) ) ? $table_prefix : $wpdb->prefix;
-		$datum = date("Ymd_B");
+		$datum = date("Ymd_B" );
 		$this->backup_filename = DB_NAME . "_$table_prefix$datum.sql";
 
 		$possible_names = array(
@@ -110,51 +109,51 @@ class wpdbBackup {
 		}
 
 		$requested_temp_dir = isset( $_GET['wp_db_temp_dir'] ) ? sanitize_text_field( $_GET['wp_db_temp_dir'] ) : null;
-		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir', (isset($requested_temp_dir) && is_writable($requested_temp_dir)) ? $requested_temp_dir : get_temp_dir()));
+		$this->backup_dir = trailingslashit( apply_filters( 'wp_db_b_backup_dir', ( isset( $requested_temp_dir ) && is_writable( $requested_temp_dir) ) ? $requested_temp_dir : get_temp_dir() ) );
 		$this->basename = 'wp-db-backup';
 
 		$this->referer_check_key = $this->basename . '-download_' . DB_NAME;
-		if (isset($_POST['do_backup'])) {
-			$this->wp_secure('fatal');
-			check_admin_referer($this->referer_check_key);
-			$this->can_user_backup('main');
+		if ( isset( $_POST['do_backup'] ) ) {
+			$this->wp_secure('fatal' );
+			check_admin_referer( $this->referer_check_key );
+			$this->can_user_backup('main' );
 
 			// save exclude prefs
-			update_option('wp_db_backup_excs', array(
+			update_option( 'wp_db_backup_excs', array(
 				'revisions' => $this->get_revisions_to_exclude(),
 				'spam' => $this->get_spam_to_exclude()
-			));
-			switch($_POST['do_backup']) {
+			) );
+			switch( $_POST['do_backup'] ) {
 			case 'backup':
-				add_action('init', array(&$this, 'perform_backup'));
+				add_action( 'init', array(&$this, 'perform_backup') );
 				break;
 			case 'fragments':
-				add_action('admin_menu', array(&$this, 'fragment_menu'));
+				add_action( 'admin_menu', array(&$this, 'fragment_menu') );
 				break;
 			}
-		} elseif (isset($_GET['fragment'] )) {
-			$this->can_user_backup('frame');
-			add_action('init', array(&$this, 'init'));
-		} elseif (isset($_GET['backup'] )) {
+		} elseif ( isset( $_GET['fragment'] ) ) {
+			$this->can_user_backup('frame' );
+			add_action( 'init', array(&$this, 'init') );
+		} elseif ( isset( $_GET['backup'] ) ) {
 			$this->can_user_backup();
-			add_action('init', array(&$this, 'init'));
+			add_action( 'init', array(&$this, 'init') );
 		} else {
-			add_action('admin_menu', array(&$this, 'admin_menu'));
+			add_action( 'admin_menu', array(&$this, 'admin_menu') );
 		}
 	}
 
 	function init() {
 		$this->can_user_backup();
-		if (isset($_GET['backup'])) {
-			$via = isset($_GET['via']) ? sanitize_text_field($_GET['via']) : 'http';
+		if ( isset( $_GET['backup'] ) ) {
+			$via = isset( $_GET['via'] ) ? sanitize_text_field( $_GET['via'] ) : 'http';
 
-			$this->backup_file = sanitize_text_field($_GET['backup']);
-			$this->validate_file($this->backup_file);
+			$this->backup_file = sanitize_text_field( $_GET['backup'] );
+			$this->validate_file( $this->backup_file );
 
-			switch($via) {
+			switch( $via ) {
 			case 'smtp':
 			case 'email':
-				$success = $this->deliver_backup($this->backup_file, 'smtp', sanitize_text_field($_GET['recipient']), 'frame');
+				$success = $this->deliver_backup( $this->backup_file, 'smtp', sanitize_text_field( $_GET['recipient'] ), 'frame' );
 				$this->error_display( 'frame' );
 				if ( $success ) {
 					echo '
@@ -169,7 +168,7 @@ class wpdbBackup {
 				}
 				break;
 			default:
-				$success = $this->deliver_backup($this->backup_file, $via);
+				$success = $this->deliver_backup( $this->backup_file, $via );
 				echo $this->error_display( 'frame', false );
 
 				if ( $success ) {
@@ -182,25 +181,25 @@ class wpdbBackup {
 			}
 			exit;
 		}
-		if (isset($_GET['fragment'] )) {
-			list($table, $segment, $filename) = explode(':', sanitize_text_field($_GET['fragment']));
-			$this->validate_file($filename);
-			$this->backup_fragment($table, $segment, $filename);
+		if ( isset( $_GET['fragment'] ) ) {
+			list( $table, $segment, $filename ) = explode(':', sanitize_text_field( $_GET['fragment'] ) );
+			$this->validate_file( $filename );
+			$this->backup_fragment( $table, $segment, $filename );
 		}
 
 		die();
 	}
 
 	function init_textdomain() {
-		load_plugin_textdomain('wp-db-backup', str_replace(ABSPATH, '', dirname(__FILE__)), dirname(plugin_basename(__FILE__)));
+		load_plugin_textdomain( 'wp-db-backup', str_replace(ABSPATH, '', dirname(__FILE__) ), dirname( plugin_basename( __FILE__ ) ) );
 	}
 
 	function set_page_url() {
 		$query_args = array( 'page' => $this->basename );
-		if ( function_exists('wp_create_nonce') )
-			$query_args = array_merge( $query_args, array('_wpnonce' => wp_create_nonce($this->referer_check_key)) );
-		$base = ( function_exists('site_url') ) ? site_url('', 'admin') : get_option('siteurl');
-		$this->page_url = add_query_arg( $query_args, $base . '/wp-admin/edit.php');
+		if ( function_exists('wp_create_nonce' ) )
+			$query_args = array_merge( $query_args, array( '_wpnonce' => wp_create_nonce( $this->referer_check_key ) ) );
+		$base = ( function_exists('site_url' ) ) ? site_url( '', 'admin' ) : get_option( 'siteurl' );
+		$this->page_url = add_query_arg( $query_args, $base . '/wp-admin/edit.php' );
 	}
 
 	/*
@@ -210,15 +209,15 @@ class wpdbBackup {
 		global $pagenow;
 		if (
 			(
-				isset($_REQUEST['action'])
-				&& ('upgrade-core' == $_REQUEST['action'])
+				isset( $_REQUEST['action'] )
+				&& ( 'upgrade-core' == $_REQUEST['action'] )
 			)
 			|| (
-				!empty($pagenow) && ('update-core.php' == $pagenow)
+				!empty( $pagenow ) && ( 'update-core.php' == $pagenow )
 			)
 		) :
-			ob_start(array(&$this, 'update_notice'));
-			add_action('admin_footer', create_function('', 'ob_end_flush();'));
+			ob_start( array(&$this, 'update_notice') );
+			add_action( 'admin_footer', create_function('', 'ob_end_flush();' ) );
 		endif;
 	}
 
