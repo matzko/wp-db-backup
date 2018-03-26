@@ -109,7 +109,7 @@ class wpdbBackup {
 			}
 		}
 
-		$requested_temp_dir = sanitize_text_field($_GET['wp_db_temp_dir']);
+		$requested_temp_dir = isset($_GET['wp_db_temp_dir']) ? sanitize_text_field($_GET['wp_db_temp_dir']) : null;
 		$this->backup_dir = trailingslashit(apply_filters('wp_db_b_backup_dir', (isset($requested_temp_dir) && is_writable($requested_temp_dir)) ? $requested_temp_dir : get_temp_dir()));
 		$this->basename = 'wp-db-backup';
 
