@@ -218,7 +218,7 @@ class wpdbBackup {
 			)
 		) :
 			ob_start(array(&$this, 'update_notice'));
-			add_action('admin_footer', create_function('', 'ob_end_flush();'));
+			add_action('admin_footer', function(){ob_end_flush();});
 		endif;
 	}
 
@@ -1194,7 +1194,7 @@ class wpdbBackup {
 
 		// Get complete db table list
 		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
-		$all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
+		$all_tables = array_map(function($a){return $a[0];}, $all_tables);
 		// Get list of WP tables that actually exist in this DB (for 1.6 compat!)
 		$wp_backup_default_tables = array_intersect($all_tables, $this->core_table_names);
 		// Get list of non-WP tables
@@ -1427,7 +1427,7 @@ class wpdbBackup {
 	function cron_backup() {
 		global $table_prefix, $wpdb;
 		$all_tables = $wpdb->get_results("SHOW TABLES", ARRAY_N);
-		$all_tables = array_map(create_function('$a', 'return $a[0];'), $all_tables);
+		$all_tables = array_map(function($a){return $a[0];}, $all_tables);
 		$core_tables = array_intersect($all_tables, $this->core_table_names);
 		$other_tables = get_option('wp_cron_backup_tables');
 		$recipient = get_option('wp_cron_backup_recipient');
