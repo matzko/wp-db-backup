@@ -951,6 +951,9 @@ class wpdbBackup {
 		extract( apply_filters( 'wp_mail', compact( 'to', 'subject', 'message' ) ) );
 
 		if ( !is_object( $phpmailer ) || ( strtolower(get_class( $phpmailer )) != 'phpmailer' ) ) {
+            // WordPress 5.5: PHPMailer moved from class-phpmail.php to PHPMailer/PHPMailer.php
+			if ( file_exists( ABSPATH . WPINC . '/PHPMailer/PHPMailer.php' ) )
+				require_once ABSPATH . WPINC . '/PHPMailer/PHPMailer.php';
 			if ( file_exists( ABSPATH . WPINC . '/class-phpmailer.php' ) )
 				require_once ABSPATH . WPINC . '/class-phpmailer.php';
 			if ( file_exists( ABSPATH . WPINC . '/class-smtp.php' ) )
@@ -960,7 +963,12 @@ class wpdbBackup {
 		}
 
 		// try to use phpmailer directly (WP 2.2+)
-		if ( is_object( $phpmailer ) && ( strtolower(get_class( $phpmailer )) == 'phpmailer' ) ) {
+		if ( is_object( $phpmailer ) &&
+            (
+                ( strtolower(get_class( $phpmailer )) == 'phpmailer' )
+                || ( strtolower(get_class( $phpmailer )) == 'phpmailer\phpmailer\phpmailer' )
+            )
+        ) {
 
 			// Get the site domain and get rid of www.
 			$sitename = $this->get_sitename();
